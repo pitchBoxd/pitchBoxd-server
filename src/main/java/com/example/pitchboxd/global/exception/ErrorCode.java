@@ -20,7 +20,7 @@ public enum ErrorCode {
     MATCH_LINEUP_DID_NOT_PARTICIPATE("ML-002", "선수가 경기에 참여하지 않았습니다.", HttpStatus.BAD_REQUEST),
 
     MATCH_REVIEW_ALREADY_REVIEWED("MR-001", "이미 경기 리뷰에 참여했습니다.", HttpStatus.CONFLICT),
-    MATCH_REVIEW_TIME_LIMIT_PASSED("MR-002", "경기 리뷰 시간이 아닙니다.", HttpStatus.BAD_REQUEST),
+    MATCH_REVIEW_TIME_LIMIT_PASSED("MR-002", "경기 리뷰 가능 시간이 아닙니다.", HttpStatus.BAD_REQUEST),
 
     MATCH_STATISTICS_NOT_FOUND("MS-001", "경기 통계를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
