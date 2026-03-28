@@ -40,6 +40,13 @@ public class User extends BaseEntity {
         this.password = password;
     }
 
+    public User(String nickname, String email, String password, Long favoriteTeamId) {
+        this.nickname = nickname;
+        this.email = email;
+        this.password = password;
+        this.favoriteTeamId = favoriteTeamId;
+    }
+
     public boolean matchId(Long id) {
         return this.id.equals(id);
     }

@@ -1,5 +1,7 @@
 package com.example.pitchboxd.matchReview.service.facade;
 
+import com.example.pitchboxd.global.exception.BusinessException;
+import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.domain.Match;
 import com.example.pitchboxd.match.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.dto.response.MatchReviewCreateResponse;
@@ -28,7 +30,12 @@ public class MatchReviewFacadeService {
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
         Match match = matchService.findMatch(matchId);
         // TODO: 나중에 매치에 리뷰를 달 수 있는 시간인지 확인한다(리뷰는 24시간 이내로 작성 가능하게 한다.)
+
         User user = userService.findUser(userId);
+        
+        if (matchReviewService.isExist(matchId, userId)) {
+            throw new BusinessException(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED);
+        }
 
         FanType fanType = match.determineFanType(user.getFavoriteTeamId());
 

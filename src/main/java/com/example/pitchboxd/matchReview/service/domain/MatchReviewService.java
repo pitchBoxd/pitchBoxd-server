@@ -14,9 +14,15 @@ public class MatchReviewService {
 
     private final MatchReviewRepository matchReviewRepository;
 
+    @Transactional
     public MatchReview save(MatchReviewCreateRequest request, Long userId, Long matchId) {
         MatchReview matchReview = new MatchReview(matchId, userId, request.point(), request.content());
 
         return matchReviewRepository.save(matchReview);
+    }
+
+
+    public boolean isExist(Long matchId, Long userId) {
+        return matchReviewRepository.existsByMatchIdAndUserId(matchId, userId);
     }
 }
