@@ -17,6 +17,7 @@ import com.example.pitchboxd.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.matchStatistics.infrastructure.MatchStatisticsRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
+import com.example.pitchboxd.support.TestClockHolder;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.time.LocalDateTime;
@@ -54,6 +55,9 @@ class MatchReviewFacadeServiceTest {
     @Autowired
     private DatabaseCleaner databaseCleaner;
 
+    @Autowired
+    private TestClockHolder clockHolder;
+
     private User user;
     private Match match;
 
@@ -61,10 +65,13 @@ class MatchReviewFacadeServiceTest {
     void setUp() {
         databaseCleaner.clean();
 
-        user = userRepository.save(new User("테스터", "test@example.com", "password123!", 1L));
+        user = userRepository.save(new User("테스터", "test @example.com", "password123!", 1L));
         MatchResult matchResult = new MatchResult(0, 0, List.of(), List.of());
-        match = matchRepository.save(
-                new Match(1L, 2, 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장", matchResult));
+        Match unsavedMatch = new Match(1L, 2, 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장",
+                matchResult);
+        unsavedMatch.finish(LocalDateTime.now().minusHours(1));
+        match = matchRepository.save(unsavedMatch);
+
         matchStatisticsRepository.save(new MatchStatistics(match.getId()));
     }
 
@@ -105,5 +112,67 @@ class MatchReviewFacadeServiceTest {
         assertThatThrownBy(() -> matchReviewFacadeService.submitReview(duplicateRequest, match.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED.getMessage());
+    }
+
+    @Test
+    void 존재하지_않는_경기에_리뷰를_작성하면_예외가_발생한다() {
+        // given
+        Long invalidMatchId = 9999L;
+        MatchReviewCreateRequest request = new MatchReviewCreateRequest("없는 경기", 5);
+
+        // when & then
+        assertThatThrownBy(() -> matchReviewFacadeService.submitReview(request, invalidMatchId, user.getId()))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void 존재하지_않는_사용자가_리뷰를_작성하면_예외가_발생한다() {
+        // given
+        Long invalidUserId = 9999L;
+        MatchReviewCreateRequest request = new MatchReviewCreateRequest("없는 유저", 5);
+
+        // when & then
+        assertThatThrownBy(() -> matchReviewFacadeService.submitReview(request, match.getId(), invalidUserId))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void 어웨이_팀_팬인_사용자가_리뷰를_성공적으로_등록한다() {
+        // given
+        User awayFan = userRepository.save(new User("어웨이팬", "away @example.com", "password123!", 2L));
+        MatchReviewCreateRequest request = new MatchReviewCreateRequest("어웨이 팬의 리뷰", 4);
+
+        // when
+        MatchReviewCreateResponse response = matchReviewFacadeService.submitReview(request, match.getId(),
+                awayFan.getId());
+
+        // then
+        MatchReview savedReview = matchReviewRepository.findById(response.id()).orElseThrow();
+        
+        assertAll(
+                () -> assertThat(response.id()).isNotNull(),
+                () -> assertThat(savedReview.getUserId()).isEqualTo(awayFan.getId())
+        );
+    }
+
+    @Test
+    void 경기_종료_후_24시간이_지나면_리뷰를_작성할_수_없다() {
+        // given
+        LocalDateTime startTime = LocalDateTime.now().minusHours(48);
+        LocalDateTime endTime = startTime.plusMinutes(120);
+        MatchResult matchResult = new MatchResult(0, 0, List.of(), List.of());
+        Match oldMatch = new Match(2L, 2, 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장", matchResult);
+        oldMatch.finish(endTime);
+
+        Match savedOldMatch = matchRepository.save(oldMatch);
+
+        matchStatisticsRepository.save(new MatchStatistics(savedOldMatch.getId()));
+
+        MatchReviewCreateRequest request = new MatchReviewCreateRequest("너무 늦은 리뷰", 5);
+
+        // when & then
+        assertThatThrownBy(() -> matchReviewFacadeService.submitReview(request, savedOldMatch.getId(), user.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED.getMessage());
     }
 }

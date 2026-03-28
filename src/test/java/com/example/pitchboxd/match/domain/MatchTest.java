@@ -4,11 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.matchStatistics.domain.FanType;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ActiveProfiles("test")
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -34,7 +41,7 @@ class MatchTest {
                 () -> assertThat(match.getRound()).isEqualTo(round),
                 () -> assertThat(match.getHomeTeamId()).isEqualTo(homeTeamId),
                 () -> assertThat(match.getAwayTeamId()).isEqualTo(awayTeamId),
-                () -> assertThat(match.getDateTime()).isEqualTo(dateTime),
+                () -> assertThat(match.getStartTime()).isEqualTo(dateTime),
                 () -> assertThat(match.getStatus()).isEqualTo(status),
                 () -> assertThat(match.getLocation()).isEqualTo(location)
         );
@@ -104,26 +111,78 @@ class MatchTest {
                 MatchStatus.FINISHED, "Stadium", null
         );
 
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime oneHourBefore = now.minusHours(1);
+
+        match.finish(oneHourBefore);
+
         // when
-        boolean result = match.isEnd();
+        boolean result = match.isEnd(now);
 
         // then
         assertThat(result).isTrue();
     }
 
-    @Test
-    void 경기가_종료된_상태가_아니면_false를_반환한다() {
+    @ParameterizedTest
+    @MethodSource("provideInvalidMatchConditions")
+    void 경기가_종료된_상태가_아니면_false를_반환한다(MatchStatus status, LocalDateTime finishedAt) {
         // given
         Match match = new Match(
                 1L, 1, 1L, 2L,
                 LocalDateTime.of(2026, 3, 28, 15, 0),
-                null, "Stadium", null
+                status, "Stadium", null
         );
 
+        ReflectionTestUtils.setField(match, "finishedAt", finishedAt);
+
+        LocalDateTime now = LocalDateTime.now();
+
         // when
-        boolean result = match.isEnd();
+        boolean result = match.isEnd(now);
 
         // then
         assertThat(result).isFalse();
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideDurationConditions")
+    void 지정된_시간이_지났는지_확인한다(Duration duration, LocalDateTime finishedAt, LocalDateTime now, boolean expected) {
+        // given
+        Match match = new Match(
+                1L, 1, 1L, 2L,
+                LocalDateTime.of(2026, 3, 28, 15, 0),
+                MatchStatus.FINISHED, "Stadium", null
+        );
+
+        ReflectionTestUtils.setField(match, "finishedAt", finishedAt);
+
+        // when
+        boolean result = match.isPassed(now, duration);
+
+        // then
+        assertThat(result).isEqualTo(expected);
+    }
+
+    private static Stream<Arguments> provideDurationConditions() {
+        LocalDateTime now = LocalDateTime.of(2026, 3, 28, 20, 0);
+        Duration duration = Duration.ofHours(2);
+
+        return Stream.of(
+                // finishedAt(17:00) + duration(2h) = 19:00 < now(20:00) -> true
+                Arguments.of(duration, now.minusHours(3), now, true),
+                // finishedAt(19:00) + duration(2h) = 21:00 > now(20:00) -> false
+                Arguments.of(duration, now.minusHours(1), now, false)
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidMatchConditions() {
+        LocalDateTime now = LocalDateTime.now();
+        return Stream.of(
+                Arguments.of(null, now.minusHours(1)),      // MatchStatus가 null인 경우
+                Arguments.of(MatchStatus.FINISHED, null),   // finishedAt이 null인 경우
+                Arguments.of(MatchStatus.SCHEDULED, now.minusHours(1)), // FINISHED가 아닌 상태
+                Arguments.of(MatchStatus.FINISHED, now.plusHours(1))    // finishedAt이 현재 이후인 경우
+        );
     }
 }

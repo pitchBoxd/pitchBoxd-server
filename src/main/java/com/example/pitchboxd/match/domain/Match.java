@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -44,7 +45,10 @@ public class Match extends BaseEntity {
     private Long awayTeamId;
 
     @Column(nullable = false)
-    private LocalDateTime dateTime;
+    private LocalDateTime startTime;
+
+    @Column
+    private LocalDateTime finishedAt;
 
     @Column(nullable = false)
     private MatchStatus status;
@@ -55,14 +59,14 @@ public class Match extends BaseEntity {
     @Embedded
     private MatchResult matchResult;
 
-    public Match(Long seasonId, Integer round, Long homeTeamId, Long awayTeamId, LocalDateTime dateTime,
+    public Match(Long seasonId, Integer round, Long homeTeamId, Long awayTeamId, LocalDateTime startTime,
                  MatchStatus status,
                  String location, MatchResult matchResult) {
         this.seasonId = seasonId;
         this.round = round;
         this.homeTeamId = homeTeamId;
         this.awayTeamId = awayTeamId;
-        this.dateTime = dateTime;
+        this.startTime = startTime;
         this.status = status;
         this.location = location;
         this.matchResult = matchResult;
@@ -80,7 +84,24 @@ public class Match extends BaseEntity {
         return FanType.NEUTRAL;
     }
 
-    public boolean isEnd() {
-        return status == MatchStatus.FINISHED;
+    public void finish(LocalDateTime now) {
+        this.status = MatchStatus.FINISHED;
+        this.finishedAt = now;
+    }
+
+    public boolean isEnd(LocalDateTime now) {
+        if (finishedAt == null || status == null) {
+            return false;
+        }
+
+        return status == MatchStatus.FINISHED && finishedAt.isBefore(now);
+    }
+
+    public boolean isPassed(LocalDateTime now, Duration duration) {
+        if (!isEnd(now)) {
+            return false;
+        }
+        
+        return this.finishedAt.plus(duration).isBefore(now);
     }
 }

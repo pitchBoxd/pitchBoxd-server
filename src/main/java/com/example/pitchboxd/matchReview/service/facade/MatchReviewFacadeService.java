@@ -1,5 +1,6 @@
 package com.example.pitchboxd.matchReview.service.facade;
 
+import com.example.pitchboxd.global.domain.ClockHolder;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.domain.Match;
@@ -12,6 +13,8 @@ import com.example.pitchboxd.matchStatistics.domain.FanType;
 import com.example.pitchboxd.matchStatistics.service.domain.MatchStatisticsService;
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.domain.User;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,18 +24,26 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MatchReviewFacadeService {
 
+    private static final Duration REVIEW_LIMIT = Duration.ofHours(24);
+
     private final MatchReviewService matchReviewService;
     private final MatchService matchService;
     private final UserService userService;
     private final MatchStatisticsService matchStatisticsService;
+    private final ClockHolder clockHolder;
 
     @Transactional
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
         Match match = matchService.findMatch(matchId);
         // TODO: 나중에 매치에 리뷰를 달 수 있는 시간인지 확인한다(리뷰는 24시간 이내로 작성 가능하게 한다.)
+        LocalDateTime now = clockHolder.now();
+
+        if (!match.isEnd(now) || match.isPassed(now, REVIEW_LIMIT)) {
+            throw new BusinessException(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED);
+        }
 
         User user = userService.findUser(userId);
-        
+
         if (matchReviewService.isExist(matchId, userId)) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED);
         }
