@@ -32,12 +32,16 @@ public class MatchReviewFacadeService {
     private final MatchStatisticsService matchStatisticsService;
     private final ClockHolder clockHolder;
 
+    /***
+     * 경기 리뷰 가능 여부는 다음과 조건을 따릅니다.
+     * 1. 경기가 종료된 후, 경기가 종료된지 24시간 이내여야 합니다.
+     * 2. 유저가 해당 경기에 리뷰를 달지 않았어야 합니다.
+     * ***/
     @Transactional
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
-        Match match = matchService.findMatch(matchId);
-        // TODO: 나중에 매치에 리뷰를 달 수 있는 시간인지 확인한다(리뷰는 24시간 이내로 작성 가능하게 한다.)
-        LocalDateTime now = clockHolder.now();
 
+        Match match = matchService.findMatch(matchId);
+        LocalDateTime now = clockHolder.now();
         if (!match.isEnd(now) || match.isPassed(now, REVIEW_LIMIT)) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED);
         }
