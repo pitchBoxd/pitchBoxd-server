@@ -9,12 +9,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MatchController {
 
-//    private final MatchQueryService matchQueryService;
-//
-//    @GetMapping("/{matchId}/detail")
-//    public ResponseEntity<MatchDetailResponse> getMatchDetail(@PathVariable Long matchId) {
-//        MatchDetailResponse response = matchQueryService.getMatchDetail(matchId);
-//        return ResponseEntity.ok(response);
-//    }
-
 }

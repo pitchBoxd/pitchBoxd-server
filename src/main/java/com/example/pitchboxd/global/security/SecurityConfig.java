@@ -34,7 +34,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/h2-console/**"
+                                "/h2-console/**",
+                                "/api/v1/auth/google/login",
+                                "/api/v1/auth/google/signup"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

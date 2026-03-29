@@ -1,7 +1,10 @@
 package com.example.pitchboxd.auth.presentation;
 
 import com.example.pitchboxd.auth.application.AuthService;
+import com.example.pitchboxd.auth.dto.request.GoogleLoginRequest;
+import com.example.pitchboxd.auth.dto.request.GoogleSignupRequest;
 import com.example.pitchboxd.auth.dto.request.LoginRequest;
+import com.example.pitchboxd.auth.dto.response.GoogleLoginResponse;
 import com.example.pitchboxd.auth.dto.response.TokenResponse;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import jakarta.validation.Valid;
@@ -29,6 +32,27 @@ public class AuthController {
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
+
+    @PostMapping("/google/login")
+    public ResponseEntity<SuccessResponse<GoogleLoginResponse>> googleLogin(
+            @Valid @RequestBody GoogleLoginRequest request) {
+
+        GoogleLoginResponse response = authService.googleLogin(request);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @PostMapping("/google/signup")
+    public ResponseEntity<SuccessResponse<TokenResponse>> googleSignup(
+            @Valid @RequestBody GoogleSignupRequest request) {
+
+        TokenResponse response = authService.googleSignup(request);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
 
     @PostMapping("/logout")
     public ResponseEntity<SuccessResponse<TokenResponse>> logout() {

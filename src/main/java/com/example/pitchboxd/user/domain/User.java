@@ -34,6 +34,8 @@ public class User extends BaseEntity {
 
     private Long favoriteTeamId;
 
+    private Provider provider;
+
     public User(String nickname, String email, String password) {
         this.nickname = nickname;
         this.email = email;
@@ -45,6 +47,14 @@ public class User extends BaseEntity {
         this.email = email;
         this.password = password;
         this.favoriteTeamId = favoriteTeamId;
+    }
+
+    public User(String nickname, String email, String password, Long favoriteTeamId, Provider provider) {
+        this.nickname = nickname;
+        this.email = email;
+        this.password = password;
+        this.favoriteTeamId = favoriteTeamId;
+        this.provider = provider;
     }
 
     public boolean matchId(Long id) {
