@@ -32,5 +32,10 @@ public class Player extends BaseEntity {
     private Long teamId;
 
     @Column(nullable = false)
-    private Integer round;
+    private String name;
+
+    public Player(Long teamId, String name) {
+        this.teamId = teamId;
+        this.name = name;
+    }
 }

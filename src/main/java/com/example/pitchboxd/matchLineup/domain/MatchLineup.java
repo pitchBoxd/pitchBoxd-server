@@ -1,5 +1,6 @@
 package com.example.pitchboxd.matchLineup.domain;
 
+import com.example.pitchboxd.global.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,7 +23,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class MatchLineup {
+public class MatchLineup extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +39,13 @@ public class MatchLineup {
 
     @Enumerated(EnumType.STRING)
     private ParticipationStatus status;
+
+    public MatchLineup(Long matchId, Long playerId, Integer backNumber, ParticipationStatus status) {
+        this.matchId = matchId;
+        this.playerId = playerId;
+        this.backNumber = backNumber;
+        this.status = status;
+    }
 
     public boolean isParticipated() {
         return status == ParticipationStatus.STARTER || status == ParticipationStatus.SUBSTITUTED_IN;

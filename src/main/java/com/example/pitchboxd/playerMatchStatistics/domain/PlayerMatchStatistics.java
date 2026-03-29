@@ -1,5 +1,6 @@
 package com.example.pitchboxd.playerMatchStatistics.domain;
 
+import com.example.pitchboxd.global.domain.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,7 +20,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class PlayerMatchStatistics {
+public class PlayerMatchStatistics extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,8 +32,9 @@ public class PlayerMatchStatistics {
     private Long totalScore;  // 0~10점들의 총합
     private Long reviewCount; // 리뷰 개수
 
-    public PlayerMatchStatistics(Long playerId) {
+    public PlayerMatchStatistics(Long playerId, Long matchId) {
         this.playerId = playerId;
+        this.matchId = matchId;
         this.totalScore = 0L;
         this.reviewCount = 0L;
     }

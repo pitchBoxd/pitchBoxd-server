@@ -31,7 +31,6 @@ public class PlayerReviewCommandController {
         PlayerReviewCreateResponse response = playerReviewFacadeService.submitReview(request, matchId, userId);
 
         HttpStatus status = HttpStatus.CREATED;
-
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 }

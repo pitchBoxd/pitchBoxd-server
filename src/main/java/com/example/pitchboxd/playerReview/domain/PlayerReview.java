@@ -1,6 +1,7 @@
 package com.example.pitchboxd.playerReview.domain;
 
 
+import com.example.pitchboxd.global.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,7 +23,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class PlayerReview {
+public class PlayerReview extends BaseEntity {
 
     private static final int MAX_CONTENT_LENGTH = 100;
     private static final int MAX_POINT = 10;

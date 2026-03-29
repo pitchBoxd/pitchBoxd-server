@@ -16,7 +16,7 @@ public enum ErrorCode {
 
     PLAYER_NOT_FOUND("P-001", "존재하지 않는 선수입니다.", HttpStatus.NOT_FOUND),
 
-    MATCH_LINEUP_NOT_FOUND("ML-001", "존재하지 않는 라인업니다.", HttpStatus.NOT_FOUND),
+    MATCH_LINEUP_NOT_FOUND("ML-001", "존재하지 않는 라인업입니다.", HttpStatus.NOT_FOUND),
     MATCH_LINEUP_DID_NOT_PARTICIPATE("ML-002", "선수가 경기에 참여하지 않았습니다.", HttpStatus.BAD_REQUEST),
 
     MATCH_REVIEW_ALREADY_REVIEWED("MR-001", "이미 경기 리뷰에 참여했습니다.", HttpStatus.CONFLICT),
