@@ -1,6 +1,6 @@
 package com.example.pitchboxd.global.converter;
 
-import com.example.pitchboxd.match.domain.GoalScorer;
+import com.example.pitchboxd.match.core.domain.GoalScorer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

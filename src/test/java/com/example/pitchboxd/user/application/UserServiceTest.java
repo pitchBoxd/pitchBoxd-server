@@ -163,7 +163,7 @@ class UserServiceTest {
         User user = userRepository.save(new User("테스트유저", "test@example.com", "password123!"));
 
         // when
-        User result = userService.findUser(user.getId());
+        User result = userService.findById(user.getId());
 
         // then
         assertThat(result.getEmail()).isEqualTo("test@example.com");
@@ -172,7 +172,7 @@ class UserServiceTest {
     @Test
     void 존재하지_않는_유저를_조회하면_예외가_발생한다() {
         // when & then
-        assertThatThrownBy(() -> userService.findUser(999L))
+        assertThatThrownBy(() -> userService.findById(999L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     }
