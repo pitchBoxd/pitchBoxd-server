@@ -5,12 +5,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.match.domain.Match;
-import com.example.pitchboxd.match.domain.MatchResult;
 import com.example.pitchboxd.match.domain.MatchStatus;
 import com.example.pitchboxd.match.infrastructure.MatchRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -49,9 +47,8 @@ class MatchServiceTest {
     void 매치를_정상적으로_조회한다() {
         // given
         Match match = matchRepository.save(new Match(
-                1L, 1, 1L, 1L,
-                LocalDateTime.now(), MatchStatus.FINISHED, "지구",
-                new MatchResult(0, 0, new ArrayList<>(), new ArrayList<>())));
+                1L, "1", 1L, 1L,
+                LocalDateTime.now(), MatchStatus.FINISHED, "지구"));
         Long matchId = match.getId();
 
         // when

@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.domain.Match;
-import com.example.pitchboxd.match.domain.MatchResult;
 import com.example.pitchboxd.match.domain.MatchStatus;
 import com.example.pitchboxd.match.infrastructure.MatchRepository;
 import com.example.pitchboxd.matchLineup.domain.MatchLineup;
@@ -27,7 +26,6 @@ import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -87,9 +85,8 @@ class PlayerReviewFacadeServiceTest {
         awayTeam = teamRepository.save(new Team("수원삼성"));
         homeTeamPlayer = playerRepository.save(new Player(homeTeam.getId(), "기성용"));
 
-        MatchResult matchResult = new MatchResult(0, 0, List.of(), List.of());
-        Match unsavedMatch = new Match(1L, 1, homeTeam.getId(), awayTeam.getId(), now.minusHours(3),
-                MatchStatus.FINISHED, "상암 월드컵 경기장", matchResult);
+        Match unsavedMatch = new Match(1L, "1", homeTeam.getId(), awayTeam.getId(), now.minusHours(3),
+                MatchStatus.FINISHED, "상암 월드컵 경기장");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
 
         match = matchRepository.save(unsavedMatch);

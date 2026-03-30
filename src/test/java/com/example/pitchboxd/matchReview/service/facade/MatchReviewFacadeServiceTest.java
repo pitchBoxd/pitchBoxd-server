@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.domain.Match;
-import com.example.pitchboxd.match.domain.MatchResult;
 import com.example.pitchboxd.match.domain.MatchStatus;
 import com.example.pitchboxd.match.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.dto.response.MatchReviewCreateResponse;
@@ -21,7 +20,6 @@ import com.example.pitchboxd.support.TestClockHolder;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -66,9 +64,7 @@ class MatchReviewFacadeServiceTest {
         databaseCleaner.clean();
 
         user = userRepository.save(new User("테스터", "test @example.com", "password123!", 1L));
-        MatchResult matchResult = new MatchResult(0, 0, List.of(), List.of());
-        Match unsavedMatch = new Match(1L, 2, 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장",
-                matchResult);
+        Match unsavedMatch = new Match(1L, "2", 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
         match = matchRepository.save(unsavedMatch);
 
@@ -148,7 +144,7 @@ class MatchReviewFacadeServiceTest {
 
         // then
         MatchReview savedReview = matchReviewRepository.findById(response.id()).orElseThrow();
-        
+
         assertAll(
                 () -> assertThat(response.id()).isNotNull(),
                 () -> assertThat(savedReview.getUserId()).isEqualTo(awayFan.getId())
@@ -160,8 +156,7 @@ class MatchReviewFacadeServiceTest {
         // given
         LocalDateTime startTime = LocalDateTime.now().minusHours(48);
         LocalDateTime endTime = startTime.plusMinutes(120);
-        MatchResult matchResult = new MatchResult(0, 0, List.of(), List.of());
-        Match oldMatch = new Match(2L, 2, 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장", matchResult);
+        Match oldMatch = new Match(2L, "2", 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장");
         oldMatch.finish(endTime);
 
         Match savedOldMatch = matchRepository.save(oldMatch);

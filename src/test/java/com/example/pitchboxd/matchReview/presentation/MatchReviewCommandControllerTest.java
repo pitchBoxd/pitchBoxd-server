@@ -2,7 +2,6 @@ package com.example.pitchboxd.matchReview.presentation;
 
 import com.example.pitchboxd.global.security.JwtProvider;
 import com.example.pitchboxd.match.domain.Match;
-import com.example.pitchboxd.match.domain.MatchResult;
 import com.example.pitchboxd.match.domain.MatchStatus;
 import com.example.pitchboxd.match.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.infrastructure.MatchRepository;
@@ -14,7 +13,6 @@ import com.example.pitchboxd.user.infrastructure.UserRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,8 +56,7 @@ class MatchReviewCommandControllerTest {
         User user = userRepository.save(new User("nickname", "email@gmail.com", "1234!"));
         accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
 
-        Match match = new Match(1L, 1, 1L, 1L, LocalDateTime.now().minusHours(3), MatchStatus.FINISHED, "지구",
-                new MatchResult(0, 0, new ArrayList<>(), new ArrayList<>()));
+        Match match = new Match(1L, "1", 1L, 1L, LocalDateTime.now().minusHours(3), MatchStatus.FINISHED, "지구");
 
         match.finish(LocalDateTime.now().minusHours(1));
         Match savedMatch = matchRepository.save(match);
