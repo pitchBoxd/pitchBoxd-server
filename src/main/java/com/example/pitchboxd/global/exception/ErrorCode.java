@@ -8,6 +8,7 @@ public enum ErrorCode {
 
     INTERNAL_SERVER_ERROR("G-001", "오류가 발생했습니다. 관리자에게 문의하세요.", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_INPUT("G-002", "유효하지 않은 입력입니다.", HttpStatus.BAD_REQUEST),
+    EXTERNAL_API_ERROR("G-003", "외부 API 에러입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     USER_NOT_FOUND("U-001", "존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND),
     USER_EMAIL_CONFLICT("U-002", "이미 존재하는 이메일입니다.", HttpStatus.CONFLICT),

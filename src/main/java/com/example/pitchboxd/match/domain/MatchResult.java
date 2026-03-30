@@ -15,10 +15,8 @@ import org.hibernate.type.SqlTypes;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MatchResult {
 
-    @Column(nullable = false)
     private Integer homeScore;
 
-    @Column(nullable = false)
     private Integer awayScore;
 
     @JdbcTypeCode(SqlTypes.JSON)
