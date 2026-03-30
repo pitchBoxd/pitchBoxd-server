@@ -39,7 +39,6 @@ public class MatchReviewFacadeService {
      * ***/
     @Transactional
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
-
         Match match = matchService.findMatch(matchId);
         LocalDateTime now = clockHolder.now();
         if (!match.isEnd(now) || match.isPassed(now, REVIEW_LIMIT)) {

@@ -35,6 +35,7 @@ public enum ErrorCode {
     UNAUTHORIZED("A-004", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("A-005", "해당 리소스에 대한 접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
     USER_UNAUTHENTICATED("A-006", "로그인이 필요한 서비스입니다.", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN_GOOGLE("A-007", "유효하지 않은 구글 토큰입니다.", HttpStatus.UNAUTHORIZED),
     ;
 
 
