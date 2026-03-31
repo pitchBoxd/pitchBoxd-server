@@ -3,7 +3,7 @@ package com.example.pitchboxd.match.core.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import com.example.pitchboxd.match.statistics.domain.FanType;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;

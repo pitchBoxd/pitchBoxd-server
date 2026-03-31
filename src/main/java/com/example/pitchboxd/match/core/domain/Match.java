@@ -1,7 +1,7 @@
 package com.example.pitchboxd.match.core.domain;
 
 import com.example.pitchboxd.global.domain.BaseEntity;
-import com.example.pitchboxd.match.statistics.domain.FanType;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
