@@ -54,7 +54,7 @@ class MatchReviewTest {
     }
 
     @Test
-    void 포인트가_10_이상인_경우_예외가_발생한다() {
+    void 포인트가_10_초과인_경우_예외가_발생한다() {
         // given
         Integer point = 11;
 
@@ -74,5 +74,55 @@ class MatchReviewTest {
 
         // then
         assertThat(matchReview.getPoint()).isEqualTo(point);
+    }
+
+    @Test
+    void 포인트가_10인_경우_정상적으로_생성된다() {
+        // given
+        Integer point = 10;
+
+        // when
+        MatchReview matchReview = new MatchReview(1L, 1L, point, "완벽한 경기");
+
+        // then
+        assertThat(matchReview.getPoint()).isEqualTo(point);
+    }
+
+    @Test
+    void 좋아요_개수를_1_증가시킨다() {
+        // given
+        MatchReview matchReview = new MatchReview(1L, 1L, 5, "재밌어요");
+
+        // when
+        matchReview.addOneLikeCount();
+
+        // then
+        assertThat(matchReview.getLikeCount()).isEqualTo(1L);
+    }
+
+    @Test
+    void 좋아요_개수를_1_감소시킨다() {
+        // given
+        MatchReview matchReview = new MatchReview(1L, 1L, 5, "재밌어요");
+        matchReview.addOneLikeCount();
+        matchReview.addOneLikeCount();
+
+        // when
+        matchReview.minusOneLikeCount();
+
+        // then
+        assertThat(matchReview.getLikeCount()).isEqualTo(1L);
+    }
+
+    @Test
+    void 좋아요_개수가_0인_경우_감소시켜도_0을_유지한다() {
+        // given
+        MatchReview matchReview = new MatchReview(1L, 1L, 5, "재밌어요");
+
+        // when
+        matchReview.minusOneLikeCount();
+
+        // then
+        assertThat(matchReview.getLikeCount()).isEqualTo(0L);
     }
 }

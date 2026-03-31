@@ -7,7 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,9 +43,6 @@ public class MatchReview extends BaseEntity {
     private String content;
     private Long likeCount;
 
-    @Version
-    private Long version;
-
     public MatchReview(Long matchId, Long userId, Integer point, String content) {
         validate(content, point);
         this.matchId = matchId;
@@ -71,5 +67,15 @@ public class MatchReview extends BaseEntity {
         if (point > MAX_POINT || point < MIN_POINT) {
             throw new IllegalArgumentException("포인트는 0 이상, 10 이하이어야 합니다.");
         }
+    }
+
+    public void minusOneLikeCount() {
+        if (likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
+    public void addOneLikeCount() {
+        this.likeCount++;
     }
 }

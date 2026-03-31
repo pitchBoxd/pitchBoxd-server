@@ -11,6 +11,7 @@ import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.review.domain.MatchReview;
 import com.example.pitchboxd.match.review.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.match.review.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.review.dto.response.MatchReviewCreateResponse;
 import com.example.pitchboxd.match.review.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.statistics.domain.MatchStatistics;
@@ -63,7 +64,7 @@ class MatchReviewFacadeServiceTest {
     void setUp() {
         databaseCleaner.clean();
 
-        user = userRepository.save(new User("테스터", "test @example.com", "password123!", 1L));
+        user = userRepository.save(new User("테스터", "test@example.com", "password123!", 1L));
         Match unsavedMatch = new Match(1L, "2", 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
         match = matchRepository.save(unsavedMatch);
@@ -135,7 +136,7 @@ class MatchReviewFacadeServiceTest {
     @Test
     void 어웨이_팀_팬인_사용자가_리뷰를_성공적으로_등록한다() {
         // given
-        User awayFan = userRepository.save(new User("어웨이팬", "away @example.com", "password123!", 2L));
+        User awayFan = userRepository.save(new User("어웨이팬", "away@example.com", "password123!", 2L));
         MatchReviewCreateRequest request = new MatchReviewCreateRequest("어웨이 팬의 리뷰", 4);
 
         // when
@@ -169,5 +170,72 @@ class MatchReviewFacadeServiceTest {
         assertThatThrownBy(() -> matchReviewFacadeService.submitReview(request, savedOldMatch.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED.getMessage());
+    }
+
+    @Test
+    void 리뷰_좋아요를_처음_누르면_좋아요가_추가된다() {
+        // given
+        MatchReviewCreateRequest request = new MatchReviewCreateRequest("정말 재미있는 경기였습니다!", 5);
+        MatchReviewCreateResponse reviewResponse = matchReviewFacadeService.submitReview(request, match.getId(),
+                user.getId());
+        Long reviewId = reviewResponse.id();
+
+        // when
+        LikeToggleResponse response = matchReviewFacadeService.toggleLike(reviewId, user.getId());
+
+        // then
+        MatchReview updatedReview = matchReviewRepository.findById(reviewId).orElseThrow();
+        assertAll(
+                () -> assertThat(response.isLiked()).isTrue(),
+                () -> assertThat(response.totalLikeCount()).isEqualTo(1),
+                () -> assertThat(updatedReview.getLikeCount()).isEqualTo(1)
+        );
+    }
+
+    @Test
+    void 이미_좋아요를_누른_상태에서_다시_누르면_좋아요가_취소된다() {
+        // given
+        MatchReviewCreateRequest request = new MatchReviewCreateRequest("정말 재미있는 경기였습니다!", 5);
+        MatchReviewCreateResponse reviewResponse = matchReviewFacadeService.submitReview(request, match.getId(),
+                user.getId());
+        Long reviewId = reviewResponse.id();
+        matchReviewFacadeService.toggleLike(reviewId, user.getId());
+
+        // when
+        LikeToggleResponse response = matchReviewFacadeService.toggleLike(reviewId, user.getId());
+
+        // then
+        MatchReview updatedReview = matchReviewRepository.findById(reviewId).orElseThrow();
+        assertAll(
+                () -> assertThat(response.isLiked()).isFalse(),
+                () -> assertThat(response.totalLikeCount()).isEqualTo(0),
+                () -> assertThat(updatedReview.getLikeCount()).isEqualTo(0)
+        );
+    }
+
+    @Test
+    void 존재하지_않는_리뷰에_좋아요를_누르면_예외가_발생한다() {
+        // given
+        Long invalidReviewId = 9999L;
+
+        // when & then
+        assertThatThrownBy(() -> matchReviewFacadeService.toggleLike(invalidReviewId, user.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.MATCH_REVIEW_NOT_FOUND.getMessage())
+        ;
+    }
+
+    @Test
+    void 존재하지_않는_사용자가_좋아요를_누르면_예외가_발생한다() {
+        // given
+        MatchReviewCreateRequest request = new MatchReviewCreateRequest("정말 재미있는 경기였습니다!", 5);
+        MatchReviewCreateResponse reviewResponse = matchReviewFacadeService.submitReview(request, match.getId(),
+                user.getId());
+        Long invalidUserId = 9999L;
+
+        // when & then
+        assertThatThrownBy(() -> matchReviewFacadeService.toggleLike(reviewResponse.id(), invalidUserId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     }
 }

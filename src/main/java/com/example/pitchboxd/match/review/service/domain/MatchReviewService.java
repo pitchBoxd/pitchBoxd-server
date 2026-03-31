@@ -1,7 +1,9 @@
 package com.example.pitchboxd.match.review.service.domain;
 
-import com.example.pitchboxd.match.core.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.global.exception.BusinessException;
+import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.review.domain.MatchReview;
+import com.example.pitchboxd.match.review.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.review.infrastructure.MatchReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,5 +25,15 @@ public class MatchReviewService {
 
     public boolean isExist(Long matchId, Long userId) {
         return matchReviewRepository.existsByMatchIdAndUserId(matchId, userId);
+    }
+
+    public MatchReview findById(Long matchReviewId) {
+        return matchReviewRepository.findById(matchReviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_REVIEW_NOT_FOUND));
+    }
+
+    public MatchReview findByIdForUpdate(Long matchReviewId) {
+        return matchReviewRepository.findByIdWithPessimisticLock(matchReviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_REVIEW_NOT_FOUND));
     }
 }

@@ -17,7 +17,7 @@ public class MatchService {
 
     private final MatchRepository matchRepository;
 
-    public Match findMatch(Long matchId) {
+    public Match findById(Long matchId) {
 
         return matchRepository.findById(matchId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));

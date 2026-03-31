@@ -2,8 +2,9 @@ package com.example.pitchboxd.match.review.presentation;
 
 import com.example.pitchboxd.auth.presentation.LoginUserId;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
-import com.example.pitchboxd.match.core.dto.request.MatchReviewCreateRequest;
-import com.example.pitchboxd.match.core.dto.response.MatchReviewCreateResponse;
+import com.example.pitchboxd.match.review.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.match.review.dto.response.LikeToggleResponse;
+import com.example.pitchboxd.match.review.dto.response.MatchReviewCreateResponse;
 import com.example.pitchboxd.match.review.service.facade.MatchReviewFacadeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +30,19 @@ public class MatchReviewCommandController {
             @Valid @RequestBody MatchReviewCreateRequest request
     ) {
         MatchReviewCreateResponse response = matchReviewFacadeService.submitReview(request, matchId, userId);
-
         HttpStatus status = HttpStatus.CREATED;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
+    @PostMapping("/match-reviews/{matchReviewId}/likes")
+    public ResponseEntity<SuccessResponse<LikeToggleResponse>> toggleLike(
+            @PathVariable Long matchReviewId,
+            @LoginUserId Long userId
+    ) {
+        LikeToggleResponse response = matchReviewFacadeService.toggleLike(matchReviewId, userId);
+        HttpStatus status = HttpStatus.OK;
 
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
 }

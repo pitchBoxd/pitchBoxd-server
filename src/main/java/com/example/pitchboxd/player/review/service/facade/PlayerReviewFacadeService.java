@@ -47,7 +47,7 @@ public class PlayerReviewFacadeService {
     @Transactional
     public PlayerReviewCreateResponse submitReview(PlayerReviewCreateRequest request, Long matchId, Long userId) {
         Long playerId = request.playerId();
-        Match match = matchService.findMatch(matchId);
+        Match match = matchService.findById(matchId);
 
         LocalDateTime now = clockHolder.now();
         if (!match.isEnd(now) || match.isPassed(now, REVIEW_LIMIT)) {
@@ -63,7 +63,7 @@ public class PlayerReviewFacadeService {
             throw new BusinessException(ErrorCode.MATCH_LINEUP_DID_NOT_PARTICIPATE); // 선수가 겸기에 참여하지 않음(벤치)
         }
 
-        User user = userService.findUser(userId);
+        User user = userService.findById(userId);
         Player player = playerService.findPlayer(request.playerId());
         Long playerTeamId = player.getTeamId();
 

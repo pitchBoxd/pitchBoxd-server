@@ -22,6 +22,7 @@ public enum ErrorCode {
 
     MATCH_REVIEW_ALREADY_REVIEWED("MR-001", "이미 경기 리뷰에 참여했습니다.", HttpStatus.CONFLICT),
     MATCH_REVIEW_TIME_LIMIT_PASSED("MR-002", "경기 리뷰 가능 시간이 아닙니다.", HttpStatus.BAD_REQUEST),
+    MATCH_REVIEW_NOT_FOUND("MR-003", "경기 리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     MATCH_STATISTICS_NOT_FOUND("MS-001", "경기 통계를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 

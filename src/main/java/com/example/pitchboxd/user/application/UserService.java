@@ -60,7 +60,7 @@ public class UserService {
         return new EmailAvailabilityResponse(userRepository.existsByEmail(email));
     }
 
-    public User findUser(Long userId) {
+    public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }

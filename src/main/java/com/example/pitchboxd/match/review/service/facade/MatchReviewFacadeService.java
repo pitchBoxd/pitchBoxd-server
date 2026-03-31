@@ -4,10 +4,12 @@ import com.example.pitchboxd.global.domain.ClockHolder;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.Match;
-import com.example.pitchboxd.match.core.dto.request.MatchReviewCreateRequest;
-import com.example.pitchboxd.match.core.dto.response.MatchReviewCreateResponse;
 import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.match.review.domain.MatchReview;
+import com.example.pitchboxd.match.review.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.match.review.dto.response.LikeToggleResponse;
+import com.example.pitchboxd.match.review.dto.response.MatchReviewCreateResponse;
+import com.example.pitchboxd.match.review.service.domain.MatchReviewLikeService;
 import com.example.pitchboxd.match.review.service.domain.MatchReviewService;
 import com.example.pitchboxd.match.statistics.domain.FanType;
 import com.example.pitchboxd.match.statistics.service.domain.MatchStatisticsService;
@@ -30,6 +32,7 @@ public class MatchReviewFacadeService {
     private final MatchService matchService;
     private final UserService userService;
     private final MatchStatisticsService matchStatisticsService;
+    private final MatchReviewLikeService matchReviewLikeService;
     private final ClockHolder clockHolder;
 
     /***
@@ -39,13 +42,13 @@ public class MatchReviewFacadeService {
      * ***/
     @Transactional
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
-        Match match = matchService.findMatch(matchId);
+        Match match = matchService.findById(matchId);
         LocalDateTime now = clockHolder.now();
         if (!match.isEnd(now) || match.isPassed(now, REVIEW_LIMIT)) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED);
         }
 
-        User user = userService.findUser(userId);
+        User user = userService.findById(userId);
 
         if (matchReviewService.isExist(matchId, userId)) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED);
@@ -55,10 +58,31 @@ public class MatchReviewFacadeService {
 
         MatchReview savedMatchReview = matchReviewService.save(request, matchId, userId);
 
-        // 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
+        // TODO: 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
         // 나중엔 트랜잭셔널 아웃박스 패턴으로 정합성 보장해보는것도 좋을듯. 이벤트 리스너의 유실 문제 해결을 위해서
         matchStatisticsService.updateReview(matchId, request.point(), fanType);
 
         return new MatchReviewCreateResponse(savedMatchReview.getId());
+    }
+
+    @Transactional
+    public LikeToggleResponse toggleLike(Long matchReviewId, Long userId) {
+        MatchReview matchReview = matchReviewService.findByIdForUpdate(matchReviewId);
+        userService.findById(userId);
+
+        boolean isLikedNow = matchReviewLikeService.isLiked(matchReviewId, userId);
+        boolean willBeLiked = !isLikedNow;
+
+        if (isLikedNow) {
+            matchReviewLikeService.delete(matchReviewId, userId);
+            matchReview.minusOneLikeCount();
+        }
+
+        if (!isLikedNow) {
+            matchReviewLikeService.save(matchReviewId, userId);
+            matchReview.addOneLikeCount();
+        }
+
+        return LikeToggleResponse.of(willBeLiked, matchReview);
     }
 }
