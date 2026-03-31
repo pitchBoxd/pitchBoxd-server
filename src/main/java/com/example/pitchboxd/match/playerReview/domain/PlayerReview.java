@@ -73,7 +73,17 @@ public class PlayerReview extends BaseEntity {
 
     private void validatePoint(Integer point) {
         if (point > MAX_POINT || point < MIN_POINT) {
-            throw new IllegalArgumentException("포인트는 0 이상, 10 미만이어야 합니다.");
+            throw new IllegalArgumentException("포인트는 0 이상, 10 이하여야 합니다.");
         }
+    }
+
+    public void minusOneLikeCount() {
+        if (likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
+    public void addOneLikeCount() {
+        this.likeCount++;
     }
 }

@@ -1,5 +1,7 @@
 package com.example.pitchboxd.match.playerReview.service.domain;
 
+import com.example.pitchboxd.global.exception.BusinessException;
+import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
@@ -22,6 +24,12 @@ public class PlayerReviewService {
     }
 
     public boolean hasAlreadyReviewed(Long matchId, Long playerId, Long userId) {
-        return playerReviewRepository.existsByMatchIdAndPlayerIdAndUserId(matchId, playerId, userId);
+        return playerReviewRepository.
+                existsByMatchIdAndPlayerIdAndUserId(matchId, playerId, userId);
+    }
+
+    public PlayerReview findByIdForUpdate(Long playerReviewId) {
+        return playerReviewRepository.findByIdWithPessimisticLock(playerReviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_REVIEW_NOT_FOUND));
     }
 }

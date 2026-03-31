@@ -7,9 +7,11 @@ import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.match.lineup.domain.MatchLineup;
 import com.example.pitchboxd.match.lineup.service.MatchLineupService;
+import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateResponse;
+import com.example.pitchboxd.match.playerReview.service.domain.PlayerReviewLikeService;
 import com.example.pitchboxd.match.playerReview.service.domain.PlayerReviewService;
 import com.example.pitchboxd.match.playerStatistics.service.PlayerMatchStatisticsService;
 import com.example.pitchboxd.player.domain.Player;
@@ -35,6 +37,8 @@ public class PlayerReviewFacadeService {
     private final PlayerReviewService playerReviewService;
     private final MatchLineupService matchLineupService;
     private final PlayerMatchStatisticsService playerMatchStatisticsService;
+    private final PlayerReviewLikeService playerReviewLikeService;
+    
     private final ClockHolder clockHolder;
 
     /***
@@ -78,5 +82,26 @@ public class PlayerReviewFacadeService {
         playerMatchStatisticsService.updateReview(matchId, playerId, request.point());
 
         return new PlayerReviewCreateResponse(savedPlayerReview.getId());
+    }
+
+    @Transactional
+    public LikeToggleResponse toggleLike(Long playerReviewId, Long userId) {
+        PlayerReview playerReview = playerReviewService.findByIdForUpdate(playerReviewId);
+        userService.findById(userId);
+
+        boolean isLikedNow = playerReviewLikeService.isLiked(playerReviewId, userId);
+        boolean willBeLiked = !isLikedNow;
+
+        if (isLikedNow) {
+            playerReviewLikeService.delete(playerReviewId, userId);
+            playerReview.minusOneLikeCount();
+        }
+
+        if (!isLikedNow) {
+            playerReviewLikeService.save(playerReviewId, userId);
+            playerReview.addOneLikeCount();
+        }
+
+        return LikeToggleResponse.of(willBeLiked, playerReview);
     }
 }

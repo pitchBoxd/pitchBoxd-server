@@ -1,5 +1,8 @@
 package com.example.pitchboxd.match.playerReview.presentation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import com.example.pitchboxd.global.security.JwtProvider;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
@@ -7,6 +10,7 @@ import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.lineup.domain.MatchLineup;
 import com.example.pitchboxd.match.lineup.domain.ParticipationStatus;
 import com.example.pitchboxd.match.lineup.infrastructure.MatchLineupRepository;
+import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
 import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerMatchStatisticsRepository;
@@ -34,28 +38,37 @@ class PlayerReviewCommandControllerTest {
 
     private final Long homeTeamId = 1L;
     private final Long awayTeamId = 2L;
+
     @Autowired
     private PlayerRepository playerRepository;
+
     @LocalServerPort
     private int port;
+
     @Autowired
     private DatabaseCleaner databaseCleaner;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private MatchRepository matchRepository;
+
     @Autowired
     private MatchLineupRepository matchLineupRepository;
+
     @Autowired
     private PlayerMatchStatisticsRepository playerMatchStatisticsRepository;
-    private Long matchId;
-    private Long playerId;
+
     @Autowired
     private JwtProvider jwtProvider;
+
     @Autowired
     private TestClockHolder clockHolder;
-    private LocalDateTime now;
 
+    private Long matchId;
+    private Long playerId;
+    private LocalDateTime now;
     private String accessToken;
     private User user;
 
@@ -66,7 +79,6 @@ class PlayerReviewCommandControllerTest {
         now = LocalDateTime.now();
 
         Match match = new Match(1L, "1", homeTeamId, awayTeamId, now.minusHours(3), MatchStatus.FINISHED, "지구");
-
         match.finish(now);
         Match savedMatch = matchRepository.save(match);
         matchId = savedMatch.getId();
@@ -105,5 +117,41 @@ class PlayerReviewCommandControllerTest {
                 .post("/api/v1/matches/{matchId}/player-reviews", matchId)
                 .then().log().all()
                 .statusCode(HttpStatus.CREATED.value());
+    }
+
+    @Test
+    void 선수_리뷰_좋아요를_토글한다() {
+        // given
+        clockHolder.plusHours(1);
+        PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(playerId, "정말 멋진 활약이었습니다.", 10);
+
+        Long playerReviewId = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(request)
+                .when()
+                .post("/api/v1/matches/{matchId}/player-reviews", matchId)
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .jsonPath()
+                .getLong("data.id");
+
+        // when & then
+        LikeToggleResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .post("/api/v1/player-reviews/{playerReviewId}/likes", playerReviewId)
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", LikeToggleResponse.class);
+
+        assertAll(
+                () -> assertThat(response.isLiked()).isTrue(),
+                () -> assertThat(response.totalLikeCount()).isEqualTo(1)
+        );
     }
 }

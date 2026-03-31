@@ -12,8 +12,12 @@ import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.lineup.domain.MatchLineup;
 import com.example.pitchboxd.match.lineup.domain.ParticipationStatus;
 import com.example.pitchboxd.match.lineup.infrastructure.MatchLineupRepository;
+import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
+import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
+import com.example.pitchboxd.match.playerReview.domain.PlayerReviewLike;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateResponse;
+import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewLikeRepository;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
 import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerMatchStatisticsRepository;
@@ -66,6 +70,9 @@ class PlayerReviewFacadeServiceTest {
     private PlayerMatchStatisticsRepository playerMatchStatisticsRepository;
 
     @Autowired
+    private PlayerReviewLikeRepository playerReviewLikeRepository;
+
+    @Autowired
     private DatabaseCleaner databaseCleaner;
 
     @Autowired
@@ -106,7 +113,7 @@ class PlayerReviewFacadeServiceTest {
     @Test
     void 선수를_성공적으로_리뷰한다() {
         // given
-        User user = userRepository.save(new User("유저", "user@gmail.com", "password", homeTeam.getId()));
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
         PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(homeTeamPlayer.getId(), "최고의 활약이었습니다.", 5);
 
         // when
@@ -123,7 +130,7 @@ class PlayerReviewFacadeServiceTest {
     @Test
     void 이미_리뷰를_남긴_선수에게_다시_리뷰를_남기면_예외가_발생한다() {
         // given
-        User user = userRepository.save(new User("유저", "user@gmail.com", "password", homeTeam.getId()));
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
 
         PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(homeTeamPlayer.getId(), "최고의 활약이었습니다.", 5);
         playerReviewFacadeService.submitReview(request, match.getId(), user.getId());
@@ -142,7 +149,7 @@ class PlayerReviewFacadeServiceTest {
                 new MatchLineup(match.getId(), benchPlayer.getId(), 99, ParticipationStatus.BENCH));
         playerMatchStatisticsRepository.save(new PlayerMatchStatistics(benchPlayer.getId(), match.getId()));
 
-        User user = userRepository.save(new User("유저", "user@gmail.com", "password", homeTeam.getId()));
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
         PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(benchPlayer.getId(), "최고의 활약이었습니다.", 5);
 
         // when & then
@@ -155,7 +162,7 @@ class PlayerReviewFacadeServiceTest {
     void 자신이_응원하는_팀의_선수가_아닌_경우_리뷰를_남기면_예외가_발생한다() {
         // given
         User awayTeamFan = userRepository.save(
-                new User("유저", "user@gmail.com", "password", awayTeam.getId())); // 다른 팀 팬
+                new User("유저", "user @gmail.com", "password", awayTeam.getId())); // 다른 팀 팬
 
         PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(homeTeamPlayer.getId(), "최고의 활약이었습니다.", 5);
 
@@ -168,7 +175,7 @@ class PlayerReviewFacadeServiceTest {
     @Test
     void 경기_리뷰_가능_시간이_지나면_리뷰를_할_수_없다() {
         // given
-        User user = userRepository.save(new User("유저", "user@gmail.com", "password", homeTeam.getId()));
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
         PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(homeTeamPlayer.getId(), "최고의 활약이었습니다.", 5);
 
         // 24시간이 지난 후로 설정
@@ -178,5 +185,43 @@ class PlayerReviewFacadeServiceTest {
         assertThatThrownBy(() -> playerReviewFacadeService.submitReview(request, match.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED.getMessage());
+    }
+
+    @Test
+    void 선수_리뷰에_좋아요를_누른다() {
+        // given
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
+        PlayerReview playerReview = playerReviewRepository.save(
+                new PlayerReview(match.getId(), homeTeamPlayer.getId(), user.getId(), 5, "쩐다 ㄷㄷ"));
+
+        // when
+        LikeToggleResponse toggleResponse = playerReviewFacadeService.toggleLike(playerReview.getId(), user.getId());
+
+        // then
+        PlayerReview result = playerReviewRepository.findById(playerReview.getId()).orElseThrow();
+        assertAll(
+                () -> assertThat(toggleResponse.isLiked()).isTrue(),
+                () -> assertThat(result.getLikeCount()).isEqualTo(1)
+        );
+    }
+
+    @Test
+    void 선수_리뷰의_좋아요를_취소한다() {
+        // given
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
+        PlayerReview playerReview = playerReviewRepository.save(
+                new PlayerReview(match.getId(), homeTeamPlayer.getId(), user.getId(), 5, "쩐다 ㄷㄷ"));
+
+        playerReviewLikeRepository.save(new PlayerReviewLike(playerReview.getId(), user.getId()));
+
+        // when
+        LikeToggleResponse toggleResponse = playerReviewFacadeService.toggleLike(playerReview.getId(), user.getId());
+
+        // then
+        PlayerReview result = playerReviewRepository.findById(playerReview.getId()).orElseThrow();
+        assertAll(
+                () -> assertThat(toggleResponse.isLiked()).isFalse(),
+                () -> assertThat(result.getLikeCount()).isEqualTo(0)
+        );
     }
 }

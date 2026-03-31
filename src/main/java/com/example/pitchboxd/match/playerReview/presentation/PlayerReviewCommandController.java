@@ -2,6 +2,7 @@ package com.example.pitchboxd.match.playerReview.presentation;
 
 import com.example.pitchboxd.auth.presentation.LoginUserId;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
+import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateResponse;
 import com.example.pitchboxd.match.playerReview.service.facade.PlayerReviewFacadeService;
@@ -31,6 +32,17 @@ public class PlayerReviewCommandController {
         PlayerReviewCreateResponse response = playerReviewFacadeService.submitReview(request, matchId, userId);
 
         HttpStatus status = HttpStatus.CREATED;
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @PostMapping("/player-reviews/{playerReviewId}/likes")
+    public ResponseEntity<SuccessResponse<LikeToggleResponse>> toggleLike(
+            @PathVariable Long playerReviewId,
+            @LoginUserId Long userId
+    ) {
+        LikeToggleResponse response = playerReviewFacadeService.toggleLike(playerReviewId, userId);
+        HttpStatus status = HttpStatus.OK;
+
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 }
