@@ -12,6 +12,7 @@ import com.example.pitchboxd.match.lineup.domain.ParticipationStatus;
 import com.example.pitchboxd.match.lineup.infrastructure.MatchLineupRepository;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
+import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewUpdateRequest;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
 import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerMatchStatisticsRepository;
 import com.example.pitchboxd.player.domain.Player;
@@ -92,7 +93,7 @@ class PlayerReviewCommandControllerTest {
         PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(playerId, matchId);
         playerMatchStatisticsRepository.save(playerMatchStatistics);
 
-        user = userRepository.save(new User("nickname", "email@gmail.com", "abcd1234!", homeTeamId));
+        user = userRepository.save(new User("nickname", "email @gmail.com", "abcd1234!", homeTeamId));
         accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
     }
 
@@ -153,5 +154,36 @@ class PlayerReviewCommandControllerTest {
                 () -> assertThat(response.isLiked()).isTrue(),
                 () -> assertThat(response.totalLikeCount()).isEqualTo(1)
         );
+    }
+
+    @Test
+    void 선수_리뷰를_성공적으로_수정한다() {
+        // given
+        clockHolder.plusHours(1);
+        PlayerReviewCreateRequest createRequest = new PlayerReviewCreateRequest(playerId, "기존 리뷰 내용입니다.", 10);
+
+        Long playerReviewId = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(createRequest)
+                .when()
+                .post("/api/v1/matches/{matchId}/player-reviews", matchId)
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .jsonPath()
+                .getLong("data.id");
+
+        PlayerReviewUpdateRequest updateRequest = new PlayerReviewUpdateRequest("수정된 리뷰 내용입니다.", 9);
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(updateRequest)
+                .when()
+                .patch("/api/v1/player-reviews/{playerReviewId}", playerReviewId)
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
     }
 }

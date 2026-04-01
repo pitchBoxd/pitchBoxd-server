@@ -32,4 +32,9 @@ public class PlayerReviewService {
         return playerReviewRepository.findByIdWithPessimisticLock(playerReviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_REVIEW_NOT_FOUND));
     }
+
+    public PlayerReview findById(Long playerReviewId) {
+        return playerReviewRepository.findById(playerReviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_REVIEW_NOT_FOUND));
+    }
 }

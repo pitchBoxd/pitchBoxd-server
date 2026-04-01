@@ -12,11 +12,13 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 
 @Entity
+@DynamicUpdate
 @Table(name = "player_reviews")
 @SQLDelete(sql = "UPDATE player_reviews SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
@@ -60,6 +62,12 @@ public class PlayerReview extends BaseEntity {
         this.content = content;
     }
 
+    public void update(String content, Integer point) {
+        validate(content, point);
+        this.content = content;
+        this.point = point;
+    }
+
     private void validate(String content, Integer point) {
         validateContent(content);
         validatePoint(point);
@@ -85,5 +93,9 @@ public class PlayerReview extends BaseEntity {
 
     public void addOneLikeCount() {
         this.likeCount++;
+    }
+
+    public boolean isOwner(Long userId) {
+        return this.userId.equals(userId);
     }
 }

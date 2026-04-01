@@ -112,4 +112,57 @@ class PlayerReviewTest {
         // then
         assertThat(playerReview.getLikeCount()).isEqualTo(0L);
     }
+
+    @Test
+    void 선수_리뷰의_소유자를_확인한다() {
+        // given
+        Long ownerId = 1L;
+        Long otherId = 9999L;
+        PlayerReview playerReview = new PlayerReview(1L, 1L, ownerId, 5, "내용");
+
+        // when & then
+        assertAll(
+                () -> assertThat(playerReview.isOwner(ownerId)).isTrue(),
+                () -> assertThat(playerReview.isOwner(otherId)).isFalse()
+        );
+    }
+
+    @Test
+    void 선수_리뷰를_수정한다() {
+        // given
+        String afterContent = "바뀔 내용";
+        int afterPoint = 10;
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 5, "내용");
+
+        // when
+        playerReview.update(afterContent, afterPoint);
+
+        // then
+        assertAll(
+                () -> assertThat(playerReview.getContent()).isEqualTo(afterContent),
+                () -> assertThat(playerReview.getPoint()).isEqualTo(afterPoint)
+        );
+    }
+
+    @Test
+    void 선수_리뷰_수정_시_잘못된_내용으로_수정할_수_없다() {
+        // given
+        String wrongContent = "a".repeat(101);
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 5, "내용");
+
+        // when & then
+        assertThatThrownBy(() -> playerReview.update(wrongContent, 0))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 선수_리뷰_수정_시_잘못된_점수로_수정할_수_없다() {
+        // given
+        int wrongPoint = 11;
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 5, "내용");
+
+        // when & then
+        assertThatThrownBy(() -> playerReview.update("zz", wrongPoint))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }

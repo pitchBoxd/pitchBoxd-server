@@ -15,11 +15,21 @@ public class PlayerMatchStatisticsService {
 
     private final PlayerMatchStatisticsRepository playerMatchStatisticsRepository;
 
+    @Transactional
     public void updateReview(Long matchId, Long playerId, int point) {
         PlayerMatchStatistics playerMatchStatistics = playerMatchStatisticsRepository
-                .findByMatchIdAndPlayerId(matchId, playerId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_REVIEW_NOT_FOUND));
+                .findByMatchIdAndPlayerIdForUpdate(matchId, playerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_STATISTICS_NOT_FOUND));
 
-        playerMatchStatistics.addReview(point);
+        playerMatchStatistics.addNewReview(point);
+    }
+
+    @Transactional
+    public void adjustReviewStatistics(Long matchId, Long playerId, int differenceOfPoint) {
+        PlayerMatchStatistics playerMatchStatistics = playerMatchStatisticsRepository
+                .findByMatchIdAndPlayerIdForUpdate(matchId, playerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_STATISTICS_NOT_FOUND));
+
+        playerMatchStatistics.adjustRating(differenceOfPoint);
     }
 }

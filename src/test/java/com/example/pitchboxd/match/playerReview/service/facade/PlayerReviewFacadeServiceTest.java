@@ -16,7 +16,9 @@ import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.match.playerReview.domain.PlayerReviewLike;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
+import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewUpdateRequest;
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateResponse;
+import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewUpdateResponse;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewLikeRepository;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
@@ -222,6 +224,69 @@ class PlayerReviewFacadeServiceTest {
         assertAll(
                 () -> assertThat(toggleResponse.isLiked()).isFalse(),
                 () -> assertThat(result.getLikeCount()).isEqualTo(0)
+        );
+    }
+
+    @Test
+    void 선수_리뷰를_성공적으로_수정한다() {
+        // given
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
+        PlayerReview playerReview = playerReviewRepository.save(
+                new PlayerReview(match.getId(), homeTeamPlayer.getId(), user.getId(), 3, "원래 리뷰 내용"));
+
+        PlayerReviewUpdateRequest request = new PlayerReviewUpdateRequest("수정된 리뷰 내용", 5);
+
+        // when
+        PlayerReviewUpdateResponse response = playerReviewFacadeService.updateReview(request, playerReview.getId(),
+                user.getId());
+
+        // then
+        PlayerReview result = playerReviewRepository.findById(playerReview.getId()).orElseThrow();
+        assertAll(
+                () -> assertThat(response.id()).isEqualTo(playerReview.getId()),
+                () -> assertThat(result.getContent()).isEqualTo("수정된 리뷰 내용"),
+                () -> assertThat(result.getPoint()).isEqualTo(5)
+        );
+    }
+
+    @Test
+    void 선수_리뷰_수정_시_작성자가_아니면_예외가_발생한다() {
+        // given
+        User owner = userRepository.save(new User("작성자", "owner @gmail.com", "password", homeTeam.getId()));
+        User other = userRepository.save(new User("다른유저", "other @gmail.com", "password", homeTeam.getId()));
+
+        PlayerReview playerReview = playerReviewRepository.save(
+                new PlayerReview(match.getId(), homeTeamPlayer.getId(), owner.getId(), 4, "작성자의 리뷰"));
+
+        PlayerReviewUpdateRequest request = new PlayerReviewUpdateRequest("수정 시도", 5);
+
+        // when & then
+        assertThatThrownBy(() -> playerReviewFacadeService.updateReview(request, playerReview.getId(), other.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
+    }
+
+    @Test
+    void 리뷰_점수를_수정하면_선수_통계의_평점_합계가_변경된다() {
+        // given
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
+        PlayerReviewCreateResponse response = playerReviewFacadeService.submitReview(
+                new PlayerReviewCreateRequest(homeTeamPlayer.getId(), "3점 리뷰", 3), match.getId(), user.getId());
+        Long reviewId = response.id();
+
+        // 3점에서 5점으로 수정 (차이 +2)
+        PlayerReviewUpdateRequest request = new PlayerReviewUpdateRequest("5점 리뷰", 5);
+
+        // when
+        playerReviewFacadeService.updateReview(request, reviewId, user.getId());
+
+        // then
+        PlayerMatchStatistics statistics = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
+                homeTeamPlayer.getId()).orElseThrow();
+
+        assertAll(
+                () -> assertThat(statistics.getReviewCount()).isEqualTo(1),
+                () -> assertThat(statistics.getTotalScore()).isEqualTo(5)
         );
     }
 }

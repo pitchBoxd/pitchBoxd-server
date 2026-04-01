@@ -2,8 +2,10 @@ package com.example.pitchboxd.match.playerStatistics.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.global.exception.BusinessException;
+import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
 import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerMatchStatisticsRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
@@ -87,5 +89,41 @@ class PlayerMatchStatisticsServiceTest {
         // when & then
         assertThatThrownBy(() -> playerMatchStatisticsService.updateReview(matchId, playerId, point))
                 .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void 플레이어_매치_통계의_리뷰_점수를_조정한다() {
+        // given
+        Long matchId = 1L;
+        Long playerId = 1L;
+        int differenceOfPoint = 2;
+        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
+        playerMatchStatisticsRepository.save(playerMatchStatistics);
+
+        // when
+        playerMatchStatisticsService.adjustReviewStatistics(matchId, playerId, differenceOfPoint);
+
+        // then
+        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+                .orElseThrow();
+        assertAll(
+                () -> assertThat(result).isNotNull(),
+                () -> assertThat(result.getTotalScore()).isEqualTo(differenceOfPoint),
+                () -> assertThat(result.getReviewCount()).isZero()
+        );
+    }
+
+    @Test
+    void 존재하지_않는_플레이어_매치_통계의_점수_조정_시_예외가_발생한다() {
+        // given
+        Long matchId = 1L;
+        Long playerId = 1L;
+        int differenceOfPoint = 2;
+
+        // when & then
+        assertThatThrownBy(
+                () -> playerMatchStatisticsService.adjustReviewStatistics(matchId, playerId, differenceOfPoint))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.PLAYER_STATISTICS_NOT_FOUND.getMessage());
     }
 }

@@ -39,7 +39,7 @@ public class PlayerMatchStatistics extends BaseEntity {
         this.reviewCount = 0L;
     }
 
-    public void addReview(int point) {
+    public void addNewReview(int point) {
         this.totalScore += point;
         this.reviewCount += 1;
     }
@@ -50,5 +50,9 @@ public class PlayerMatchStatistics extends BaseEntity {
             return 0.0;
         }
         return (totalScore / (double) reviewCount) / 2.0;
+    }
+
+    public void adjustRating(int differenceOfPoint) {
+        this.totalScore += differenceOfPoint;
     }
 }

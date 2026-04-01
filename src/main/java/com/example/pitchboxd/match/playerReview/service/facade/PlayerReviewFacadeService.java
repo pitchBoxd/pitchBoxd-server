@@ -10,7 +10,9 @@ import com.example.pitchboxd.match.lineup.service.MatchLineupService;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
+import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewUpdateRequest;
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateResponse;
+import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewUpdateResponse;
 import com.example.pitchboxd.match.playerReview.service.domain.PlayerReviewLikeService;
 import com.example.pitchboxd.match.playerReview.service.domain.PlayerReviewService;
 import com.example.pitchboxd.match.playerStatistics.service.PlayerMatchStatisticsService;
@@ -38,7 +40,7 @@ public class PlayerReviewFacadeService {
     private final MatchLineupService matchLineupService;
     private final PlayerMatchStatisticsService playerMatchStatisticsService;
     private final PlayerReviewLikeService playerReviewLikeService;
-    
+
     private final ClockHolder clockHolder;
 
     /***
@@ -103,5 +105,33 @@ public class PlayerReviewFacadeService {
         }
 
         return LikeToggleResponse.of(willBeLiked, playerReview);
+    }
+
+    @Transactional
+    public PlayerReviewUpdateResponse updateReview(PlayerReviewUpdateRequest request, Long playerReviewId,
+                                                   Long userId) {
+        PlayerReview playerReview = playerReviewService.findById(playerReviewId);
+        userService.findById(userId);
+
+        // TODO: 추후에 리뷰 수정 가능 시간 검증 도입
+        if (!playerReview.isOwner(userId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        int beforePoint = playerReview.getPoint();
+
+        playerReview.update(request.content(), request.point());
+
+        int afterPoint = request.point();
+        int differenceOfPoint = afterPoint - beforePoint;
+
+        // TODO: 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
+        // 나중엔 트랜잭셔널 아웃박스 패턴으로 정합성 보장해보는것도 좋을듯. 이벤트 리스너의 유실 문제 해결을 위해서
+        if (differenceOfPoint != 0) {
+            playerMatchStatisticsService.adjustReviewStatistics(playerReview.getMatchId(), playerReview.getPlayerId(),
+                    differenceOfPoint);
+        }
+
+        return new PlayerReviewUpdateResponse(playerReview.getId());
     }
 }

@@ -4,12 +4,15 @@ import com.example.pitchboxd.auth.presentation.LoginUserId;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
+import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewUpdateRequest;
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateResponse;
+import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewUpdateResponse;
 import com.example.pitchboxd.match.playerReview.service.facade.PlayerReviewFacadeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +44,18 @@ public class PlayerReviewCommandController {
             @LoginUserId Long userId
     ) {
         LikeToggleResponse response = playerReviewFacadeService.toggleLike(playerReviewId, userId);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @PatchMapping("/player-reviews/{playerReviewId}")
+    public ResponseEntity<SuccessResponse<PlayerReviewUpdateResponse>> patchReview(
+            @PathVariable Long playerReviewId,
+            @LoginUserId Long userId,
+            @Valid @RequestBody PlayerReviewUpdateRequest request
+    ) {
+        PlayerReviewUpdateResponse response = playerReviewFacadeService.updateReview(request, playerReviewId, userId);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
