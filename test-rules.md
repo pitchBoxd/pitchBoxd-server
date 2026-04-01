@@ -24,6 +24,7 @@
 8. 테스트간 데이터 격리는 `com/example/pitchboxd/support/DatabaseCleaner.java` 의 `clean()` 메서드를 @BeforeEach, @AfterEach와 함께
    사용하십시오.
 9. 테스트를 위한 객체를 만들 시, 생성자를 잘 확인한 후, 파라미터에 맞게 값을 배치하십시오. (빌더 패턴은 사용하지 않습니다.)
+10. 테스트를 위해 given 절에서 데이터를 저장할 때는, 최대한 Repository의 메서드를 사용하십시오. 서비스의 메서드를 사용하면 테스트간 격리성이 깨집니다.
 
 ### 단위 테스트 요구사항
 
@@ -35,8 +36,9 @@
 6. Service 테스트의 경우 Repository 의존성을 H2로 대체하십시오.
 7. Service 테스트의 경우 `@SpringBootTest(webEnvironment = WebEnvironment.NONE)` 을 사용하십시오.
 8. Service 테스트의 경우 `@Transactional`을 절대 사용하지 마십시오.
-9. Repository 테스트의 경우 @DataJpaTest를 사용하십시오.
+9. Repository 테스트의 경우 `@DataJpaTest`를 사용하십시오.
 10. Repository 테스트의 경우 쿼리 메서드를 테스트하십시오.
+11. Repository 테스트의 경우 공통 요구사항의 8번(clean() 메서드를 통한 데이터 격리)을 무시하십시오.
 
 ### 통합 테스트 요구사항
 
