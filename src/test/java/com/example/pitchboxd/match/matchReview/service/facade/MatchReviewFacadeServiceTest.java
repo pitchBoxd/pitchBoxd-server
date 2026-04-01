@@ -11,9 +11,12 @@ import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewCreateResponse;
+import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewUpdateResponse;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
@@ -64,7 +67,7 @@ class MatchReviewFacadeServiceTest {
     void setUp() {
         databaseCleaner.clean();
 
-        user = userRepository.save(new User("테스터", "test@example.com", "password123!", 1L));
+        user = userRepository.save(new User("테스터", "test @example.com", "password123!", 1L));
         Match unsavedMatch = new Match(1L, "2", 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
         match = matchRepository.save(unsavedMatch);
@@ -136,7 +139,7 @@ class MatchReviewFacadeServiceTest {
     @Test
     void 어웨이_팀_팬인_사용자가_리뷰를_성공적으로_등록한다() {
         // given
-        User awayFan = userRepository.save(new User("어웨이팬", "away@example.com", "password123!", 2L));
+        User awayFan = userRepository.save(new User("어웨이팬", "away @example.com", "password123!", 2L));
         MatchReviewCreateRequest request = new MatchReviewCreateRequest("어웨이 팬의 리뷰", 4);
 
         // when
@@ -237,5 +240,63 @@ class MatchReviewFacadeServiceTest {
         assertThatThrownBy(() -> matchReviewFacadeService.toggleLike(reviewResponse.id(), invalidUserId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    void 경기_리뷰를_성공적으로_수정한다() {
+        // given
+        MatchReview matchReview = matchReviewRepository.save(
+                new MatchReview(match.getId(), user.getId(), 3, "기존 내용", FanType.HOME));
+
+        Long reviewId = matchReview.getId();
+        MatchReviewUpdateRequest updateRequest = new MatchReviewUpdateRequest("수정된 내용", 5);
+
+        // when
+        MatchReviewUpdateResponse updateResponse = matchReviewFacadeService.updateMatchReview(reviewId, user.getId(),
+                updateRequest);
+
+        // then
+        MatchReview updatedReview = matchReviewRepository.findById(updateResponse.id()).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedReview.getContent()).isEqualTo("수정된 내용"),
+                () -> assertThat(updatedReview.getPoint()).isEqualTo(5)
+        );
+    }
+
+    @Test
+    void 자신의_리뷰가_아니면_수정_시_예외가_발생한다() {
+        // given
+        MatchReview matchReview = matchReviewRepository.save(
+                new MatchReview(match.getId(), user.getId(), 3, "내 리뷰", FanType.HOME));
+        Long reviewId = matchReview.getId();
+
+        User anotherUser = userRepository.save(new User("다른유저", "other @example.com", "password123!", 1L));
+        MatchReviewUpdateRequest updateRequest = new MatchReviewUpdateRequest("수정 시도", 5);
+
+        // when & then
+        assertThatThrownBy(
+                () -> matchReviewFacadeService.updateMatchReview(reviewId, anotherUser.getId(), updateRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
+    }
+
+    @Test
+    void 리뷰_점수를_수정하면_경기_통계의_평점_합계가_변경된다() {
+        // given
+        MatchReviewCreateResponse response = matchReviewFacadeService.submitReview(
+                new MatchReviewCreateRequest("3점 리뷰", 3), match.getId(), user.getId());
+        Long reviewId = response.id();
+
+        // 3점에서 5점으로 수정 (차이 +2)
+        MatchReviewUpdateRequest updateRequest = new MatchReviewUpdateRequest("5점 리뷰", 5);
+
+        // when
+        matchReviewFacadeService.updateMatchReview(reviewId, user.getId(), updateRequest);
+
+        // then
+        MatchStatistics statistics = matchStatisticsRepository.findByMatchId(match.getId()).orElseThrow();
+        // FanType이 HOME이므로 (user favoriteTeamId 1L, match homeTeamId 1L)
+        // 기존 3점에서 +2가 되어 5점이 되어야 함
+        assertThat(statistics.getHomeFanRatingSum()).isEqualTo(5);
     }
 }

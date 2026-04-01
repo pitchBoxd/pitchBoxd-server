@@ -1,6 +1,7 @@
 package com.example.pitchboxd.match.matchReview.presentation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.global.security.JwtProvider;
 import com.example.pitchboxd.match.core.domain.Match;
@@ -8,6 +9,7 @@ import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
@@ -63,7 +65,7 @@ class MatchReviewCommandControllerTest {
         RestAssured.port = port;
         databaseCleaner.clean();
 
-        User user = userRepository.save(new User("nickname", "email@gmail.com", "1234!"));
+        User user = userRepository.save(new User("nickname", "email @gmail.com", "1234!"));
         accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
 
         Match match = new Match(1L, "1", 1L, 1L, LocalDateTime.now().minusHours(3), MatchStatus.FINISHED, "지구");
@@ -135,7 +137,7 @@ class MatchReviewCommandControllerTest {
         int threadCount = 5;
         String[] tokens = new String[threadCount];
         for (int i = 0; i < threadCount; i++) {
-            User user = userRepository.save(new User("user" + i, "user" + i + "@gmail.com", "password!"));
+            User user = userRepository.save(new User("user" + i, "user" + i + " @gmail.com", "password!"));
             tokens[i] = jwtProvider.createToken(user.getId(), user.getEmail());
         }
 
@@ -164,5 +166,37 @@ class MatchReviewCommandControllerTest {
         // then
         MatchReview matchReview = matchReviewRepository.findById(matchReviewId).orElseThrow();
         assertThat(matchReview.getLikeCount()).isEqualTo(5);
+    }
+
+    @Test
+    void 경기_리뷰를_수정한다() {
+        // given
+        MatchReviewCreateRequest createRequest = new MatchReviewCreateRequest("수정 전 리뷰", 5);
+        Long matchReviewId = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(createRequest)
+                .when().post("/api/v1/matches/{matchId}/match-reviews", matchId)
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract().jsonPath().getLong("data.id");
+
+        MatchReviewUpdateRequest updateRequest = new MatchReviewUpdateRequest("수정 후 리뷰", 4);
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(updateRequest)
+                .when().patch("/api/v1/match-reviews/{matchReviewId}", matchReviewId)
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+
+        // then
+        MatchReview matchReview = matchReviewRepository.findById(matchReviewId).orElseThrow();
+        assertAll(
+                () -> assertThat(matchReview.getContent()).isEqualTo("수정 후 리뷰"),
+                () -> assertThat(matchReview.getPoint()).isEqualTo(4)
+        );
     }
 }

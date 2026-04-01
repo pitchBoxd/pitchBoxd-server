@@ -8,6 +8,7 @@ import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.MatchReviewLike;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.infrastructure.TeamRepository;
@@ -57,7 +58,8 @@ class MatchReviewLikeRepositoryTest {
 
         Match match = matchRepository
                 .save(new Match(1L, "1R", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.FINISHED, "상암"));
-        review = matchReviewRepository.save(new MatchReview(match.getId(), reviewer.getId(), 5, "좋은 경기였습니다."));
+        review = matchReviewRepository
+                .save(new MatchReview(match.getId(), reviewer.getId(), 5, "좋은 경기였습니다.", FanType.HOME));
     }
 
     @Test

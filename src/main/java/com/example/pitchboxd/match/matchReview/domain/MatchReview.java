@@ -1,8 +1,11 @@
 package com.example.pitchboxd.match.matchReview.domain;
 
 import com.example.pitchboxd.global.domain.BaseEntity;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,10 +14,12 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
+@DynamicUpdate
 @Table(name = "match_reviews")
 @SQLDelete(sql = "UPDATE match_reviews SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
@@ -40,16 +45,27 @@ public class MatchReview extends BaseEntity {
 
     @Column(nullable = false)
     private Integer point;
+
+    @Enumerated(EnumType.STRING)
+    private FanType fanType;
+
     private String content;
     private Long likeCount;
 
-    public MatchReview(Long matchId, Long userId, Integer point, String content) {
+    public MatchReview(Long matchId, Long userId, Integer point, String content, FanType fanType) {
         validate(content, point);
         this.matchId = matchId;
         this.userId = userId;
         this.point = point;
         this.likeCount = 0L;
         this.content = content;
+        this.fanType = fanType;
+    }
+
+    public void update(String content, Integer point) {
+        validate(content, point);
+        this.content = content;
+        this.point = point;
     }
 
     private void validate(String content, Integer point) {
@@ -77,5 +93,9 @@ public class MatchReview extends BaseEntity {
 
     public void addOneLikeCount() {
         this.likeCount++;
+    }
+
+    public boolean isOwner(Long userId) {
+        return this.userId.equals(userId);
     }
 }

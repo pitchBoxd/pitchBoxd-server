@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -52,7 +53,7 @@ class MatchReviewServiceTest {
         MatchReviewCreateRequest request = new MatchReviewCreateRequest(content, point);
 
         // when
-        MatchReview savedReview = matchReviewService.save(request, userId, matchId);
+        MatchReview savedReview = matchReviewService.save(request, FanType.HOME, userId, matchId);
 
         // then
         List<MatchReview> allReviews = matchReviewRepository.findAll();

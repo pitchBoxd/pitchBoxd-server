@@ -3,13 +3,16 @@ package com.example.pitchboxd.match.matchReview.presentation;
 import com.example.pitchboxd.auth.presentation.LoginUserId;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewCreateResponse;
+import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewUpdateResponse;
 import com.example.pitchboxd.match.matchReview.service.facade.MatchReviewFacadeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +44,18 @@ public class MatchReviewCommandController {
             @LoginUserId Long userId
     ) {
         LikeToggleResponse response = matchReviewFacadeService.toggleLike(matchReviewId, userId);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @PatchMapping("/match-reviews/{matchReviewId}")
+    public ResponseEntity<SuccessResponse<MatchReviewUpdateResponse>> patchReview(
+            @PathVariable Long matchReviewId,
+            @LoginUserId Long userId,
+            @Valid @RequestBody MatchReviewUpdateRequest request
+    ) {
+        MatchReviewUpdateResponse response = matchReviewFacadeService.updateMatchReview(matchReviewId, userId, request);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));

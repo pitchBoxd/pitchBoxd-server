@@ -25,9 +25,17 @@ public class MatchStatisticsService {
      * ***/
     @Transactional
     public void updateReview(Long matchId, int rating, FanType fanType) {
-        MatchStatistics matchStatistics = matchStatisticsRepository.findByIdForUpdate(matchId)
+        MatchStatistics matchStatistics = matchStatisticsRepository.findByMatchIdForUpdate(matchId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));
 
-        matchStatistics.applyReview(rating, fanType);
+        matchStatistics.addNewReview(rating, fanType);
+    }
+
+    @Transactional
+    public void adjustReviewStatistics(Long matchId, int ratingDelta, FanType fanType) {
+        MatchStatistics matchStatistics = matchStatisticsRepository.findByMatchIdForUpdate(matchId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));
+
+        matchStatistics.adjustRating(ratingDelta, fanType);
     }
 }

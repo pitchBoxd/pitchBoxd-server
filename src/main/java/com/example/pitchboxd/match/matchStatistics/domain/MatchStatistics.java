@@ -58,7 +58,7 @@ public class MatchStatistics extends BaseEntity {
      * 홈팀 팬: 전체 통계 + 홈팀 관련 통계에 들어갑니다.
      * 원정 팬: 전체 통계 + 원정 관련 통계에 들어갑니다.
      ***/
-    public void applyReview(int rating, FanType fanType) {
+    public void addNewReview(int rating, FanType fanType) {
         this.totalRatingSum += rating;
         this.totalReviewCount++;
 
@@ -68,6 +68,16 @@ public class MatchStatistics extends BaseEntity {
         } else if (fanType == FanType.AWAY) {
             this.awayFanRatingSum += rating;
             this.awayFanReviewCount++;
+        }
+    }
+
+    public void adjustRating(int ratingDelta, FanType fanType) {
+        this.totalRatingSum += ratingDelta;
+
+        if (fanType == FanType.HOME) {
+            this.homeFanRatingSum += ratingDelta;
+        } else if (fanType == FanType.AWAY) {
+            this.awayFanRatingSum += ratingDelta;
         }
     }
 

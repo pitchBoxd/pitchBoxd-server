@@ -12,5 +12,7 @@ public interface MatchStatisticsRepository extends JpaRepository<MatchStatistics
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT ms FROM MatchStatistics ms WHERE ms.matchId = :matchId")
-    Optional<MatchStatistics> findByIdForUpdate(@Param("matchId") Long matchId);
+    Optional<MatchStatistics> findByMatchIdForUpdate(@Param("matchId") Long matchId);
+
+    Optional<MatchStatistics> findByMatchId(Long matchId);
 }

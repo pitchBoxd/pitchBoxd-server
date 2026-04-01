@@ -5,6 +5,7 @@ import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +18,8 @@ public class MatchReviewService {
     private final MatchReviewRepository matchReviewRepository;
 
     @Transactional
-    public MatchReview save(MatchReviewCreateRequest request, Long matchId, Long userId) {
-        MatchReview matchReview = new MatchReview(matchId, userId, request.point(), request.content());
+    public MatchReview save(MatchReviewCreateRequest request, FanType fanType, Long matchId, Long userId) {
+        MatchReview matchReview = new MatchReview(matchId, userId, request.point(), request.content(), fanType);
 
         return matchReviewRepository.save(matchReview);
     }

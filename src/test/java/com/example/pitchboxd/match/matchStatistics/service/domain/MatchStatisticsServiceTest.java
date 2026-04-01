@@ -160,4 +160,80 @@ class MatchStatisticsServiceTest {
                 () -> assertThat(updatedStatistics.getHomeFanRatingSum()).isEqualTo(threadCount * 10L)
         );
     }
+
+    @Test
+    void 홈팀_팬의_평점을_수정하면_전체_통계와_홈팀_통계가_함께_반영된다() {
+        // given
+        Long matchId = 1L;
+        MatchStatistics statistics = new MatchStatistics(matchId);
+        statistics.addNewReview(5, FanType.HOME);
+        matchStatisticsRepository.save(statistics);
+        int ratingDelta = 3;
+
+        // when
+        matchStatisticsService.adjustReviewStatistics(matchId, ratingDelta, FanType.HOME);
+
+        // then
+        MatchStatistics updatedStatistics = matchStatisticsRepository.findById(matchId).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedStatistics.getTotalRatingSum()).isEqualTo(8L),
+                () -> assertThat(updatedStatistics.getHomeFanRatingSum()).isEqualTo(8L),
+                () -> assertThat(updatedStatistics.getAwayFanRatingSum()).isEqualTo(0L)
+        );
+    }
+
+    @Test
+    void 원정팀_팬의_평점을_수정하면_전체_통계와_원정팀_통계가_함께_반영된다() {
+        // given
+        Long matchId = 1L;
+        MatchStatistics statistics = new MatchStatistics(matchId);
+        statistics.addNewReview(7, FanType.AWAY);
+        matchStatisticsRepository.save(statistics);
+        int ratingDelta = -2;
+
+        // when
+        matchStatisticsService.adjustReviewStatistics(matchId, ratingDelta, FanType.AWAY);
+
+        // then
+        MatchStatistics updatedStatistics = matchStatisticsRepository.findById(matchId).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedStatistics.getTotalRatingSum()).isEqualTo(5L),
+                () -> assertThat(updatedStatistics.getAwayFanRatingSum()).isEqualTo(5L),
+                () -> assertThat(updatedStatistics.getHomeFanRatingSum()).isEqualTo(0L)
+        );
+    }
+
+    @Test
+    void 중립팀_팬의_평점을_수정하면_전체_통계만_반영된다() {
+        // given
+        Long matchId = 1L;
+        MatchStatistics statistics = new MatchStatistics(matchId);
+        statistics.addNewReview(4, FanType.NEUTRAL);
+        matchStatisticsRepository.save(statistics);
+        int ratingDelta = 1;
+
+        // when
+        matchStatisticsService.adjustReviewStatistics(matchId, ratingDelta, FanType.NEUTRAL);
+
+        // then
+        MatchStatistics updatedStatistics = matchStatisticsRepository.findById(matchId).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedStatistics.getTotalRatingSum()).isEqualTo(5L),
+                () -> assertThat(updatedStatistics.getHomeFanRatingSum()).isEqualTo(0L),
+                () -> assertThat(updatedStatistics.getAwayFanRatingSum()).isEqualTo(0L)
+        );
+    }
+
+    @Test
+    void 존재하지_않는_경기_통계_수정_시_예외가_발생한다() {
+        // given
+        Long nonExistentMatchId = 999L;
+        int ratingDelta = 2;
+        FanType fanType = FanType.HOME;
+
+        // when & then
+        assertThatThrownBy(
+                () -> matchStatisticsService.adjustReviewStatistics(nonExistentMatchId, ratingDelta, fanType))
+                .isInstanceOf(BusinessException.class);
+    }
 }

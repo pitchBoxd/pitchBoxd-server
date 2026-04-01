@@ -7,8 +7,10 @@ import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
+import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewCreateResponse;
+import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewUpdateResponse;
 import com.example.pitchboxd.match.matchReview.service.domain.MatchReviewLikeService;
 import com.example.pitchboxd.match.matchReview.service.domain.MatchReviewService;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
@@ -56,13 +58,40 @@ public class MatchReviewFacadeService {
 
         FanType fanType = match.determineFanType(user.getFavoriteTeamId());
 
-        MatchReview savedMatchReview = matchReviewService.save(request, matchId, userId);
+        MatchReview savedMatchReview = matchReviewService.save(request, fanType, matchId, userId);
 
         // TODO: 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
         // 나중엔 트랜잭셔널 아웃박스 패턴으로 정합성 보장해보는것도 좋을듯. 이벤트 리스너의 유실 문제 해결을 위해서
         matchStatisticsService.updateReview(matchId, request.point(), fanType);
 
         return new MatchReviewCreateResponse(savedMatchReview.getId());
+    }
+
+    @Transactional
+    public MatchReviewUpdateResponse updateMatchReview(Long matchReviewId, Long userId,
+                                                       MatchReviewUpdateRequest request) {
+        MatchReview matchReview = matchReviewService.findById(matchReviewId);
+        if (!matchReview.isOwner(userId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        int beforePoint = matchReview.getPoint();
+
+        // TODO: 수정에 대한 어떤 정책이 필요할지? (수정하면 Review 자체에 수정됨 낙인을 찍는게 나을듯)
+
+        matchReview.update(request.content(), request.point());
+
+        int afterPoint = request.point();
+        int differenceOfPoint = afterPoint - beforePoint;
+
+        // TODO: 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
+        // 나중엔 트랜잭셔널 아웃박스 패턴으로 정합성 보장해보는것도 좋을듯. 이벤트 리스너의 유실 문제 해결을 위해서
+        if (differenceOfPoint != 0) {
+            matchStatisticsService.adjustReviewStatistics(matchReview.getMatchId(), differenceOfPoint,
+                    matchReview.getFanType());
+        }
+
+        return new MatchReviewUpdateResponse(matchReview.getId());
     }
 
     @Transactional
