@@ -6,6 +6,7 @@ import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
+import com.example.pitchboxd.match.matchReview.domain.MatchReviewSubmitPolicy;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
@@ -17,7 +18,6 @@ import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatisticsService;
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.domain.User;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,13 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MatchReviewFacadeService {
 
-    private static final Duration REVIEW_LIMIT = Duration.ofHours(24);
-
     private final MatchReviewService matchReviewService;
     private final MatchService matchService;
     private final UserService userService;
     private final MatchStatisticsService matchStatisticsService;
     private final MatchReviewLikeService matchReviewLikeService;
+    private final MatchReviewSubmitPolicy matchReviewSubmitPolicy;
     private final ClockHolder clockHolder;
 
     /***
@@ -46,18 +45,13 @@ public class MatchReviewFacadeService {
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
         Match match = matchService.findById(matchId);
         LocalDateTime now = clockHolder.now();
-        if (!match.isEnd(now) || match.isPassed(now, REVIEW_LIMIT)) {
-            throw new BusinessException(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED);
-        }
-
         User user = userService.findById(userId);
 
-        if (matchReviewService.isExist(matchId, userId)) {
-            throw new BusinessException(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED);
-        }
+        boolean alreadyReviewed = matchReviewService.isExist(matchId, userId);
+
+        matchReviewSubmitPolicy.validate(match, alreadyReviewed, now);
 
         FanType fanType = match.determineFanType(user.getFavoriteTeamId());
-
         MatchReview savedMatchReview = matchReviewService.save(request, fanType, matchId, userId);
 
         // TODO: 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
@@ -70,6 +64,7 @@ public class MatchReviewFacadeService {
     @Transactional
     public MatchReviewUpdateResponse updateMatchReview(Long matchReviewId, Long userId,
                                                        MatchReviewUpdateRequest request) {
+        // 여기에도 매치처럼 수정 가능시간을 둬야하나? 좀 더 널널하게 둬도 괜찮을지도?
         MatchReview matchReview = matchReviewService.findById(matchReviewId);
         if (!matchReview.isOwner(userId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
@@ -113,5 +108,17 @@ public class MatchReviewFacadeService {
         }
 
         return LikeToggleResponse.of(willBeLiked, matchReview);
+    }
+
+    @Transactional
+    public void deleteMatchReview(Long matchReviewId, Long userId) {
+        MatchReview matchReview = matchReviewService.findById(matchReviewId);
+        if (!matchReview.isOwner(userId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        matchReviewService.delete(matchReviewId);
+
+        matchStatisticsService.removeReview(matchReview.getMatchId(), matchReview.getPoint(), matchReview.getFanType());
     }
 }

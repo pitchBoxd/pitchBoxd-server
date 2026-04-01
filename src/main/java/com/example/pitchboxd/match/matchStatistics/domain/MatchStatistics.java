@@ -99,4 +99,25 @@ public class MatchStatistics extends BaseEntity {
         }
         return (sum / (double) count) / 2.0; // 5점 만점 변환 로직 포함
     }
+
+    public void removeRating(int rating, FanType fanType) {
+        if (this.totalReviewCount <= 0) {
+            return;
+        }
+
+        this.totalRatingSum = Math.max(0, this.totalRatingSum - rating);
+        this.totalReviewCount = Math.max(0, this.totalReviewCount - 1);
+
+        if (fanType == FanType.HOME) {
+            if (this.homeFanReviewCount > 0) {
+                this.homeFanRatingSum = Math.max(0, this.homeFanRatingSum - rating);
+                this.homeFanReviewCount--;
+            }
+        } else if (fanType == FanType.AWAY) {
+            if (this.awayFanReviewCount > 0) {
+                this.awayFanRatingSum = Math.max(0, this.awayFanRatingSum - rating);
+                this.awayFanReviewCount--;
+            }
+        }
+    }
 }

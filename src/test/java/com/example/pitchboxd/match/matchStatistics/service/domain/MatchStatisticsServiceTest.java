@@ -236,4 +236,79 @@ class MatchStatisticsServiceTest {
                 () -> matchStatisticsService.adjustReviewStatistics(nonExistentMatchId, ratingDelta, fanType))
                 .isInstanceOf(BusinessException.class);
     }
+
+    @Test
+    void 홈팀_팬의_리뷰를_삭제하면_전체_통계와_홈팀_통계가_함께_차감된다() {
+        // given
+        Long matchId = 1L;
+        MatchStatistics statistics = new MatchStatistics(matchId);
+        statistics.addNewReview(10, FanType.HOME);
+        matchStatisticsRepository.save(statistics);
+
+        // when
+        matchStatisticsService.removeReview(matchId, 10, FanType.HOME);
+
+        // then
+        MatchStatistics updatedStatistics = matchStatisticsRepository.findById(matchId).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedStatistics.getTotalRatingSum()).isEqualTo(0L),
+                () -> assertThat(updatedStatistics.getTotalReviewCount()).isEqualTo(0),
+                () -> assertThat(updatedStatistics.getHomeFanRatingSum()).isEqualTo(0L),
+                () -> assertThat(updatedStatistics.getHomeFanReviewCount()).isEqualTo(0)
+        );
+    }
+
+    @Test
+    void 원정팀_팬의_리뷰를_삭제하면_전체_통계와_원정팀_통계가_함께_차감된다() {
+        // given
+        Long matchId = 1L;
+        MatchStatistics statistics = new MatchStatistics(matchId);
+        statistics.addNewReview(8, FanType.AWAY);
+        matchStatisticsRepository.save(statistics);
+
+        // when
+        matchStatisticsService.removeReview(matchId, 8, FanType.AWAY);
+
+        // then
+        MatchStatistics updatedStatistics = matchStatisticsRepository.findById(matchId).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedStatistics.getTotalRatingSum()).isEqualTo(0L),
+                () -> assertThat(updatedStatistics.getTotalReviewCount()).isEqualTo(0),
+                () -> assertThat(updatedStatistics.getAwayFanRatingSum()).isEqualTo(0L),
+                () -> assertThat(updatedStatistics.getAwayFanReviewCount()).isEqualTo(0)
+        );
+    }
+
+    @Test
+    void 중립팀_팬의_리뷰를_삭제하면_전체_통계만_차감된다() {
+        // given
+        Long matchId = 1L;
+        MatchStatistics statistics = new MatchStatistics(matchId);
+        statistics.addNewReview(5, FanType.NEUTRAL);
+        matchStatisticsRepository.save(statistics);
+
+        // when
+        matchStatisticsService.removeReview(matchId, 5, FanType.NEUTRAL);
+
+        // then
+        MatchStatistics updatedStatistics = matchStatisticsRepository.findById(matchId).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedStatistics.getTotalRatingSum()).isEqualTo(0L),
+                () -> assertThat(updatedStatistics.getTotalReviewCount()).isEqualTo(0),
+                () -> assertThat(updatedStatistics.getHomeFanReviewCount()).isEqualTo(0),
+                () -> assertThat(updatedStatistics.getAwayFanReviewCount()).isEqualTo(0)
+        );
+    }
+
+    @Test
+    void 존재하지_않는_경기_통계_삭제_시_예외가_발생한다() {
+        // given
+        Long nonExistentMatchId = 999L;
+        int rating = 5;
+        FanType fanType = FanType.HOME;
+
+        // when & then
+        assertThatThrownBy(() -> matchStatisticsService.removeReview(nonExistentMatchId, rating, fanType))
+                .isInstanceOf(BusinessException.class);
+    }
 }

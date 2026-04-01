@@ -65,7 +65,7 @@ class MatchReviewCommandControllerTest {
         RestAssured.port = port;
         databaseCleaner.clean();
 
-        User user = userRepository.save(new User("nickname", "email @gmail.com", "1234!"));
+        User user = userRepository.save(new User("nickname", "email@gmail.com", "1234!"));
         accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
 
         Match match = new Match(1L, "1", 1L, 1L, LocalDateTime.now().minusHours(3), MatchStatus.FINISHED, "지구");
@@ -137,7 +137,7 @@ class MatchReviewCommandControllerTest {
         int threadCount = 5;
         String[] tokens = new String[threadCount];
         for (int i = 0; i < threadCount; i++) {
-            User user = userRepository.save(new User("user" + i, "user" + i + " @gmail.com", "password!"));
+            User user = userRepository.save(new User("user" + i, "user" + i + "@gmail.com", "password!"));
             tokens[i] = jwtProvider.createToken(user.getId(), user.getEmail());
         }
 
@@ -198,5 +198,30 @@ class MatchReviewCommandControllerTest {
                 () -> assertThat(matchReview.getContent()).isEqualTo("수정 후 리뷰"),
                 () -> assertThat(matchReview.getPoint()).isEqualTo(4)
         );
+    }
+
+    @Test
+    void 경기_리뷰를_삭제한다() {
+        // given
+        MatchReviewCreateRequest createRequest = new MatchReviewCreateRequest("삭제할 리뷰", 5);
+        Long matchReviewId = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(createRequest)
+                .when().post("/api/v1/matches/{matchId}/match-reviews", matchId)
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract().jsonPath().getLong("data.id");
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when().delete("/api/v1/match-reviews/{matchReviewId}", matchReviewId)
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+
+        // then
+        assertThat(matchReviewRepository.findById(matchReviewId)).isEmpty();
     }
 }

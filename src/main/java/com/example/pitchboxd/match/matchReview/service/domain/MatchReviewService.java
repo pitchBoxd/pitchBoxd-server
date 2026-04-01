@@ -37,4 +37,9 @@ public class MatchReviewService {
         return matchReviewRepository.findByIdWithPessimisticLock(matchReviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_REVIEW_NOT_FOUND));
     }
+
+    @Transactional
+    public void delete(Long matchReviewId) {
+        matchReviewRepository.deleteById(matchReviewId);
+    }
 }

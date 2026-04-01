@@ -176,4 +176,100 @@ class MatchStatisticsTest {
                 () -> assertThat(matchStatistics.getAwayAverage()).isEqualTo(4.0)
         );
     }
+
+    @Test
+    void 홈_팬의_리뷰를_삭제하면_전체_통계와_홈_통계가_업데이트된다() {
+        // given
+        MatchStatistics matchStatistics = new MatchStatistics(1L);
+        matchStatistics.addNewReview(10, FanType.HOME);
+        matchStatistics.addNewReview(8, FanType.AWAY);
+
+        // when
+        matchStatistics.removeRating(10, FanType.HOME);
+
+        // then
+        assertAll(
+                () -> assertThat(matchStatistics.getTotalRatingSum()).isEqualTo(8L),
+                () -> assertThat(matchStatistics.getTotalReviewCount()).isEqualTo(1),
+                () -> assertThat(matchStatistics.getHomeFanRatingSum()).isZero(),
+                () -> assertThat(matchStatistics.getHomeFanReviewCount()).isZero(),
+                () -> assertThat(matchStatistics.getAwayFanRatingSum()).isEqualTo(8L),
+                () -> assertThat(matchStatistics.getAwayFanReviewCount()).isEqualTo(1)
+        );
+    }
+
+    @Test
+    void 원정_팬의_리뷰를_삭제하면_전체_통계와_원정_통계가_업데이트된다() {
+        // given
+        MatchStatistics matchStatistics = new MatchStatistics(1L);
+        matchStatistics.addNewReview(10, FanType.HOME);
+        matchStatistics.addNewReview(8, FanType.AWAY);
+
+        // when
+        matchStatistics.removeRating(8, FanType.AWAY);
+
+        // then
+        assertAll(
+                () -> assertThat(matchStatistics.getTotalRatingSum()).isEqualTo(10L),
+                () -> assertThat(matchStatistics.getTotalReviewCount()).isEqualTo(1),
+                () -> assertThat(matchStatistics.getHomeFanRatingSum()).isEqualTo(10L),
+                () -> assertThat(matchStatistics.getHomeFanReviewCount()).isEqualTo(1),
+                () -> assertThat(matchStatistics.getAwayFanRatingSum()).isZero(),
+                () -> assertThat(matchStatistics.getAwayFanReviewCount()).isZero()
+        );
+    }
+
+    @Test
+    void 중립_팬의_리뷰를_삭제하면_전체_통계만_업데이트된다() {
+        // given
+        MatchStatistics matchStatistics = new MatchStatistics(1L);
+        matchStatistics.addNewReview(10, FanType.HOME);
+        matchStatistics.addNewReview(6, null);
+
+        // when
+        matchStatistics.removeRating(6, null);
+
+        // then
+        assertAll(
+                () -> assertThat(matchStatistics.getTotalRatingSum()).isEqualTo(10L),
+                () -> assertThat(matchStatistics.getTotalReviewCount()).isEqualTo(1),
+                () -> assertThat(matchStatistics.getHomeFanRatingSum()).isEqualTo(10L),
+                () -> assertThat(matchStatistics.getHomeFanReviewCount()).isEqualTo(1)
+        );
+    }
+
+    @Test
+    void 리뷰가_없는_상태에서_삭제를_시도해도_값이_음수가_되지_않는다() {
+        // given
+        MatchStatistics matchStatistics = new MatchStatistics(1L);
+
+        // when
+        matchStatistics.removeRating(10, FanType.HOME);
+
+        // then
+        assertAll(
+                () -> assertThat(matchStatistics.getTotalRatingSum()).isZero(),
+                () -> assertThat(matchStatistics.getTotalReviewCount()).isZero(),
+                () -> assertThat(matchStatistics.getHomeFanRatingSum()).isZero(),
+                () -> assertThat(matchStatistics.getHomeFanReviewCount()).isZero()
+        );
+    }
+
+    @Test
+    void 삭제하려는_평점이_현재_합계보다_커도_0으로_유지된다() {
+        // given
+        MatchStatistics matchStatistics = new MatchStatistics(1L);
+        matchStatistics.addNewReview(5, FanType.HOME);
+
+        // when
+        matchStatistics.removeRating(10, FanType.HOME);
+
+        // then
+        assertAll(
+                () -> assertThat(matchStatistics.getTotalRatingSum()).isZero(),
+                () -> assertThat(matchStatistics.getTotalReviewCount()).isZero(),
+                () -> assertThat(matchStatistics.getHomeFanRatingSum()).isZero(),
+                () -> assertThat(matchStatistics.getHomeFanReviewCount()).isZero()
+        );
+    }
 }

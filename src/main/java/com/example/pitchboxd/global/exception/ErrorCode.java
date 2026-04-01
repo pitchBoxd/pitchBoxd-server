@@ -14,6 +14,7 @@ public enum ErrorCode {
     USER_EMAIL_CONFLICT("U-002", "이미 존재하는 이메일입니다.", HttpStatus.CONFLICT),
 
     MATCH_NOT_FOUND("M-001", "존재하지 않는 경기입니다.", HttpStatus.NOT_FOUND),
+    MATCH_NOT_ENDED("M-002", "경기가 진행중입니다.", HttpStatus.BAD_REQUEST),
 
     PLAYER_NOT_FOUND("P-001", "존재하지 않는 선수입니다.", HttpStatus.NOT_FOUND),
 

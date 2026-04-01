@@ -38,4 +38,12 @@ public class MatchStatisticsService {
 
         matchStatistics.adjustRating(ratingDelta, fanType);
     }
+
+    @Transactional
+    public void removeReview(Long matchId, int rating, FanType fanType) {
+        MatchStatistics matchStatistics = matchStatisticsRepository.findByMatchIdForUpdate(matchId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));
+
+        matchStatistics.removeRating(rating, fanType);
+    }
 }
