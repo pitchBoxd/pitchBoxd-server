@@ -16,6 +16,7 @@ public class PlayerReviewService {
 
     private final PlayerReviewRepository playerReviewRepository;
 
+    @Transactional
     public PlayerReview save(PlayerReviewCreateRequest request, Long matchId, Long userId) {
         PlayerReview playerReview = new PlayerReview(matchId, request.playerId(), userId, request.point(),
                 request.content());
@@ -36,5 +37,10 @@ public class PlayerReviewService {
     public PlayerReview findById(Long playerReviewId) {
         return playerReviewRepository.findById(playerReviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_REVIEW_NOT_FOUND));
+    }
+
+    @Transactional
+    public void deleteById(Long playerReviewId) {
+        playerReviewRepository.deleteById(playerReviewId);
     }
 }

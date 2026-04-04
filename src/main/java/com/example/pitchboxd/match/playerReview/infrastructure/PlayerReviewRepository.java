@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface PlayerReviewRepository extends JpaRepository<PlayerReview, Long> {
     boolean existsByMatchIdAndPlayerIdAndUserId(Long matchId, Long playerId, Long userId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE) // SELECT ... FOR UPDATE 쿼리가 나갑니다.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from PlayerReview m where m.id = :id")
     Optional<PlayerReview> findByIdWithPessimisticLock(Long id);
 }

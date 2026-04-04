@@ -1,8 +1,11 @@
 package com.example.pitchboxd.match.playerReview.service.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import com.example.pitchboxd.global.exception.BusinessException;
+import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
@@ -84,5 +87,60 @@ class PlayerReviewServiceTest {
                 () -> assertThat(exists).isTrue(),
                 () -> assertThat(notExists).isFalse()
         );
+    }
+
+    @Test
+    void 플레이어_리뷰를_비관적_락을_걸어_조회한다() {
+        // given
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 5, "최고의 활약");
+        PlayerReview savedReview = playerReviewRepository.save(playerReview);
+
+        // when
+        PlayerReview foundReview = playerReviewService.findByIdForUpdate(savedReview.getId());
+
+        // then
+        assertThat(foundReview.getId()).isEqualTo(savedReview.getId());
+    }
+
+    @Test
+    void 비관적_락_조회_시_리뷰가_없으면_예외가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> playerReviewService.findByIdForUpdate(999L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.PLAYER_REVIEW_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    void 플레이어_리뷰를_아이디로_조회한다() {
+        // given
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 5, "최고의 활약");
+        PlayerReview savedReview = playerReviewRepository.save(playerReview);
+
+        // when
+        PlayerReview foundReview = playerReviewService.findById(savedReview.getId());
+
+        // then
+        assertThat(foundReview.getId()).isEqualTo(savedReview.getId());
+    }
+
+    @Test
+    void 아이디_조회_시_리뷰가_없으면_예외가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> playerReviewService.findById(999L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.PLAYER_REVIEW_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    void 플레이어_리뷰를_삭제한다() {
+        // given
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 5, "최고의 활약");
+        PlayerReview savedReview = playerReviewRepository.save(playerReview);
+
+        // when
+        playerReviewService.deleteById(savedReview.getId());
+
+        // then
+        assertThat(playerReviewRepository.findById(savedReview.getId())).isEmpty();
     }
 }

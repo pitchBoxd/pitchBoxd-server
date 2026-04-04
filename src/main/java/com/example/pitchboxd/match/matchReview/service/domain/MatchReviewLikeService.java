@@ -27,4 +27,6 @@ public class MatchReviewLikeService {
     public void delete(Long matchReviewId, Long userId) {
         matchReviewLikeRepository.deleteByMatchReviewIdAndUserId(matchReviewId, userId);
     }
+
+
 }

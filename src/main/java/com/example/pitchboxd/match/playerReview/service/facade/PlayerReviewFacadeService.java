@@ -134,4 +134,18 @@ public class PlayerReviewFacadeService {
 
         return new PlayerReviewUpdateResponse(playerReview.getId());
     }
+
+    @Transactional
+    public void deleteReview(Long playerReviewId, Long userId) {
+        PlayerReview playerReview = playerReviewService.findById(playerReviewId);
+        userService.findById(userId);
+
+        if (!playerReview.isOwner(userId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        playerReviewService.deleteById(playerReviewId);
+        playerMatchStatisticsService.removeReview(playerReview.getMatchId(), playerReview.getPlayerId(),
+                playerReview.getPoint());
+    }
 }

@@ -44,7 +44,6 @@ public class PlayerMatchStatistics extends BaseEntity {
         this.reviewCount += 1;
     }
 
-    // 조회 시점에만 계산하는 도메인 로직 (DB 저장 X)
     public double getAverageRating() {
         if (reviewCount == 0) {
             return 0.0;
@@ -54,5 +53,10 @@ public class PlayerMatchStatistics extends BaseEntity {
 
     public void adjustRating(int differenceOfPoint) {
         this.totalScore += differenceOfPoint;
+    }
+
+    public void removeReview(int point) {
+        this.totalScore = Math.max(0, this.totalScore - point);
+        this.reviewCount -= 1;
     }
 }

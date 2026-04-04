@@ -126,4 +126,58 @@ class PlayerMatchStatisticsServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PLAYER_STATISTICS_NOT_FOUND.getMessage());
     }
+
+    @Test
+    void 플레이어_매치_통계의_리뷰를_삭제한다() {
+        // given
+        Long matchId = 1L;
+        Long playerId = 1L;
+        int point = 5;
+        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
+        playerMatchStatistics.addNewReview(point);
+        playerMatchStatisticsRepository.save(playerMatchStatistics);
+
+        // when
+        playerMatchStatisticsService.removeReview(matchId, playerId, point);
+
+        // then
+        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+                .orElseThrow();
+        assertAll(
+                () -> assertThat(result.getTotalScore()).isZero(),
+                () -> assertThat(result.getReviewCount()).isZero()
+        );
+    }
+
+    @Test
+    void 플레이어_매치_통계_리뷰_삭제_시_경계값인_0점을_허용한다() {
+        // given
+        Long matchId = 1L;
+        Long playerId = 1L;
+        int point = 0;
+        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
+        playerMatchStatistics.addNewReview(point);
+        playerMatchStatisticsRepository.save(playerMatchStatistics);
+
+        // when
+        playerMatchStatisticsService.removeReview(matchId, playerId, point);
+
+        // then
+        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+                .orElseThrow();
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    void 존재하지_않는_플레이어_매치_통계의_리뷰_삭제_시_예외가_발생한다() {
+        // given
+        Long matchId = 1L;
+        Long playerId = 1L;
+        int point = 5;
+
+        // when & then
+        assertThatThrownBy(() -> playerMatchStatisticsService.removeReview(matchId, playerId, point))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.PLAYER_STATISTICS_NOT_FOUND.getMessage());
+    }
 }

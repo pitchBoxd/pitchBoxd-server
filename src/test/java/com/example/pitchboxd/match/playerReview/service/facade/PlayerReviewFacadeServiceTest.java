@@ -289,4 +289,59 @@ class PlayerReviewFacadeServiceTest {
                 () -> assertThat(statistics.getTotalScore()).isEqualTo(5)
         );
     }
+
+    @Test
+    void 경기가_종료되지_않은_상태에서_리뷰를_남기면_예외가_발생한다() {
+        // given
+        Match ongoingMatch = matchRepository.save(
+                new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now().plusHours(1),
+                        MatchStatus.SCHEDULED, "상암 월드컵 경기장"));
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
+        PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(homeTeamPlayer.getId(), "최고의 활약이었습니다.", 5);
+
+        // when & then
+        assertThatThrownBy(() -> playerReviewFacadeService.submitReview(request, ongoingMatch.getId(), user.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED.getMessage());
+    }
+
+    @Test
+    void 선수_리뷰를_성공적으로_삭제한다() {
+        // given
+        User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
+        PlayerReview playerReview = playerReviewRepository.save(
+                new PlayerReview(match.getId(), homeTeamPlayer.getId(), user.getId(), 5, "최고의 활약!"));
+
+        PlayerMatchStatistics statistics = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
+                homeTeamPlayer.getId()).orElseThrow();
+        statistics.addNewReview(5);
+        playerMatchStatisticsRepository.save(statistics);
+
+        // when
+        playerReviewFacadeService.deleteReview(playerReview.getId(), user.getId());
+
+        // then
+        PlayerMatchStatistics resultStatistics = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
+                homeTeamPlayer.getId()).orElseThrow();
+
+        assertAll(
+                () -> assertThat(playerReviewRepository.existsById(playerReview.getId())).isFalse(),
+                () -> assertThat(resultStatistics.getReviewCount()).isEqualTo(0),
+                () -> assertThat(resultStatistics.getTotalScore()).isEqualTo(0)
+        );
+    }
+
+    @Test
+    void 선수_리뷰_삭제_시_작성자가_아니면_예외가_발생한다() {
+        // given
+        User owner = userRepository.save(new User("작성자", "owner @gmail.com", "password", homeTeam.getId()));
+        User other = userRepository.save(new User("다른유저", "other @gmail.com", "password", homeTeam.getId()));
+        PlayerReview playerReview = playerReviewRepository.save(
+                new PlayerReview(match.getId(), homeTeamPlayer.getId(), owner.getId(), 5, "작성자의 리뷰"));
+
+        // when & then
+        assertThatThrownBy(() -> playerReviewFacadeService.deleteReview(playerReview.getId(), other.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
+    }
 }

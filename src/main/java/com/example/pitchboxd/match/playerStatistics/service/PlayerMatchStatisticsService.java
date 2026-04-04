@@ -32,4 +32,13 @@ public class PlayerMatchStatisticsService {
 
         playerMatchStatistics.adjustRating(differenceOfPoint);
     }
+
+    @Transactional
+    public void removeReview(Long matchId, Long playerId, int point) {
+        PlayerMatchStatistics playerMatchStatistics = playerMatchStatisticsRepository
+                .findByMatchIdAndPlayerIdForUpdate(matchId, playerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_STATISTICS_NOT_FOUND));
+
+        playerMatchStatistics.removeReview(point);
+    }
 }

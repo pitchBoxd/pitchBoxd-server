@@ -89,6 +89,7 @@ public class MatchReviewFacadeService {
         return new MatchReviewUpdateResponse(matchReview.getId());
     }
 
+    //TODO: 현재는 비관락 사용으로 lost update를 방지하지만, 추후에 바꿔야함!
     @Transactional
     public LikeToggleResponse toggleLike(Long matchReviewId, Long userId) {
         MatchReview matchReview = matchReviewService.findByIdForUpdate(matchReviewId);

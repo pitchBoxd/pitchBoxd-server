@@ -186,4 +186,32 @@ class PlayerReviewCommandControllerTest {
                 .then().log().all()
                 .statusCode(HttpStatus.OK.value());
     }
+
+    @Test
+    void 선수_리뷰를_성공적으로_삭제한다() {
+        // given
+        clockHolder.plusHours(1);
+        PlayerReviewCreateRequest createRequest = new PlayerReviewCreateRequest(playerId, "삭제될 리뷰 내용입니다.", 10);
+
+        Long playerReviewId = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(createRequest)
+                .when()
+                .post("/api/v1/matches/{matchId}/player-reviews", matchId)
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .jsonPath()
+                .getLong("data.id");
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .delete("/api/v1/player-reviews/{playerReviewId}", playerReviewId)
+                .then().log().all()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+    }
 }
