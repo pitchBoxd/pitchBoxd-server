@@ -12,18 +12,21 @@ public class MatchReviewSubmitPolicy {
 
     private static final Duration REVIEW_SUBMIT_LIMIT = Duration.ofHours(24);
 
+    /***
+     * 경기 리뷰 가능 정책은 다음과 같이 검증합니다.
+     * 1. 경기가 종료되어야 한다.
+     * 2. 제한 시간 (REVIEW_SUBMIT_LIMIT) 내로 리뷰하여야 한다.
+     * 3. 리뷰는 한 사람당 한 번만 가능하다.
+     * ***/
     public void validate(Match match, boolean isAlreadyReviewed, LocalDateTime now) {
-        // 1. 경기 종료 여부
         if (!match.isEnd(now)) {
             throw new BusinessException(ErrorCode.MATCH_NOT_ENDED);
         }
 
-        // 2. 시간 제한 로직을 Match에서 가져와 Policy가 직접 통제
         if (match.isPassed(now, REVIEW_SUBMIT_LIMIT)) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED);
         }
 
-        // 3. 중복 리뷰 검증
         if (isAlreadyReviewed) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED);
         }
