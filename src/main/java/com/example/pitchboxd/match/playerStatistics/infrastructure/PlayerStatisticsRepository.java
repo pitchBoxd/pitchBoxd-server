@@ -13,7 +13,7 @@ public interface PlayerStatisticsRepository extends JpaRepository<PlayerStatisti
     Optional<PlayerStatistics> findByMatchIdAndPlayerId(Long matchId, Long playerId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT pms FROM PlayerMatchStatistics pms WHERE pms.matchId = :matchId AND pms.playerId = :playerId")
+    @Query("SELECT pms FROM PlayerStatistics pms WHERE pms.matchId = :matchId AND pms.playerId = :playerId")
     Optional<PlayerStatistics> findByMatchIdAndPlayerIdForUpdate(
             @Param("matchId") Long matchId,
             @Param("playerId") Long playerId

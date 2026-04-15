@@ -35,12 +35,7 @@ public class MatchReviewFacadeService {
     private final MatchReviewLikeService matchReviewLikeService;
     private final MatchReviewSubmitPolicy matchReviewSubmitPolicy;
     private final ClockHolder clockHolder;
-
-    /***
-     * 경기 리뷰 가능 여부는 다음과 조건을 따릅니다.
-     * 1. 경기가 종료된 후, 경기가 종료된지 24시간 이내여야 합니다.
-     * 2. 유저가 해당 경기에 리뷰를 달지 않았어야 합니다.
-     * ***/
+    
     @Transactional
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
         Match match = matchService.findById(matchId);
@@ -120,6 +115,7 @@ public class MatchReviewFacadeService {
 
         matchReviewService.delete(matchReviewId);
 
+        // TODO: 다른 트랜잭션으로 분리 필요. 나중에 이벤트 리스너로 분리 ㄱㄱ
         matchStatisticsService.removeReview(matchReview.getMatchId(), matchReview.getPoint(), matchReview.getFanType());
     }
 }
