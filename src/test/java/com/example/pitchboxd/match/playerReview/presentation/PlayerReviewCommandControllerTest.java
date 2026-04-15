@@ -13,8 +13,8 @@ import com.example.pitchboxd.match.lineup.infrastructure.MatchLineupRepository;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewCreateRequest;
 import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewUpdateRequest;
-import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
-import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerMatchStatisticsRepository;
+import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
+import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatisticsRepository;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
@@ -59,7 +59,7 @@ class PlayerReviewCommandControllerTest {
     private MatchLineupRepository matchLineupRepository;
 
     @Autowired
-    private PlayerMatchStatisticsRepository playerMatchStatisticsRepository;
+    private PlayerStatisticsRepository playerStatisticsRepository;
 
     @Autowired
     private JwtProvider jwtProvider;
@@ -90,8 +90,8 @@ class PlayerReviewCommandControllerTest {
         MatchLineup matchLineup = new MatchLineup(matchId, playerId, 6, ParticipationStatus.STARTER);
         matchLineupRepository.save(matchLineup);
 
-        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(playerId, matchId);
-        playerMatchStatisticsRepository.save(playerMatchStatistics);
+        PlayerStatistics playerStatistics = new PlayerStatistics(playerId, matchId);
+        playerStatisticsRepository.save(playerStatistics);
 
         user = userRepository.save(new User("nickname", "email @gmail.com", "abcd1234!", homeTeamId));
         accessToken = jwtProvider.createToken(user.getId(), user.getEmail());

@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
-import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
-import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerMatchStatisticsRepository;
+import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
+import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatisticsRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,13 +22,13 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @DisplayNameGeneration(ReplaceUnderscores.class)
-class PlayerMatchStatisticsServiceTest {
+class PlayerStatisticsServiceTest {
 
     @Autowired
-    private PlayerMatchStatisticsService playerMatchStatisticsService;
+    private PlayerStatisticsService playerStatisticsService;
 
     @Autowired
-    private PlayerMatchStatisticsRepository playerMatchStatisticsRepository;
+    private PlayerStatisticsRepository playerStatisticsRepository;
 
     @Autowired
     private DatabaseCleaner databaseCleaner;
@@ -49,14 +49,14 @@ class PlayerMatchStatisticsServiceTest {
         Long matchId = 1L;
         Long playerId = 1L;
         int point = 5;
-        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
-        playerMatchStatisticsRepository.save(playerMatchStatistics);
+        PlayerStatistics playerStatistics = new PlayerStatistics(matchId, playerId);
+        playerStatisticsRepository.save(playerStatistics);
 
         // when
-        playerMatchStatisticsService.updateReview(matchId, playerId, point);
+        playerStatisticsService.updateReview(matchId, playerId, point);
 
         // then
-        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+        PlayerStatistics result = playerStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
                 .orElseThrow();
         assertThat(result).isNotNull();
     }
@@ -67,14 +67,14 @@ class PlayerMatchStatisticsServiceTest {
         Long matchId = 1L;
         Long playerId = 1L;
         int point = 0;
-        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
-        playerMatchStatisticsRepository.save(playerMatchStatistics);
+        PlayerStatistics playerStatistics = new PlayerStatistics(matchId, playerId);
+        playerStatisticsRepository.save(playerStatistics);
 
         // when
-        playerMatchStatisticsService.updateReview(matchId, playerId, point);
+        playerStatisticsService.updateReview(matchId, playerId, point);
 
         // then
-        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+        PlayerStatistics result = playerStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
                 .orElseThrow();
         assertThat(result).isNotNull();
     }
@@ -87,7 +87,7 @@ class PlayerMatchStatisticsServiceTest {
         int point = 5;
 
         // when & then
-        assertThatThrownBy(() -> playerMatchStatisticsService.updateReview(matchId, playerId, point))
+        assertThatThrownBy(() -> playerStatisticsService.updateReview(matchId, playerId, point))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -97,14 +97,14 @@ class PlayerMatchStatisticsServiceTest {
         Long matchId = 1L;
         Long playerId = 1L;
         int differenceOfPoint = 2;
-        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
-        playerMatchStatisticsRepository.save(playerMatchStatistics);
+        PlayerStatistics playerStatistics = new PlayerStatistics(matchId, playerId);
+        playerStatisticsRepository.save(playerStatistics);
 
         // when
-        playerMatchStatisticsService.adjustReviewStatistics(matchId, playerId, differenceOfPoint);
+        playerStatisticsService.adjustReviewStatistics(matchId, playerId, differenceOfPoint);
 
         // then
-        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+        PlayerStatistics result = playerStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
                 .orElseThrow();
         assertAll(
                 () -> assertThat(result).isNotNull(),
@@ -122,7 +122,7 @@ class PlayerMatchStatisticsServiceTest {
 
         // when & then
         assertThatThrownBy(
-                () -> playerMatchStatisticsService.adjustReviewStatistics(matchId, playerId, differenceOfPoint))
+                () -> playerStatisticsService.adjustReviewStatistics(matchId, playerId, differenceOfPoint))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PLAYER_STATISTICS_NOT_FOUND.getMessage());
     }
@@ -133,15 +133,15 @@ class PlayerMatchStatisticsServiceTest {
         Long matchId = 1L;
         Long playerId = 1L;
         int point = 5;
-        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
-        playerMatchStatistics.addNewReview(point);
-        playerMatchStatisticsRepository.save(playerMatchStatistics);
+        PlayerStatistics playerStatistics = new PlayerStatistics(matchId, playerId);
+        playerStatistics.addNewReview(point);
+        playerStatisticsRepository.save(playerStatistics);
 
         // when
-        playerMatchStatisticsService.removeReview(matchId, playerId, point);
+        playerStatisticsService.removeReview(matchId, playerId, point);
 
         // then
-        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+        PlayerStatistics result = playerStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
                 .orElseThrow();
         assertAll(
                 () -> assertThat(result.getTotalScore()).isZero(),
@@ -155,15 +155,15 @@ class PlayerMatchStatisticsServiceTest {
         Long matchId = 1L;
         Long playerId = 1L;
         int point = 0;
-        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(matchId, playerId);
-        playerMatchStatistics.addNewReview(point);
-        playerMatchStatisticsRepository.save(playerMatchStatistics);
+        PlayerStatistics playerStatistics = new PlayerStatistics(matchId, playerId);
+        playerStatistics.addNewReview(point);
+        playerStatisticsRepository.save(playerStatistics);
 
         // when
-        playerMatchStatisticsService.removeReview(matchId, playerId, point);
+        playerStatisticsService.removeReview(matchId, playerId, point);
 
         // then
-        PlayerMatchStatistics result = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
+        PlayerStatistics result = playerStatisticsRepository.findByMatchIdAndPlayerId(matchId, playerId)
                 .orElseThrow();
         assertThat(result).isNotNull();
     }
@@ -176,7 +176,7 @@ class PlayerMatchStatisticsServiceTest {
         int point = 5;
 
         // when & then
-        assertThatThrownBy(() -> playerMatchStatisticsService.removeReview(matchId, playerId, point))
+        assertThatThrownBy(() -> playerStatisticsService.removeReview(matchId, playerId, point))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PLAYER_STATISTICS_NOT_FOUND.getMessage());
     }

@@ -15,7 +15,7 @@ import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateR
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewUpdateResponse;
 import com.example.pitchboxd.match.playerReview.service.domain.PlayerReviewLikeService;
 import com.example.pitchboxd.match.playerReview.service.domain.PlayerReviewService;
-import com.example.pitchboxd.match.playerStatistics.service.PlayerMatchStatisticsService;
+import com.example.pitchboxd.match.playerStatistics.service.PlayerStatisticsService;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.service.PlayerService;
 import com.example.pitchboxd.user.application.UserService;
@@ -38,7 +38,7 @@ public class PlayerReviewFacadeService {
     private final PlayerService playerService;
     private final PlayerReviewService playerReviewService;
     private final MatchLineupService matchLineupService;
-    private final PlayerMatchStatisticsService playerMatchStatisticsService;
+    private final PlayerStatisticsService playerStatisticsService;
     private final PlayerReviewLikeService playerReviewLikeService;
 
     private final ClockHolder clockHolder;
@@ -81,7 +81,7 @@ public class PlayerReviewFacadeService {
 
         //TODO: 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
         // 나중엔 트랜잭셔널 아웃박스 패턴으로 정합성 보장해보는것도 좋을듯. 이벤트 리스너의 유실 문제 해결을 위해서
-        playerMatchStatisticsService.updateReview(matchId, playerId, request.point());
+        playerStatisticsService.updateReview(matchId, playerId, request.point());
 
         return new PlayerReviewCreateResponse(savedPlayerReview.getId());
     }
@@ -128,7 +128,7 @@ public class PlayerReviewFacadeService {
         // TODO: 일단 동기적으로 만들어두고, 나중에 이벤트 리스너로 분리 ㄱㄱ
         // 나중엔 트랜잭셔널 아웃박스 패턴으로 정합성 보장해보는것도 좋을듯. 이벤트 리스너의 유실 문제 해결을 위해서
         if (differenceOfPoint != 0) {
-            playerMatchStatisticsService.adjustReviewStatistics(playerReview.getMatchId(), playerReview.getPlayerId(),
+            playerStatisticsService.adjustReviewStatistics(playerReview.getMatchId(), playerReview.getPlayerId(),
                     differenceOfPoint);
         }
 
@@ -145,7 +145,7 @@ public class PlayerReviewFacadeService {
         }
 
         playerReviewService.deleteById(playerReviewId);
-        playerMatchStatisticsService.removeReview(playerReview.getMatchId(), playerReview.getPlayerId(),
+        playerStatisticsService.removeReview(playerReview.getMatchId(), playerReview.getPlayerId(),
                 playerReview.getPoint());
     }
 }

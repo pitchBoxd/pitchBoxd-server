@@ -21,8 +21,8 @@ import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateR
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewUpdateResponse;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewLikeRepository;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
-import com.example.pitchboxd.match.playerStatistics.domain.PlayerMatchStatistics;
-import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerMatchStatisticsRepository;
+import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
+import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatisticsRepository;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
@@ -69,7 +69,7 @@ class PlayerReviewFacadeServiceTest {
     private PlayerReviewRepository playerReviewRepository;
 
     @Autowired
-    private PlayerMatchStatisticsRepository playerMatchStatisticsRepository;
+    private PlayerStatisticsRepository playerStatisticsRepository;
 
     @Autowired
     private PlayerReviewLikeRepository playerReviewLikeRepository;
@@ -102,8 +102,8 @@ class PlayerReviewFacadeServiceTest {
         matchLineupRepository.save(
                 new MatchLineup(match.getId(), homeTeamPlayer.getId(), 6, ParticipationStatus.STARTER));
 
-        PlayerMatchStatistics playerMatchStatistics = new PlayerMatchStatistics(homeTeamPlayer.getId(), match.getId());
-        playerMatchStatisticsRepository.save(playerMatchStatistics);
+        PlayerStatistics playerStatistics = new PlayerStatistics(homeTeamPlayer.getId(), match.getId());
+        playerStatisticsRepository.save(playerStatistics);
     }
 
     @AfterEach
@@ -149,7 +149,7 @@ class PlayerReviewFacadeServiceTest {
         Player benchPlayer = playerRepository.save(new Player(homeTeam.getId(), "벤치선수"));
         matchLineupRepository.save(
                 new MatchLineup(match.getId(), benchPlayer.getId(), 99, ParticipationStatus.BENCH));
-        playerMatchStatisticsRepository.save(new PlayerMatchStatistics(benchPlayer.getId(), match.getId()));
+        playerStatisticsRepository.save(new PlayerStatistics(benchPlayer.getId(), match.getId()));
 
         User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
         PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(benchPlayer.getId(), "최고의 활약이었습니다.", 5);
@@ -281,7 +281,7 @@ class PlayerReviewFacadeServiceTest {
         playerReviewFacadeService.updateReview(request, reviewId, user.getId());
 
         // then
-        PlayerMatchStatistics statistics = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
+        PlayerStatistics statistics = playerStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
                 homeTeamPlayer.getId()).orElseThrow();
 
         assertAll(
@@ -312,16 +312,16 @@ class PlayerReviewFacadeServiceTest {
         PlayerReview playerReview = playerReviewRepository.save(
                 new PlayerReview(match.getId(), homeTeamPlayer.getId(), user.getId(), 5, "최고의 활약!"));
 
-        PlayerMatchStatistics statistics = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
+        PlayerStatistics statistics = playerStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
                 homeTeamPlayer.getId()).orElseThrow();
         statistics.addNewReview(5);
-        playerMatchStatisticsRepository.save(statistics);
+        playerStatisticsRepository.save(statistics);
 
         // when
         playerReviewFacadeService.deleteReview(playerReview.getId(), user.getId());
 
         // then
-        PlayerMatchStatistics resultStatistics = playerMatchStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
+        PlayerStatistics resultStatistics = playerStatisticsRepository.findByMatchIdAndPlayerId(match.getId(),
                 homeTeamPlayer.getId()).orElseThrow();
 
         assertAll(
