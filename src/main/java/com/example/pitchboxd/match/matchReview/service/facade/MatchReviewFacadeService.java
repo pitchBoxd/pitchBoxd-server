@@ -35,17 +35,23 @@ public class MatchReviewFacadeService {
     private final MatchReviewLikeService matchReviewLikeService;
     private final MatchReviewSubmitPolicy matchReviewSubmitPolicy;
     private final ClockHolder clockHolder;
-    
+
+    /***
+     * 경기 리뷰 가능 정책은 다음과 같이 검증합니다.
+     * 1. 경기가 종료되어야 한다.
+     * 2. 제한 시간 (REVIEW_SUBMIT_LIMIT) 내로 리뷰하여야 한다.
+     * 3. 리뷰는 한 사람당 한 번만 가능하다.
+     * ***/
     @Transactional
     public MatchReviewCreateResponse submitReview(MatchReviewCreateRequest request, Long matchId, Long userId) {
         Match match = matchService.findById(matchId);
         LocalDateTime now = clockHolder.now();
-        User user = userService.findById(userId);
-
+        matchReviewSubmitPolicy.validateMatchStatus(match, now);
+        
         boolean alreadyReviewed = matchReviewService.isExist(matchId, userId);
+        matchReviewSubmitPolicy.validateUserCondition(alreadyReviewed);
 
-        matchReviewSubmitPolicy.validate(match, alreadyReviewed, now);
-
+        User user = userService.findById(userId);
         FanType fanType = match.determineFanType(user.getFavoriteTeamId());
         MatchReview savedMatchReview = matchReviewService.save(request, fanType, matchId, userId);
 
