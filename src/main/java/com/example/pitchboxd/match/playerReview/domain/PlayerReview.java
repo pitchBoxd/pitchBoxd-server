@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -52,6 +53,8 @@ public class PlayerReview extends BaseEntity {
 
     private Long likeCount;
 
+    private LocalDateTime updatedAt;
+
     public PlayerReview(Long matchId, Long playerId, Long userId, Integer point, String content) {
         validate(content, point);
         this.matchId = matchId;
@@ -64,6 +67,7 @@ public class PlayerReview extends BaseEntity {
 
     public void update(String content, Integer point) {
         validate(content, point);
+        this.updatedAt = LocalDateTime.now();
         this.content = content;
         this.point = point;
     }
