@@ -140,7 +140,8 @@ class PlayerReviewTest {
         // then
         assertAll(
                 () -> assertThat(playerReview.getContent()).isEqualTo(afterContent),
-                () -> assertThat(playerReview.getPoint()).isEqualTo(afterPoint)
+                () -> assertThat(playerReview.getPoint()).isEqualTo(afterPoint),
+                () -> assertThat(playerReview.getUpdatedAt()).isNotNull()
         );
     }
 

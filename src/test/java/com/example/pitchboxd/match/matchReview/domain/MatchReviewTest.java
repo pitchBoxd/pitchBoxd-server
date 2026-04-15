@@ -126,4 +126,45 @@ class MatchReviewTest {
         // then
         assertThat(matchReview.getLikeCount()).isEqualTo(0L);
     }
+
+    @Test
+    void 경기_리뷰를_업데이트하면_내용이_바뀌고_시간이_기록된다() {
+        // given
+        String updatedContent = "재미없어요";
+        int updatedPoint = 1;
+
+        MatchReview matchReview = new MatchReview(1L, 1L, 5, "재밌어요", FanType.HOME);
+
+        // when
+        matchReview.update(updatedContent, updatedPoint);
+
+        // then
+        assertAll(
+                () -> assertThat(matchReview.getContent()).isEqualTo(updatedContent),
+                () -> assertThat(matchReview.getPoint()).isEqualTo(updatedPoint),
+                () -> assertThat(matchReview.getUpdatedAt()).isNotNull()
+        );
+    }
+
+    @Test
+    void 경기_리뷰_수정_시_잘못된_내용으로_수정할_수_없다() {
+        // given
+        String wrongContent = "a".repeat(101);
+        MatchReview matchReview = new MatchReview(1L, 1L, 5, "재밌어요", FanType.HOME);
+
+        // when & then
+        assertThatThrownBy(() -> matchReview.update(wrongContent, 0))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 경기_리뷰_수정_시_잘못된_점수로_수정할_수_없다() {
+        // given
+        int wrongPoint = 11;
+        MatchReview matchReview = new MatchReview(1L, 1L, 5, "재밌어요", FanType.HOME);
+
+        // when & then
+        assertThatThrownBy(() -> matchReview.update("zz", wrongPoint))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }
