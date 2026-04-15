@@ -172,7 +172,7 @@ class MatchReviewFacadeServiceTest {
         // when & then
         assertThatThrownBy(() -> matchReviewFacadeService.submitReview(request, savedOldMatch.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED.getMessage());
+                .hasMessage(ErrorCode.MATCH_REVIEW_INVALID_REVIEW_TIME.getMessage());
     }
 
     @Test

@@ -47,7 +47,7 @@ public class MatchReviewFacadeService {
         Match match = matchService.findById(matchId);
         LocalDateTime now = clockHolder.now();
         matchReviewSubmitPolicy.validateMatchStatus(match, now);
-        
+
         boolean alreadyReviewed = matchReviewService.isExist(matchId, userId);
         matchReviewSubmitPolicy.validateUserCondition(alreadyReviewed);
 
@@ -65,7 +65,6 @@ public class MatchReviewFacadeService {
     @Transactional
     public MatchReviewUpdateResponse updateMatchReview(Long matchReviewId, Long userId,
                                                        MatchReviewUpdateRequest request) {
-        // 여기에도 매치처럼 수정 가능시간을 둬야하나? 좀 더 널널하게 둬도 괜찮을지도?
         MatchReview matchReview = matchReviewService.findById(matchReviewId);
         if (!matchReview.isOwner(userId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);

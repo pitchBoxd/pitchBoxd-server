@@ -14,7 +14,7 @@ public class MatchReviewSubmitPolicy {
 
     public void validateMatchStatus(Match match, LocalDateTime now) {
         if (!match.isEnd(now) || match.isPassed(now, REVIEW_SUBMIT_LIMIT)) {
-            throw new BusinessException(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED);
+            throw new BusinessException(ErrorCode.MATCH_REVIEW_INVALID_REVIEW_TIME);
         }
     }
 

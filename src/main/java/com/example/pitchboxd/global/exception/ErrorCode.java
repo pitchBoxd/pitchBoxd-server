@@ -22,7 +22,7 @@ public enum ErrorCode {
     MATCH_LINEUP_DID_NOT_PARTICIPATE("ML-002", "선수가 경기에 참여하지 않았습니다.", HttpStatus.BAD_REQUEST),
 
     MATCH_REVIEW_ALREADY_REVIEWED("MR-001", "이미 경기 리뷰에 참여했습니다.", HttpStatus.CONFLICT),
-    MATCH_REVIEW_TIME_LIMIT_PASSED("MR-002", "경기 리뷰 가능 시간이 아닙니다.", HttpStatus.BAD_REQUEST),
+    MATCH_REVIEW_INVALID_REVIEW_TIME("MR-002", "경기 리뷰 가능 시간이 아닙니다.", HttpStatus.BAD_REQUEST),
     MATCH_REVIEW_NOT_FOUND("MR-003", "경기 리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     MATCH_STATISTICS_NOT_FOUND("MS-001", "경기 통계를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
@@ -30,6 +30,7 @@ public enum ErrorCode {
     PLAYER_REVIEW_ALREADY_REVIEWED("PR-001", "이미 선수 리뷰에 참여했습니다.", HttpStatus.CONFLICT),
     PLAYER_REVIEW_NOT_FAN("PR-001", "타팀 선수의 리뷰엔 참여할 수 없습니다.", HttpStatus.BAD_REQUEST),
     PLAYER_REVIEW_NOT_FOUND("PR-003", "선수 리뷰가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    PLAYER_REVIEW_INVALID_REVIEW_TIME("PR-004", "선수 리뷰 가능 시간이 아닙니다.", HttpStatus.BAD_REQUEST),
 
     PLAYER_STATISTICS_NOT_FOUND("PS-001", "선수 통계를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 

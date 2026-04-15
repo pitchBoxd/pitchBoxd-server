@@ -186,7 +186,7 @@ class PlayerReviewFacadeServiceTest {
         // when & then
         assertThatThrownBy(() -> playerReviewFacadeService.submitReview(request, match.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED.getMessage());
+                .hasMessage(ErrorCode.PLAYER_REVIEW_INVALID_REVIEW_TIME.getMessage());
     }
 
     @Test
@@ -291,7 +291,7 @@ class PlayerReviewFacadeServiceTest {
     }
 
     @Test
-    void 경기가_종료되지_않은_상태에서_리뷰를_남기면_예외가_발생한다() {
+    void 경기가_종료되지_않은_상태에서_선수_리뷰를_남기면_예외가_발생한다() {
         // given
         Match ongoingMatch = matchRepository.save(
                 new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now().plusHours(1),
@@ -304,7 +304,7 @@ class PlayerReviewFacadeServiceTest {
         // when & then
         assertThatThrownBy(() -> playerReviewFacadeService.submitReview(request, ongoingMatch.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.MATCH_REVIEW_TIME_LIMIT_PASSED.getMessage());
+                .hasMessage(ErrorCode.PLAYER_REVIEW_INVALID_REVIEW_TIME.getMessage());
     }
 
     @Test
