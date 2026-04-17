@@ -27,13 +27,15 @@ class MatchSyncServiceTest {
     @Test
     void 외부_경기_로딩_테스트() {
         // given
-        CreateMatchRequest request = new CreateMatchRequest(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 1));
+        CreateMatchRequest request = new CreateMatchRequest(LocalDate.of(2025, 12, 1), LocalDate.of(2025, 12, 6));
         matchSyncService.syncKLeagueMatches(request);
 
         // when
         List<Match> matches = matchRepository.findAll();
 
         // then
-        System.out.println(matches);
+        for (Match match : matches) {
+            System.out.println(match.toString());
+        }
     }
 }
