@@ -79,12 +79,12 @@ class PlayerReviewCommandControllerTest {
         databaseCleaner.clean();
         now = LocalDateTime.now();
 
-        Match match = new Match(1L, "1", homeTeamId, awayTeamId, now.minusHours(3), MatchStatus.FINISHED, "지구");
+        Match match = new Match(1L, "1", homeTeamId, awayTeamId, now.minusHours(3), MatchStatus.FINISHED, "지구", "1");
         match.finish(now);
         Match savedMatch = matchRepository.save(match);
         matchId = savedMatch.getId();
 
-        Player savedPlayer = playerRepository.save(new Player(1L, "기성용"));
+        Player savedPlayer = playerRepository.save(new Player(1L, "기성용", "1"));
         playerId = savedPlayer.getId();
 
         MatchLineup matchLineup = new MatchLineup(matchId, playerId, 6, ParticipationStatus.STARTER);

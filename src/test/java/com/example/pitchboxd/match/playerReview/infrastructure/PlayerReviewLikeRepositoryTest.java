@@ -53,8 +53,8 @@ class PlayerReviewLikeRepositoryTest {
         Team awayTeam = teamRepository.save(new Team("어웨이팀"));
         Match match = matchRepository
                 .save(new Match(1L, "1R", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(), MatchStatus.FINISHED,
-                        "상암"));
-        Player player = playerRepository.save(new Player(homeTeam.getId(), "홈 선수"));
+                        "상암", "1"));
+        Player player = playerRepository.save(new Player(homeTeam.getId(), "홈 선수", "1"));
         PlayerReview playerReview = playerReviewRepository.save(
                 new PlayerReview(match.getId(), player.getId(), user.getId(), 5, "최고의 경기!"));
 
@@ -79,8 +79,8 @@ class PlayerReviewLikeRepositoryTest {
         Team awayTeam = teamRepository.save(new Team("어웨이팀"));
         Match match = matchRepository
                 .save(new Match(1L, "1R", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(), MatchStatus.FINISHED,
-                        "상암"));
-        Player player = playerRepository.save(new Player(homeTeam.getId(), "홈 선수"));
+                        "상암", "1"));
+        Player player = playerRepository.save(new Player(homeTeam.getId(), "홈 선수", "1"));
         PlayerReview playerReview = playerReviewRepository.save(
                 new PlayerReview(match.getId(), player.getId(), user.getId(), 5, "최고의 경기!"));
 

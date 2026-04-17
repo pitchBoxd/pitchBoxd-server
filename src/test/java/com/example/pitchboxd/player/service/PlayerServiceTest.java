@@ -45,7 +45,7 @@ class PlayerServiceTest {
     @Test
     void 플레이어를_성공적으로_조회한다() {
         // given
-        Player player = new Player(1L, "손흥민");
+        Player player = new Player(1L, "손흥민", "1");
         Player savedPlayer = playerRepository.save(player);
 
         // when

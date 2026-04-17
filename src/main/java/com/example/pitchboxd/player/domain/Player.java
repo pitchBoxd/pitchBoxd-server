@@ -34,8 +34,12 @@ public class Player extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-    public Player(Long teamId, String name) {
+    @Column(nullable = false)
+    private String naverId;
+
+    public Player(Long teamId, String name, String naverId) {
         this.teamId = teamId;
         this.name = name;
+        this.naverId = naverId;
     }
 }

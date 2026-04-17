@@ -54,7 +54,7 @@ class MatchTest {
         String location = "Seoul Stadium";
 
         // when
-        Match match = new Match(seasonId, round, homeTeamId, awayTeamId, dateTime, status, location);
+        Match match = new Match(seasonId, round, homeTeamId, awayTeamId, dateTime, status, location, "1");
 
         // then
         assertAll(
@@ -76,7 +76,7 @@ class MatchTest {
         Match match = new Match(
                 1L, "1", homeTeamId, awayTeamId,
                 LocalDateTime.of(2026, 3, 28, 15, 0),
-                MatchStatus.FINISHED, "Stadium"
+                MatchStatus.FINISHED, "Stadium", "1"
         );
 
         // when
@@ -94,7 +94,7 @@ class MatchTest {
         Match match = new Match(
                 1L, "1", homeTeamId, awayTeamId,
                 LocalDateTime.of(2026, 3, 28, 15, 0),
-                MatchStatus.FINISHED, "Stadium"
+                MatchStatus.FINISHED, "Stadium", "1"
         );
 
         // when
@@ -113,7 +113,7 @@ class MatchTest {
         Match match = new Match(
                 1L, "1", homeTeamId, awayTeamId,
                 LocalDateTime.of(2026, 3, 28, 15, 0),
-                MatchStatus.FINISHED, "Stadium"
+                MatchStatus.FINISHED, "Stadium", "1"
         );
 
         // when
@@ -129,7 +129,7 @@ class MatchTest {
         Match match = new Match(
                 1L, "1", 1L, 2L,
                 LocalDateTime.of(2026, 3, 28, 15, 0),
-                MatchStatus.FINISHED, "Stadium"
+                MatchStatus.FINISHED, "Stadium", "1"
         );
 
         LocalDateTime now = LocalDateTime.now();
@@ -152,7 +152,7 @@ class MatchTest {
         Match match = new Match(
                 1L, "1", 1L, 2L,
                 LocalDateTime.of(2026, 3, 28, 15, 0),
-                status, "Stadium"
+                status, "Stadium", "1"
         );
 
         ReflectionTestUtils.setField(match, "finishedAt", finishedAt);
@@ -173,7 +173,7 @@ class MatchTest {
         Match match = new Match(
                 1L, "1", 1L, 2L,
                 LocalDateTime.of(2026, 3, 28, 15, 0),
-                MatchStatus.FINISHED, "Stadium"
+                MatchStatus.FINISHED, "Stadium", "1"
         );
 
         ReflectionTestUtils.setField(match, "finishedAt", finishedAt);

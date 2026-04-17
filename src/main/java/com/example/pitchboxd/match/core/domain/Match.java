@@ -59,9 +59,12 @@ public class Match extends BaseEntity {
     @Embedded
     private MatchResult matchResult;
 
+    @Column(nullable = false)
+    private String naverId;
+
     public Match(Long seasonId, String round, Long homeTeamId, Long awayTeamId, LocalDateTime startTime,
                  MatchStatus status,
-                 String location) {
+                 String location, String naverId) {
         this.seasonId = seasonId;
         this.round = round;
         this.homeTeamId = homeTeamId;
@@ -69,6 +72,7 @@ public class Match extends BaseEntity {
         this.startTime = startTime;
         this.status = status;
         this.location = location;
+        this.naverId = naverId;
     }
 
     public FanType determineFanType(Long teamId) {

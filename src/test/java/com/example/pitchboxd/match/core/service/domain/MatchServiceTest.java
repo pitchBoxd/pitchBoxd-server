@@ -48,7 +48,7 @@ class MatchServiceTest {
         // given
         Match match = matchRepository.save(new Match(
                 1L, "1", 1L, 1L,
-                LocalDateTime.now(), MatchStatus.FINISHED, "지구"));
+                LocalDateTime.now(), MatchStatus.FINISHED, "지구", "1"));
         Long matchId = match.getId();
 
         // when

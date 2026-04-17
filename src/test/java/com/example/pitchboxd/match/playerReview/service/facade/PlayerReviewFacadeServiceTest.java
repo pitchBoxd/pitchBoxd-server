@@ -92,10 +92,10 @@ class PlayerReviewFacadeServiceTest {
         LocalDateTime now = LocalDateTime.now();
         homeTeam = teamRepository.save(new Team("FC서울"));
         awayTeam = teamRepository.save(new Team("수원삼성"));
-        homeTeamPlayer = playerRepository.save(new Player(homeTeam.getId(), "기성용"));
+        homeTeamPlayer = playerRepository.save(new Player(homeTeam.getId(), "기성용", "1"));
 
         Match unsavedMatch = new Match(1L, "1", homeTeam.getId(), awayTeam.getId(), now.minusHours(3),
-                MatchStatus.FINISHED, "상암 월드컵 경기장");
+                MatchStatus.FINISHED, "상암 월드컵 경기장", "1");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
 
         match = matchRepository.save(unsavedMatch);
@@ -146,7 +146,7 @@ class PlayerReviewFacadeServiceTest {
     @Test
     void 경기에_출전하지_않은_선수에게_리뷰를_남기면_예외가_발생한다() {
         // given
-        Player benchPlayer = playerRepository.save(new Player(homeTeam.getId(), "벤치선수"));
+        Player benchPlayer = playerRepository.save(new Player(homeTeam.getId(), "벤치선수", "1"));
         matchLineupRepository.save(
                 new MatchLineup(match.getId(), benchPlayer.getId(), 99, ParticipationStatus.BENCH));
         playerStatisticsRepository.save(new PlayerStatistics(benchPlayer.getId(), match.getId()));
@@ -295,7 +295,7 @@ class PlayerReviewFacadeServiceTest {
         // given
         Match ongoingMatch = matchRepository.save(
                 new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now().plusHours(1),
-                        MatchStatus.SCHEDULED, "상암 월드컵 경기장"));
+                        MatchStatus.SCHEDULED, "상암 월드컵 경기장", "1"));
         User user = userRepository.save(new User("유저", "user@gmail.com", "password", homeTeam.getId()));
         matchLineupRepository.save(
                 new MatchLineup(ongoingMatch.getId(), homeTeamPlayer.getId(), 10, ParticipationStatus.STARTER));

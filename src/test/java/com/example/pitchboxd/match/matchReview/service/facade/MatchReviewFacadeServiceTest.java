@@ -68,7 +68,7 @@ class MatchReviewFacadeServiceTest {
         databaseCleaner.clean();
 
         user = userRepository.save(new User("테스터", "test@example.com", "password123!", 1L));
-        Match unsavedMatch = new Match(1L, "2", 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장");
+        Match unsavedMatch = new Match(1L, "2", 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장", "1");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
         match = matchRepository.save(unsavedMatch);
 
@@ -160,7 +160,7 @@ class MatchReviewFacadeServiceTest {
         // given
         LocalDateTime startTime = LocalDateTime.now().minusHours(48);
         LocalDateTime endTime = startTime.plusMinutes(120);
-        Match oldMatch = new Match(2L, "2", 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장");
+        Match oldMatch = new Match(2L, "2", 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장", "1");
         oldMatch.finish(endTime);
 
         Match savedOldMatch = matchRepository.save(oldMatch);

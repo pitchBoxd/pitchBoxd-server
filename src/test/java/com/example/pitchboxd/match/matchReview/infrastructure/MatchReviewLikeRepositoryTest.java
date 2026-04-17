@@ -57,7 +57,8 @@ class MatchReviewLikeRepositoryTest {
         Team away = teamRepository.save(new Team("AwayTeam"));
 
         Match match = matchRepository
-                .save(new Match(1L, "1R", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.FINISHED, "상암"));
+                .save(new Match(1L, "1R", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.FINISHED, "상암",
+                        "1"));
         review = matchReviewRepository
                 .save(new MatchReview(match.getId(), reviewer.getId(), 5, "좋은 경기였습니다.", FanType.HOME));
     }

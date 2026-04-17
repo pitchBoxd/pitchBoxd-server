@@ -68,7 +68,7 @@ class MatchReviewCommandControllerTest {
         User user = userRepository.save(new User("nickname", "email@gmail.com", "1234!"));
         accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
 
-        Match match = new Match(1L, "1", 1L, 1L, LocalDateTime.now().minusHours(3), MatchStatus.FINISHED, "지구");
+        Match match = new Match(1L, "1", 1L, 1L, LocalDateTime.now().minusHours(3), MatchStatus.FINISHED, "지구", "1");
 
         match.finish(LocalDateTime.now().minusHours(1));
         Match savedMatch = matchRepository.save(match);
