@@ -1,6 +1,7 @@
 package com.example.pitchboxd.match.core.service.domain;
 
 import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,7 +27,8 @@ class MatchSyncServiceTest {
     @Test
     void 외부_경기_로딩_테스트() {
         // given
-        matchSyncService.syncKLeagueMatches(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 1));
+        CreateMatchRequest request = new CreateMatchRequest(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 1));
+        matchSyncService.syncKLeagueMatches(request);
 
         // when
         List<Match> matches = matchRepository.findAll();

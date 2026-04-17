@@ -1,11 +1,13 @@
 package com.example.pitchboxd.match.core.service.domain;
 
 import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.core.infrastructure.external.NaverSportsMatchClient;
 import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverMatchResponse;
 import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverScheduleWrapper;
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +18,15 @@ public class MatchSyncService {
     private final NaverSportsMatchClient naverSportsClient;
     private final MatchRepository matchRepository;
 
-    public void syncKLeagueMatches(LocalDate from, LocalDate to) {
-        NaverScheduleWrapper externalMatches = naverSportsClient.fetchMatches(from, to);
+    public void syncKLeagueMatches(CreateMatchRequest request) {
+        NaverScheduleWrapper externalMatches = naverSportsClient.fetchMatches(request.from(), request.to());
+        List<Match> matches = new ArrayList<>();
 
         for (NaverMatchResponse dto : externalMatches.getMatches()) {
-            System.out.println(dto);
-
             Match match = dto.toMatch();
-
-            matchRepository.save(match);
+            matches.add(match);
         }
+        
+        matchRepository.saveAll(matches);
     }
 }

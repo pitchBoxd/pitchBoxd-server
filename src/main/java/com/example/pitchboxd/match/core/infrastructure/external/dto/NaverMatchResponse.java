@@ -27,6 +27,6 @@ public record NaverMatchResponse(
             matchStatus = MatchStatus.FINISHED;
         }
 
-        return new Match(1L, matchRound, homeTeamCode, awayTeamCode, gameDateTime, matchStatus, stadium);
+        return new Match(1L, matchRound, homeTeamCode, awayTeamCode, gameDateTime, matchStatus, stadium, gameId);
     }
 }

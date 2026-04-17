@@ -19,9 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class NaverSportsMatchClient {
 
     // 네이버 스포츠 일정 API의 기본 엔드포인트
-    // 사용자님이 주신 베이스 주소
     private static final String NAVER_GAMES_BASE_URL = "https://api-gw.sports.naver.com/schedule/games";
-    // 사용자님이 직접 검증하신 그 방대한 필드 목록들 (오타 방지를 위해 그대로 복사 권장)
     private static final String NAVER_FIELDS = "basic,schedule,matchRound,roundTournamentInfo,phaseCode,groupName,leg,hasPtSore,homePtScore,awayPtScore,league,leagueName,aggregateWinner,neutralGround,postponed,manualRelayUrl";
 
     private final RestClient restClient;
