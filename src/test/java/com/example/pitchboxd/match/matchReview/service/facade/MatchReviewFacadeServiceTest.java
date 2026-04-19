@@ -156,9 +156,9 @@ class MatchReviewFacadeServiceTest {
     }
 
     @Test
-    void 경기_종료_후_24시간이_지나면_리뷰를_작성할_수_없다() {
+    void 경기_종료_후_48시간이_지나면_리뷰를_작성할_수_없다() {
         // given
-        LocalDateTime startTime = LocalDateTime.now().minusHours(48);
+        LocalDateTime startTime = LocalDateTime.now().minusHours(60);
         LocalDateTime endTime = startTime.plusMinutes(120);
         Match oldMatch = new Match(2L, "2", 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장", "1");
         oldMatch.finish(endTime);

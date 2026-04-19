@@ -18,4 +18,8 @@ public class MatchQueryService {
     public List<MatchSummary> findRecentlyFinishedMatches(LocalDateTime finishedAtThreshold) {
         return matchQueryRepository.findFinishedMatchesSince(finishedAtThreshold);
     }
+
+    public List<MatchSummary> findRecentlyFinishedMatchesByTeam(LocalDateTime finishedAtThreshold, Long teamId) {
+        return matchQueryRepository.findFinishedMatchesSince(finishedAtThreshold, teamId);
+    }
 }

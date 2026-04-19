@@ -26,7 +26,7 @@ public class MatchSyncService {
             Match match = dto.toMatch();
             matches.add(match);
         }
-        
+
         matchRepository.saveAll(matches);
     }
 }

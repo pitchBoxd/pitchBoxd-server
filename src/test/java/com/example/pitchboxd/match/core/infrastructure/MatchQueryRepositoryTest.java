@@ -100,4 +100,45 @@ class MatchQueryRepositoryTest {
         // then
         assertThat(results).isEmpty();
     }
+
+    @Test
+    void 종료된_경기_중_특정_시점_이후에_종료된_특정_팀_경기를_조회한다() {
+        // given
+        Team teamA = teamRepository.save(new Team("팀A", "1"));
+        Team teamB = teamRepository.save(new Team("팀B", "1"));
+        Team teamC = teamRepository.save(new Team("팀C", "1"));
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threshold = now.minusHours(48);
+
+        // Match 1: Team A vs Team B (StartTime: threshold - 2h)
+        Match match1 = matchRepository.save(
+                new Match(1L, "1", teamA.getId(), teamB.getId(), threshold.minusHours(2), MatchStatus.FINISHED,
+                        "경기장1", "n1"));
+        match1.finish(threshold.plusHours(1));
+
+        // Match 2: Team B vs Team C (StartTime: threshold - 1h)
+        Match match2 = matchRepository.save(
+                new Match(1L, "2", teamB.getId(), teamC.getId(), threshold.minusHours(1), MatchStatus.FINISHED,
+                        "경기장2", "n2"));
+        match2.finish(threshold.plusHours(2));
+
+        // when
+        List<MatchSummary> teamAResults = matchQueryRepository.findFinishedMatchesSince(threshold, teamA.getId());
+        List<MatchSummary> teamBResults = matchQueryRepository.findFinishedMatchesSince(threshold, teamB.getId());
+        List<MatchSummary> teamCResults = matchQueryRepository.findFinishedMatchesSince(threshold, teamC.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(teamAResults).hasSize(1),
+                () -> assertThat(teamAResults.get(0).id()).isEqualTo(match1.getId()),
+
+                () -> assertThat(teamBResults).hasSize(2),
+                () -> assertThat(teamBResults).extracting(MatchSummary::id)
+                        .containsExactly(match1.getId(), match2.getId()),
+
+                () -> assertThat(teamCResults).hasSize(1),
+                () -> assertThat(teamCResults.get(0).id()).isEqualTo(match2.getId())
+        );
+    }
 }

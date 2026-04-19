@@ -1,6 +1,7 @@
 package com.example.pitchboxd.match.core.presentation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.global.domain.ClockHolder;
 import com.example.pitchboxd.global.security.JwtProvider;
@@ -103,8 +104,53 @@ class MatchControllerTest {
                 .extract()
                 .jsonPath()
                 .getObject("data", MatchResponses.class);
-
+        
         assertThat(response.matchResponses()).hasSize(1);
         assertThat(response.matchResponses().get(0).id()).isEqualTo(reviewableMatch.getId());
+    }
+
+    @Test
+    void 리뷰_가능한_경기_목록을_필터와_함께_조회한다() {
+        // given
+        Team myTeam = teamRepository.save(new Team("내팀", "naver-my"));
+        Team otherTeam = teamRepository.save(new Team("다른팀", "naver-other"));
+
+        User user = userRepository.save(new User("필터유저", "filter@example.com", "password123!", myTeam.getId()));
+        String userToken = jwtProvider.createToken(user.getId(), user.getEmail());
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 내 팀 경기 (리뷰 가능)
+        Match myMatch = new Match(1L, "1라운드", myTeam.getId(), otherTeam.getId(), now.minusHours(3),
+                MatchStatus.FINISHED, "상암", "naver-match-my");
+        myMatch.finish(now.minusHours(1));
+        myMatch.decideMatchResult(new MatchResult(2, 1, List.of(), List.of()));
+        matchRepository.save(myMatch);
+        matchStatisticsRepository.save(new MatchStatistics(myMatch.getId()));
+
+        // 다른 팀 경기 (리뷰 가능)
+        Match otherMatch = new Match(1L, "1라운드", otherTeam.getId(), otherTeam.getId(), now.minusHours(3),
+                MatchStatus.FINISHED, "전주", "naver-match-other");
+        otherMatch.finish(now.minusHours(1));
+        otherMatch.decideMatchResult(new MatchResult(0, 0, List.of(), List.of()));
+        matchRepository.save(otherMatch);
+        matchStatisticsRepository.save(new MatchStatistics(otherMatch.getId()));
+
+        // when & then
+        MatchResponses response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + userToken)
+                .queryParam("filter", "my")
+                .when().get("/api/v1/matches/reviewable")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchResponses.class);
+
+        assertAll(
+                () -> assertThat(response.matchResponses()).hasSize(1),
+                () -> assertThat(response.matchResponses().get(0).id()).isEqualTo(myMatch.getId())
+        );
     }
 }

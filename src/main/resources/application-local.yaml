@@ -1,7 +1,6 @@
 spring:
   datasource:
-    # localhost가 아니라 docker-compose의 서비스 이름인 'db'를 사용함
-    url: jdbc:mysql://db:3306/my_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://db:3306/db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
     password: root_password
     driver-class-name: com.mysql.cj.jdbc.Driver

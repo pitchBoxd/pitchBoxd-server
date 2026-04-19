@@ -77,7 +77,7 @@ class MatchQueryServiceTest {
         // 종료된 경기 (기준 시점 이전) - 조회되지 않아야 함
         Match oldFinishedMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), threshold.minusHours(4),
                 MatchStatus.FINISHED, "상암", "1");
-        finishedMatch.finish(threshold.minusHours(2));
+        oldFinishedMatch.finish(threshold.minusHours(2));
         matchRepository.save(oldFinishedMatch);
 
         // 진행 예정인 경기 - 조회되지 않아야 함
@@ -111,6 +111,68 @@ class MatchQueryServiceTest {
 
         // when
         List<MatchSummary> results = matchQueryService.findRecentlyFinishedMatches(threshold);
+
+        // then
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void 특정_팀의_특정_시점_이후에_종료된_경기_목록을_조회한다() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threshold = now.minusHours(48);
+
+        // 팀이 홈인 종료된 경기 (기준 시점 이후)
+        Match match1 = new Match(1L, "1", homeTeam.getId(), awayTeam.getId(), threshold.minusHours(1),
+                MatchStatus.FINISHED, "상암", "1");
+        match1.finish(threshold.plusHours(1));
+        match1.decideMatchResult(new MatchResult(2, 0, null, null));
+        matchRepository.save(match1);
+
+        // 팀이 어웨이인 종료된 경기 (기준 시점 이후)
+        Match match2 = new Match(1L, "2", awayTeam.getId(), homeTeam.getId(), threshold.minusHours(2),
+                MatchStatus.FINISHED, "상암", "1");
+        match2.finish(threshold.plusHours(2));
+        match2.decideMatchResult(new MatchResult(1, 3, null, null));
+        matchRepository.save(match2);
+
+        // 다른 팀들간의 종료된 경기 (기준 시점 이후)
+        Team otherTeam1 = teamRepository.save(new Team("Other 1", "3"));
+        Team otherTeam2 = teamRepository.save(new Team("Other 2", "4"));
+        Match match3 = new Match(1L, "3", otherTeam1.getId(), otherTeam2.getId(), threshold.minusHours(1),
+                MatchStatus.FINISHED, "상암", "1");
+        match3.finish(threshold.plusHours(1));
+        match3.decideMatchResult(new MatchResult(0, 0, null, null));
+        matchRepository.save(match3);
+
+        // when
+        List<MatchSummary> results = matchQueryService.findRecentlyFinishedMatchesByTeam(threshold, homeTeam.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(results).hasSize(2),
+                () -> assertThat(results).extracting(MatchSummary::homeTeam)
+                        .containsExactlyInAnyOrder(homeTeam.getName(), awayTeam.getName())
+        );
+    }
+
+    @Test
+    void 특정_팀의_종료된_경기가_없으면_빈_리스트를_반환한다() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threshold = now.minusHours(48);
+
+        // 다른 팀의 종료된 경기만 존재
+        Team otherTeam1 = teamRepository.save(new Team("Other 1", "3"));
+        Team otherTeam2 = teamRepository.save(new Team("Other 2", "4"));
+        Match match = new Match(1L, "3", otherTeam1.getId(), otherTeam2.getId(), threshold.minusHours(1),
+                MatchStatus.FINISHED, "상암", "1");
+        match.finish(threshold.plusHours(1));
+        match.decideMatchResult(new MatchResult(0, 0, null, null));
+        matchRepository.save(match);
+
+        // when
+        List<MatchSummary> results = matchQueryService.findRecentlyFinishedMatchesByTeam(threshold, homeTeam.getId());
 
         // then
         assertThat(results).isEmpty();

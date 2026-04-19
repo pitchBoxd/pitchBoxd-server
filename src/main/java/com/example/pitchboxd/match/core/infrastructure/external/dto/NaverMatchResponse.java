@@ -1,9 +1,11 @@
 package com.example.pitchboxd.match.core.infrastructure.external.dto;
 
 import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.domain.MatchResult;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record NaverMatchResponse(
@@ -23,10 +25,14 @@ public record NaverMatchResponse(
 
     public Match toMatch() {
         MatchStatus matchStatus = MatchStatus.SCHEDULED;
+        Match match = new Match(1L, matchRound, homeTeamCode, awayTeamCode, gameDateTime, matchStatus, stadium, gameId);
+        
         if (statusCode.equals("RESULT")) {
-            matchStatus = MatchStatus.FINISHED;
+            MatchResult matchResult = new MatchResult(homeTeamScore, awayTeamScore, List.of(), List.of());
+            match.finish(gameDateTime.plusHours(2));
+            match.decideMatchResult(matchResult);
         }
 
-        return new Match(1L, matchRound, homeTeamCode, awayTeamCode, gameDateTime, matchStatus, stadium, gameId);
+        return match;
     }
 }

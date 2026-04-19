@@ -5,6 +5,8 @@ import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -51,6 +53,7 @@ public class Match extends BaseEntity {
     private LocalDateTime finishedAt;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private MatchStatus status;
 
     @Column(nullable = false)
@@ -63,8 +66,7 @@ public class Match extends BaseEntity {
     private String naverId;
 
     public Match(Long seasonId, String round, Long homeTeamId, Long awayTeamId, LocalDateTime startTime,
-                 MatchStatus status,
-                 String location, String naverId) {
+                 MatchStatus status, String location, String naverId) {
         this.seasonId = seasonId;
         this.round = round;
         this.homeTeamId = homeTeamId;
