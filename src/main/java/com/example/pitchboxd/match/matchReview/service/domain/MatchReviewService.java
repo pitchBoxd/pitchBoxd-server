@@ -3,6 +3,7 @@ package com.example.pitchboxd.match.matchReview.service.domain;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
+import com.example.pitchboxd.match.matchReview.domain.MatchReviewSubmitPolicy;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MatchReviewService {
 
     private final MatchReviewRepository matchReviewRepository;
+    private final MatchReviewSubmitPolicy matchReviewSubmitPolicy;
 
     @Transactional
     public MatchReview save(MatchReviewCreateRequest request, FanType fanType, Long matchId, Long userId) {

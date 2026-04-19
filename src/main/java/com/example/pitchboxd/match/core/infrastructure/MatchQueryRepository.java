@@ -4,8 +4,9 @@ import static com.example.pitchboxd.match.core.domain.QMatch.match;
 import static com.example.pitchboxd.match.matchStatistics.domain.QMatchStatistics.matchStatistics;
 import static com.querydsl.core.types.dsl.Expressions.numberTemplate;
 
-import com.example.pitchboxd.match.core.service.domain.dto.MatchSummary;
-import com.example.pitchboxd.match.core.service.domain.dto.QMatchSummary;
+import com.example.pitchboxd.match.core.domain.MatchStatus;
+import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
+import com.example.pitchboxd.match.core.infrastructure.dto.QMatchSummary;
 import com.example.pitchboxd.team.domain.QTeam;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
@@ -19,7 +20,8 @@ public class MatchQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public List<MatchSummary> findMatchesBetween(LocalDateTime start, LocalDateTime end) {
+    public List<MatchSummary> findFinishedMatchesSince(LocalDateTime finishedAtThreshold) {
+
         // 1. 같은 Team 테이블을 구분하기 위한 별칭 생성
         QTeam homeTeam = new QTeam("homeTeam");
         QTeam awayTeam = new QTeam("awayTeam");
@@ -45,9 +47,11 @@ public class MatchQueryRepository {
                 .innerJoin(homeTeam).on(match.homeTeamId.eq(homeTeam.id))
                 .innerJoin(awayTeam).on(match.awayTeamId.eq(awayTeam.id))
                 .leftJoin(matchStatistics).on(match.id.eq(matchStatistics.matchId))
-                .where(match.startTime.between(start, end))
+                .where(
+                        match.status.eq(MatchStatus.FINISHED),
+                        match.finishedAt.goe(finishedAtThreshold) // 주입받은 시간으로 필터링
+                )
                 .orderBy(match.startTime.asc())
                 .fetch();
     }
-    
 }

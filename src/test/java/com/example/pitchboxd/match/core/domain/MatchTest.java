@@ -1,11 +1,13 @@
 package com.example.pitchboxd.match.core.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -183,5 +185,23 @@ class MatchTest {
 
         // then
         assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    void 경기_결과가_존재할_때_변경을_시도하면_예외가_발생한다() {
+        // given
+        Match match = new Match(
+                1L, "1", 1L, 2L,
+                LocalDateTime.of(2026, 3, 28, 15, 0),
+                MatchStatus.FINISHED, "Stadium", "1"
+        );
+        MatchResult matchResult = new MatchResult(0, 0, List.of(), List.of());
+        match.decideMatchResult(matchResult);
+
+        // when & then
+        MatchResult newMatchResult = new MatchResult(1, 1, List.of(), List.of());
+        
+        assertThatThrownBy(() -> match.decideMatchResult(newMatchResult))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

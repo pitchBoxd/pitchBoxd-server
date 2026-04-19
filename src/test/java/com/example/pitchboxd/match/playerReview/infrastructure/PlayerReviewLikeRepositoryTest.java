@@ -49,8 +49,8 @@ class PlayerReviewLikeRepositoryTest {
     void 플레이어_리뷰_좋아요_존재_여부를_확인한다() {
         // given
         User user = userRepository.save(new User("유저", "test@test.com", "password"));
-        Team homeTeam = teamRepository.save(new Team("홈팀"));
-        Team awayTeam = teamRepository.save(new Team("어웨이팀"));
+        Team homeTeam = teamRepository.save(new Team("홈팀", "1"));
+        Team awayTeam = teamRepository.save(new Team("어웨이팀", "1"));
         Match match = matchRepository
                 .save(new Match(1L, "1R", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(), MatchStatus.FINISHED,
                         "상암", "1"));
@@ -75,8 +75,8 @@ class PlayerReviewLikeRepositoryTest {
     void 플레이어_리뷰_좋아요를_삭제한다() {
         // given
         User user = userRepository.save(new User("유저", "test@test.com", "password"));
-        Team homeTeam = teamRepository.save(new Team("홈팀"));
-        Team awayTeam = teamRepository.save(new Team("어웨이팀"));
+        Team homeTeam = teamRepository.save(new Team("홈팀", "1"));
+        Team awayTeam = teamRepository.save(new Team("어웨이팀", "1"));
         Match match = matchRepository
                 .save(new Match(1L, "1R", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(), MatchStatus.FINISHED,
                         "상암", "1"));

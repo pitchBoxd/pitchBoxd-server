@@ -1,6 +1,6 @@
 package com.example.pitchboxd.match.core.dto.response;
 
-import com.example.pitchboxd.match.core.service.domain.dto.MatchSummary;
+import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import java.time.LocalDateTime;
 
 public record MatchResponse(

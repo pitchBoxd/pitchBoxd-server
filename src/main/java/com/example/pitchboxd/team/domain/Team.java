@@ -1,5 +1,6 @@
 package com.example.pitchboxd.team.domain;
 
+import com.example.pitchboxd.global.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +21,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Team {
+public class Team extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +33,8 @@ public class Team {
     @Column(nullable = false)
     private String naverId;
 
-    public Team(String name) {
+    public Team(String name, String naverId) {
         this.name = name;
+        this.naverId = naverId;
     }
 }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MatchReviewSubmitPolicy {
 
-    private static final Duration REVIEW_SUBMIT_LIMIT = Duration.ofHours(24);
+    private static final Duration REVIEW_SUBMIT_LIMIT = Duration.ofHours(48);
 
     public void validateMatchStatus(Match match, LocalDateTime now) {
         if (!match.isEnd(now) || match.isPassed(now, REVIEW_SUBMIT_LIMIT)) {
@@ -22,5 +22,9 @@ public class MatchReviewSubmitPolicy {
         if (isAlreadyReviewed) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED);
         }
+    }
+    
+    public LocalDateTime getReviewableThreshold(LocalDateTime now) {
+        return now.minus(REVIEW_SUBMIT_LIMIT);
     }
 }

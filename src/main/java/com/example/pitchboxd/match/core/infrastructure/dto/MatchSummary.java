@@ -1,4 +1,4 @@
-package com.example.pitchboxd.match.core.service.domain.dto;
+package com.example.pitchboxd.match.core.infrastructure.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDateTime;

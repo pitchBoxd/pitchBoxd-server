@@ -92,6 +92,15 @@ public class Match extends BaseEntity {
         this.finishedAt = now;
     }
 
+    public void decideMatchResult(MatchResult matchResult) {
+        if (this.matchResult == null) {
+            this.matchResult = matchResult;
+            return;
+        }
+
+        throw new IllegalArgumentException("이미 결정된 경기 결과는 바꿀 수 없습니다.");
+    }
+
     public boolean isEnd(LocalDateTime now) {
         if (finishedAt == null || status == null) {
             return false;

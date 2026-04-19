@@ -53,8 +53,8 @@ class MatchReviewLikeRepositoryTest {
         User reviewer = userRepository.save(new User("Reviewer", "reviewer@test.com", "password"));
         liker = userRepository.save(new User("Liker", "liker@test.com", "password"));
 
-        Team home = teamRepository.save(new Team("HomeTeam"));
-        Team away = teamRepository.save(new Team("AwayTeam"));
+        Team home = teamRepository.save(new Team("HomeTeam", "1"));
+        Team away = teamRepository.save(new Team("AwayTeam", "1"));
 
         Match match = matchRepository
                 .save(new Match(1L, "1R", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.FINISHED, "상암",

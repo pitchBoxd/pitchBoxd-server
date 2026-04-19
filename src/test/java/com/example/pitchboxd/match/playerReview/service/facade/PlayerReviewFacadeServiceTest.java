@@ -90,8 +90,8 @@ class PlayerReviewFacadeServiceTest {
         databaseCleaner.clean();
 
         LocalDateTime now = LocalDateTime.now();
-        homeTeam = teamRepository.save(new Team("FC서울"));
-        awayTeam = teamRepository.save(new Team("수원삼성"));
+        homeTeam = teamRepository.save(new Team("FC서울", "1"));
+        awayTeam = teamRepository.save(new Team("수원삼성", "1"));
         homeTeamPlayer = playerRepository.save(new Player(homeTeam.getId(), "기성용", "1"));
 
         Match unsavedMatch = new Match(1L, "1", homeTeam.getId(), awayTeam.getId(), now.minusHours(3),

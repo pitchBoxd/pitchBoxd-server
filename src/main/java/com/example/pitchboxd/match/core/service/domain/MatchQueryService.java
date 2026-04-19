@@ -1,7 +1,7 @@
 package com.example.pitchboxd.match.core.service.domain;
 
 import com.example.pitchboxd.match.core.infrastructure.MatchQueryRepository;
-import com.example.pitchboxd.match.core.service.domain.dto.MatchSummary;
+import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ public class MatchQueryService {
 
     private final MatchQueryRepository matchQueryRepository;
 
-    public List<MatchSummary> findMatchesByScope(LocalDateTime from, LocalDateTime to) {
-        return matchQueryRepository.findMatchesBetween(from, to);
+    public List<MatchSummary> findRecentlyFinishedMatches(LocalDateTime finishedAtThreshold) {
+        return matchQueryRepository.findFinishedMatchesSince(finishedAtThreshold);
     }
 }

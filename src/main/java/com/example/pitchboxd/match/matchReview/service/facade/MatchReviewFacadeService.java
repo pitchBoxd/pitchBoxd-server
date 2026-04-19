@@ -123,4 +123,9 @@ public class MatchReviewFacadeService {
         // TODO: 다른 트랜잭션으로 분리 필요. 나중에 이벤트 리스너로 분리 ㄱㄱ
         matchStatisticsService.removeReview(matchReview.getMatchId(), matchReview.getPoint(), matchReview.getFanType());
     }
+
+    public LocalDateTime getReviewableThreshold() {
+        LocalDateTime now = clockHolder.now();
+        return matchReviewSubmitPolicy.getReviewableThreshold(now);
+    }
 }
