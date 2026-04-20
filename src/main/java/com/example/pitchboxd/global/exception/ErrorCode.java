@@ -34,14 +34,15 @@ public enum ErrorCode {
 
     PLAYER_STATISTICS_NOT_FOUND("PS-001", "선수 통계를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
+    TEAM_NOT_FOUND("T-001", "팀을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
     PASSWORD_NOT_MATCH("A-001", "비밀번호가 일치하지 않습니다.", HttpStatus.UNAUTHORIZED),
     TOKEN_EXPIRED("A-002", "토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN("A-003", "유효하지 않은 토큰입니다.", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED("A-004", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("A-005", "해당 리소스에 대한 접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
     USER_UNAUTHENTICATED("A-006", "로그인이 필요한 서비스입니다.", HttpStatus.UNAUTHORIZED),
-    INVALID_TOKEN_GOOGLE("A-007", "유효하지 않은 구글 토큰입니다.", HttpStatus.UNAUTHORIZED),
-    ;
+    INVALID_TOKEN_GOOGLE("A-007", "유효하지 않은 구글 토큰입니다.", HttpStatus.UNAUTHORIZED);
 
 
     private final String code;

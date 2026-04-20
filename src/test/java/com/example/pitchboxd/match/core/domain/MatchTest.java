@@ -200,7 +200,7 @@ class MatchTest {
 
         // when & then
         MatchResult newMatchResult = new MatchResult(1, 1, List.of(), List.of());
-        
+
         assertThatThrownBy(() -> match.decideMatchResult(newMatchResult))
                 .isInstanceOf(IllegalArgumentException.class);
     }
