@@ -12,6 +12,7 @@ import com.example.pitchboxd.match.core.infrastructure.external.NaverSportsMatch
 import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverMatchDetailResponse;
 import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverMatchResponse;
 import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverScheduleWrapper;
+import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatisticsService;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.service.TeamQueryService;
 import java.time.LocalDateTime;
@@ -28,19 +29,29 @@ public class MatchSyncService {
     private final NaverSportsMatchClient naverSportsClient;
     private final MatchRepository matchRepository;
     private final TeamQueryService teamQueryService;
+    private final MatchStatisticsService matchStatisticsService;
     private ClockHolder clockHolder;
 
     @Transactional
     public void syncKLeagueMatches(CreateMatchRequest request) {
         NaverScheduleWrapper externalMatches = naverSportsClient.fetchMatches(request.from(), request.to());
-        List<Match> matches = new ArrayList<>();
 
+        // TODO: 현재 메서드를 사용하면 기간 내 경기를 다시 저장하게 됨. 이미 있는 경기가 두 번 저장될 수도 있음.
+        //  근데 Match의 naverID는 유니크 제약이 걸려 있어서 멱등성으로 막아야 한다.
+        //  따라서 이미 존재하는 경기의 경우 건들면 안되는 로직 작성해야 함
+
+        List<Match> matches = new ArrayList<>();
         for (NaverMatchResponse dto : externalMatches.getMatches()) {
             Match match = mapToMatch(dto);
             matches.add(match);
         }
 
-        matchRepository.saveAll(matches);
+        List<Match> savedMatches = matchRepository.saveAll(matches);
+        List<Long> matchIds = savedMatches.stream()
+                .map(Match::getId)
+                .toList();
+        
+        matchStatisticsService.createAllStatistics(matchIds);
     }
 
     @Transactional

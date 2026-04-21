@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -21,7 +22,12 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "matches")
+@Table(name = "matches", uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_matches_naver_id",
+                columnNames = {"naver_id"}
+        )
+})
 @SQLDelete(sql = "UPDATE matches SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

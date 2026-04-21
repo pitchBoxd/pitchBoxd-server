@@ -5,6 +5,7 @@ import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class MatchStatisticsService {
 
     private final MatchStatisticsRepository matchStatisticsRepository;
+
+    @Transactional
+    public void createAllStatistics(List<Long> matchIds) {
+        List<MatchStatistics> matchStatistics = matchIds.stream()
+                .map(MatchStatistics::new)
+                .toList();
+
+        matchStatisticsRepository.saveAll(matchStatistics);
+    }
 
     /***
      * 경기 종료 직후 많은 사용자가 몰려서 충돌이 예상됨.
