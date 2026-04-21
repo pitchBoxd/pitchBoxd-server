@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class GoalScorer {
     private String playerName;
     private Integer minute;
+    private Integer addedTime;
+    private boolean ownGoal;
 }

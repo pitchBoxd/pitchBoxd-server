@@ -2,6 +2,7 @@ package com.example.pitchboxd.match.core.infrastructure.external;
 
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
+import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverMatchDetailResponse;
 import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverScheduleWrapper;
 import java.net.URI;
 import java.time.LocalDate;
@@ -54,5 +55,16 @@ public class NaverSportsMatchClient {
                     throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
                 })
                 .body(NaverScheduleWrapper.class);
+    }
+
+    public NaverMatchDetailResponse getMatchDetail(String gameCode) {
+        return restClient.get()
+                .uri(NAVER_GAMES_BASE_URL + "/{gameCode}", gameCode)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    log.warn("네이버 api 호출 실패: 게임 업데이트 게임코드: {%s}", gameCode);
+                    throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+                })
+                .body(NaverMatchDetailResponse.class);
     }
 }
