@@ -1,8 +1,8 @@
 package com.example.pitchboxd.match.core.service.domain;
 
-import com.example.pitchboxd.admin.service.MatchSyncService;
+import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
+import com.example.pitchboxd.admin.service.sync.MatchSyncService;
 import com.example.pitchboxd.match.core.domain.Match;
-import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +29,7 @@ class MatchSyncServiceTest {
     void 외부_경기_로딩_테스트() {
         // given
         CreateMatchRequest request = new CreateMatchRequest(LocalDate.of(2025, 12, 1), LocalDate.of(2025, 12, 6));
-        matchSyncService.syncKLeagueMatches(request);
+        matchSyncService.syncLeagueMatches(request);
 
         // when
         List<Match> matches = matchRepository.findAll();

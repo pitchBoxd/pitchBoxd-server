@@ -1,8 +1,9 @@
 package com.example.pitchboxd.admin.presnetation;
 
+import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
+import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
 import com.example.pitchboxd.admin.service.facade.AdminFacadeService;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
-import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,20 @@ public class AdminController {
     private final AdminFacadeService adminFacadeService;
 
     @PostMapping("/matches")
-    public ResponseEntity<SuccessResponse<Void>> syncKLeagueMatches(
-            @RequestBody CreateMatchRequest createMatchRequest
+    public ResponseEntity<SuccessResponse<Void>> syncLeagueMatches(
+            @RequestBody CreateMatchRequest request
     ) {
-        adminFacadeService.syncMatchesAndStatistics(createMatchRequest);
+        adminFacadeService.syncMatchesAndStatistics(request);
+        HttpStatus status = HttpStatus.CREATED;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
+    }
+
+    @PostMapping("/players")
+    public ResponseEntity<SuccessResponse<Void>> syncPlayers(
+            @RequestBody CreatePlayerRequest request
+    ) {
+        adminFacadeService.syncPlayers(request);
         HttpStatus status = HttpStatus.CREATED;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));

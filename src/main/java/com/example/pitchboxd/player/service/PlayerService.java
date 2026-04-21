@@ -4,6 +4,7 @@ import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,5 +24,13 @@ public class PlayerService {
     public Player findByNaverId(String naverPlayerId) {
         return playerRepository.findByNaverId(naverPlayerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND));
+    }
+
+    public List<String> findExistingNaverId(List<String> playerNaverId) {
+        return playerRepository.findNaverIdsByNaverIdIn(playerNaverId);
+    }
+
+    public void saveAll(List<Player> players) {
+        playerRepository.saveAll(players);
     }
 }

@@ -1,8 +1,10 @@
 package com.example.pitchboxd.admin.service.facade;
 
-import com.example.pitchboxd.admin.service.MatchLineupSyncService;
-import com.example.pitchboxd.admin.service.MatchSyncService;
-import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
+import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
+import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
+import com.example.pitchboxd.admin.service.sync.MatchLineupSyncService;
+import com.example.pitchboxd.admin.service.sync.MatchSyncService;
+import com.example.pitchboxd.admin.service.sync.PlayerSyncService;
 import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatisticsService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ public class AdminFacadeService {
     private final MatchSyncService matchSyncService;
     private final MatchLineupSyncService matchLineupSyncService;
     private final MatchStatisticsService matchStatisticsService;
+    private final PlayerSyncService playerSyncService;
 
     @Transactional
     public void finishMatchAndUpdateLineup(String naverGameId) {
@@ -26,7 +29,12 @@ public class AdminFacadeService {
 
     @Transactional
     public void syncMatchesAndStatistics(CreateMatchRequest request) {
-        List<Long> matchIds = matchSyncService.syncKLeagueMatches(request);
+        List<Long> matchIds = matchSyncService.syncLeagueMatches(request);
         matchStatisticsService.createAllStatistics(matchIds);
+    }
+
+    @Transactional
+    public void syncPlayers(CreatePlayerRequest request) {
+        playerSyncService.syncAllPlayers(request.season());
     }
 }

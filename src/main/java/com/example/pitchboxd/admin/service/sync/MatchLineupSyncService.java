@@ -1,6 +1,6 @@
-package com.example.pitchboxd.admin.service;
+package com.example.pitchboxd.admin.service.sync;
 
-import com.example.pitchboxd.global.infrastructure.naver.NaverSportsMatchClient;
+import com.example.pitchboxd.global.infrastructure.naver.NaverSportsClient;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverLineupResponse;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverLineupResponse.NaverPlayerNode;
 import com.example.pitchboxd.match.core.domain.Match;
@@ -25,7 +25,7 @@ public class MatchLineupSyncService {
     private final MatchService matchService;
     private final PlayerService playerService;
     private final MatchLineupService matchLineupService;
-    private final NaverSportsMatchClient naverSportsClient;
+    private final NaverSportsClient naverSportsClient;
 
     @Transactional
     public void syncLineup(String naverGameId) {

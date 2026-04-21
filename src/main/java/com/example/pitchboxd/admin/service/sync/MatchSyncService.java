@@ -1,14 +1,14 @@
-package com.example.pitchboxd.admin.service;
+package com.example.pitchboxd.admin.service.sync;
 
+import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.global.domain.ClockHolder;
-import com.example.pitchboxd.global.infrastructure.naver.NaverSportsMatchClient;
+import com.example.pitchboxd.global.infrastructure.naver.NaverSportsClient;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverMatchDetailResponse;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverMatchResponse;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverScheduleWrapper;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchResult;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
-import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.service.TeamQueryService;
@@ -23,13 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MatchSyncService {
 
-    private final NaverSportsMatchClient naverSportsClient;
+    private final NaverSportsClient naverSportsClient;
     private final TeamQueryService teamQueryService;
     private final MatchService matchService;
     private ClockHolder clockHolder;
 
     @Transactional
-    public List<Long> syncKLeagueMatches(CreateMatchRequest request) {
+    public List<Long> syncLeagueMatches(CreateMatchRequest request) {
         NaverScheduleWrapper externalMatches = naverSportsClient.fetchMatches(request.from(), request.to());
 
         // TODO: 현재 메서드를 사용하면 기간 내 경기를 다시 저장하게 됨. 이미 있는 경기가 두 번 저장될 수도 있음.

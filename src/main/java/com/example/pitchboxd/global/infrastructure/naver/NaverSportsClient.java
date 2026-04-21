@@ -4,6 +4,7 @@ import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverLineupResponse;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverMatchDetailResponse;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverPlayerResponse;
 import com.example.pitchboxd.global.infrastructure.naver.dto.NaverScheduleWrapper;
 import java.net.URI;
 import java.time.LocalDate;
@@ -18,11 +19,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class NaverSportsMatchClient {
+public class NaverSportsClient {
 
     // 네이버 스포츠 일정 API의 기본 엔드포인트
     private static final String NAVER_GAMES_BASE_URL = "https://api-gw.sports.naver.com/schedule/games";
     private static final String NAVER_FIELDS = "basic,schedule,matchRound,roundTournamentInfo,phaseCode,groupName,leg,hasPtSore,homePtScore,awayPtScore,league,leagueName,aggregateWinner,neutralGround,postponed,manualRelayUrl";
+
+    private static final String NAVER_STATS_BASE_URL = "https://api-gw.sports.naver.com/statistics/categories/kleague";
 
     private final RestClient restClient;
 
@@ -69,7 +72,6 @@ public class NaverSportsMatchClient {
                 .body(NaverMatchDetailResponse.class);
     }
 
-    // ⭐️ 라인업 조회 메서드 추가
     public NaverLineupResponse getMatchLineup(String gameCode) {
         return restClient.get()
                 .uri(NAVER_GAMES_BASE_URL + "/{gameCode}" + "/lineup", gameCode) // 엔드포인트는 상세 조회와 동일하지만, 파싱하는 DTO가 다릅니다.
@@ -79,5 +81,24 @@ public class NaverSportsMatchClient {
                     throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
                 })
                 .body(NaverLineupResponse.class);
+    }
+
+    public NaverPlayerResponse getPlayersByTeam(String seasonYear, String teamCode) {
+        URI uri = UriComponentsBuilder.fromUriString(NAVER_STATS_BASE_URL)
+                .path("/seasons/{seasonYear}/players")
+                .queryParam("teamCode", teamCode)
+                .queryParam("sortField", "goals")       // ⭐️ 중복 방지 핵심 파라미터
+                .queryParam("sortDirection", "desc")
+                .buildAndExpand(seasonYear)             // path variable 바인딩
+                .toUri();
+
+        return restClient.get()
+                .uri(uri)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    log.warn("네이버 api 호출 실패 (선수 목록 조회): 팀코드: {}", teamCode);
+                    throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+                })
+                .body(NaverPlayerResponse.class);
     }
 }

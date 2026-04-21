@@ -1,4 +1,4 @@
-package com.example.pitchboxd.match.core.dto.request;
+package com.example.pitchboxd.admin.dto.request;
 
 import java.time.LocalDate;
 
