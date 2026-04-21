@@ -1,18 +1,15 @@
-package com.example.pitchboxd.match.core.service.domain;
+package com.example.pitchboxd.admin.service;
 
 import com.example.pitchboxd.global.domain.ClockHolder;
-import com.example.pitchboxd.global.exception.BusinessException;
-import com.example.pitchboxd.global.exception.ErrorCode;
+import com.example.pitchboxd.global.infrastructure.naver.NaverSportsMatchClient;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverMatchDetailResponse;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverMatchResponse;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverScheduleWrapper;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchResult;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
-import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
-import com.example.pitchboxd.match.core.infrastructure.external.NaverSportsMatchClient;
-import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverMatchDetailResponse;
-import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverMatchResponse;
-import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverScheduleWrapper;
-import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatisticsService;
+import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.service.TeamQueryService;
 import java.time.LocalDateTime;
@@ -27,13 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class MatchSyncService {
 
     private final NaverSportsMatchClient naverSportsClient;
-    private final MatchRepository matchRepository;
     private final TeamQueryService teamQueryService;
-    private final MatchStatisticsService matchStatisticsService;
+    private final MatchService matchService;
     private ClockHolder clockHolder;
 
     @Transactional
-    public void syncKLeagueMatches(CreateMatchRequest request) {
+    public List<Long> syncKLeagueMatches(CreateMatchRequest request) {
         NaverScheduleWrapper externalMatches = naverSportsClient.fetchMatches(request.from(), request.to());
 
         // TODO: 현재 메서드를 사용하면 기간 내 경기를 다시 저장하게 됨. 이미 있는 경기가 두 번 저장될 수도 있음.
@@ -46,19 +42,16 @@ public class MatchSyncService {
             matches.add(match);
         }
 
-        List<Match> savedMatches = matchRepository.saveAll(matches);
-        List<Long> matchIds = savedMatches.stream()
+        List<Match> savedMatches = matchService.createAllMatches(matches);
+        return savedMatches.stream()
                 .map(Match::getId)
                 .toList();
-        
-        matchStatisticsService.createAllStatistics(matchIds);
     }
 
     @Transactional
-    public void updateMatch(String matchCode) {
+    public void finishMatch(String matchCode) {
         LocalDateTime now = clockHolder.now();
-        Match match = matchRepository.findByNaverId(matchCode)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));
+        Match match = matchService.findByNaverId(matchCode);
 
         NaverMatchDetailResponse response = naverSportsClient.getMatchDetail(matchCode);
         MatchResult matchResult = new MatchResult(response.homeTeamScore(), response.awayTeamScore(),

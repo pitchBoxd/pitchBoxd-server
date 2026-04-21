@@ -1,4 +1,4 @@
-package com.example.pitchboxd.match.core.infrastructure.external.dto;
+package com.example.pitchboxd.global.infrastructure.naver.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;

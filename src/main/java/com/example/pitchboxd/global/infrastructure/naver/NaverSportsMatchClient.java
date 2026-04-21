@@ -1,9 +1,10 @@
-package com.example.pitchboxd.match.core.infrastructure.external;
+package com.example.pitchboxd.global.infrastructure.naver;
 
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
-import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverMatchDetailResponse;
-import com.example.pitchboxd.match.core.infrastructure.external.dto.NaverScheduleWrapper;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverLineupResponse;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverMatchDetailResponse;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverScheduleWrapper;
 import java.net.URI;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,7 @@ public class NaverSportsMatchClient {
                 .header(HttpHeaders.REFERER, "https://sports.naver.com/")
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    log.warn("네이버 api 호출 실패 {%s}", uri);
+                    log.warn("네이버 api 호출 실패 (기간 내 게임 불러오기): {}", uri);
                     throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
                 })
                 .body(NaverScheduleWrapper.class);
@@ -62,9 +63,21 @@ public class NaverSportsMatchClient {
                 .uri(NAVER_GAMES_BASE_URL + "/{gameCode}", gameCode)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    log.warn("네이버 api 호출 실패: 게임 업데이트 게임코드: {%s}", gameCode);
+                    log.warn("네이버 api 호출 실패 (게임 상세 데이터): 게임코드: {}", gameCode);
                     throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
                 })
                 .body(NaverMatchDetailResponse.class);
+    }
+
+    // ⭐️ 라인업 조회 메서드 추가
+    public NaverLineupResponse getMatchLineup(String gameCode) {
+        return restClient.get()
+                .uri(NAVER_GAMES_BASE_URL + "/{gameCode}" + "/lineup", gameCode) // 엔드포인트는 상세 조회와 동일하지만, 파싱하는 DTO가 다릅니다.
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    log.warn("네이버 api 호출 실패 (라인업 조회): 게임코드: {}", gameCode);
+                    throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+                })
+                .body(NaverLineupResponse.class);
     }
 }

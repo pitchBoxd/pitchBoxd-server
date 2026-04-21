@@ -1,5 +1,6 @@
 package com.example.pitchboxd.match.core.service.domain;
 
+import com.example.pitchboxd.admin.service.MatchSyncService;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;

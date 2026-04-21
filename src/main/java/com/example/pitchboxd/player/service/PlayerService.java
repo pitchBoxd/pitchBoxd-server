@@ -19,4 +19,9 @@ public class PlayerService {
         return playerRepository.findById(playerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND));
     }
+
+    public Player findByNaverId(String naverPlayerId) {
+        return playerRepository.findByNaverId(naverPlayerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND));
+    }
 }
