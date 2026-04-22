@@ -2,6 +2,7 @@ package com.example.pitchboxd.admin.presnetation;
 
 import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
+import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
 import com.example.pitchboxd.admin.service.facade.AdminFacadeService;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class AdminController {
 
     private final AdminFacadeService adminFacadeService;
 
-    @PostMapping("/matches")
+    @PostMapping("/sync-tasks/matches")
     public ResponseEntity<SuccessResponse<Void>> syncLeagueMatches(
             @RequestBody CreateMatchRequest request
     ) {
@@ -31,7 +32,7 @@ public class AdminController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
     }
 
-    @PostMapping("/players")
+    @PostMapping("/sync-tasks/players")
     public ResponseEntity<SuccessResponse<Void>> syncPlayers(
             @RequestBody CreatePlayerRequest request
     ) {
@@ -41,10 +42,22 @@ public class AdminController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
     }
 
-    @PatchMapping("/matches/{naverId}")
+    @PatchMapping("/matches/{naverId}:finish")
     public ResponseEntity<SuccessResponse<Void>> finishMatch(@PathVariable String naverId) {
 
         adminFacadeService.finishMatchAndUpdateLineup(naverId);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
+    }
+
+    @PatchMapping("/matches/{matchId}")
+    public ResponseEntity<SuccessResponse<Void>> updateMatch(
+            @PathVariable Long matchId,
+            @RequestBody UpdateMatchRequest request
+    ) {
+
+        adminFacadeService.updateMatch(matchId, request);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));

@@ -2,9 +2,13 @@ package com.example.pitchboxd.admin.service.facade;
 
 import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
+import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
 import com.example.pitchboxd.admin.service.sync.MatchLineupSyncService;
 import com.example.pitchboxd.admin.service.sync.MatchSyncService;
 import com.example.pitchboxd.admin.service.sync.PlayerSyncService;
+import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.domain.MatchResult;
+import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatisticsService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,7 @@ public class AdminFacadeService {
     private final MatchLineupSyncService matchLineupSyncService;
     private final MatchStatisticsService matchStatisticsService;
     private final PlayerSyncService playerSyncService;
+    private final MatchService matchService;
 
     @Transactional
     public void finishMatchAndUpdateLineup(String naverGameId) {
@@ -36,5 +41,18 @@ public class AdminFacadeService {
     @Transactional
     public void syncPlayers(CreatePlayerRequest request) {
         playerSyncService.syncAllPlayers(request.season());
+    }
+
+    @Transactional
+    public void updateMatch(Long matchId, UpdateMatchRequest request) {
+        Match match = matchService.findById(matchId);
+        MatchResult matchResult = null;
+
+        if (request.matchResult() != null) {
+            matchResult = request.matchResult().toEmbeddable();
+        }
+
+        match.update(request.homeTeamId(), request.awayTeamId(), request.startTime(), request.finishedAt(),
+                request.status(), request.location(), matchResult, request.naverId());
     }
 }

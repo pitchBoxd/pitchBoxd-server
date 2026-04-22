@@ -204,4 +204,105 @@ class MatchTest {
         assertThatThrownBy(() -> match.decideMatchResult(newMatchResult))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void 경기를_종료한다() {
+        // given
+        Match match = new Match(
+                1L, "1", 1L, 2L,
+                LocalDateTime.of(2026, 3, 28, 15, 0),
+                MatchStatus.SCHEDULED, "Stadium", "1"
+        );
+        LocalDateTime finishedAt = LocalDateTime.of(2026, 3, 28, 17, 0);
+
+        // when
+        match.finish(finishedAt);
+
+        // then
+        assertAll(
+                () -> assertThat(match.getStatus()).isEqualTo(MatchStatus.FINISHED),
+                () -> assertThat(match.getFinishedAt()).isEqualTo(finishedAt)
+        );
+    }
+
+    @Test
+    void 경기_결과를_결정한다() {
+        // given
+        Match match = new Match(
+                1L, "1", 1L, 2L,
+                LocalDateTime.of(2026, 3, 28, 15, 0),
+                MatchStatus.FINISHED, "Stadium", "1"
+        );
+        List<GoalScorer> homeScorer = List.of(new GoalScorer("kim", 90, 1, false));
+        List<GoalScorer> awayScorer = List.of(new GoalScorer("lee", 60, 0, false));
+        MatchResult matchResult = new MatchResult(2, 1, homeScorer, awayScorer);
+
+        // when
+        match.decideMatchResult(matchResult);
+
+        // then
+        assertThat(match.getMatchResult()).isEqualTo(matchResult);
+    }
+
+    @Test
+    void 경기_정보를_업데이트한다() {
+        // given
+        Match match = new Match(
+                1L, "1", 1L, 2L,
+                LocalDateTime.of(2026, 3, 28, 15, 0),
+                MatchStatus.SCHEDULED, "Old Stadium", "1"
+        );
+
+        Long newHomeTeamId = 10L;
+        Long newAwayTeamId = 20L;
+        LocalDateTime newStartTime = LocalDateTime.of(2026, 4, 1, 15, 0);
+        LocalDateTime newFinishedAt = LocalDateTime.of(2026, 4, 1, 17, 0);
+        MatchStatus newStatus = MatchStatus.FINISHED;
+        String newLocation = "New Stadium";
+        List<GoalScorer> homeScorer = List.of(new GoalScorer("kim", 90, 1, false));
+        MatchResult newResult = new MatchResult(1, 0, homeScorer, List.of());
+        String newNaverId = "naver-123";
+
+        // when
+        match.update(newHomeTeamId, newAwayTeamId, newStartTime, newFinishedAt, newStatus, newLocation, newResult,
+                newNaverId);
+
+        // then
+        assertAll(
+                () -> assertThat(match.getHomeTeamId()).isEqualTo(newHomeTeamId),
+                () -> assertThat(match.getAwayTeamId()).isEqualTo(newAwayTeamId),
+                () -> assertThat(match.getStartTime()).isEqualTo(newStartTime),
+                () -> assertThat(match.getFinishedAt()).isEqualTo(newFinishedAt),
+                () -> assertThat(match.getStatus()).isEqualTo(newStatus),
+                () -> assertThat(match.getLocation()).isEqualTo(newLocation),
+                () -> assertThat(match.getMatchResult()).isEqualTo(newResult),
+                () -> assertThat(match.getNaverId()).isEqualTo(newNaverId)
+        );
+    }
+
+    @Test
+    void 경기_결과_중_일부만_업데이트한다() {
+        // given
+        Match match = new Match(
+                1L, "1", 1L, 2L,
+                LocalDateTime.of(2026, 3, 28, 15, 0),
+                MatchStatus.FINISHED, "Stadium", "1"
+        );
+
+        List<GoalScorer> homeScorer = List.of(new GoalScorer("kim", 90, 1, false));
+        List<GoalScorer> awayScorer = List.of(new GoalScorer("lee", 60, 0, false));
+        match.decideMatchResult(new MatchResult(1, 1, homeScorer, awayScorer));
+
+        // when
+        MatchResult partialResult = new MatchResult(2, null, null, null);
+        match.update(null, null, null, null, null, null, partialResult, null);
+
+        // then
+        assertAll(
+                () -> assertThat(match.getMatchResult().getHomeScore()).isEqualTo(2),
+                () -> assertThat(match.getMatchResult().getAwayScore()).isEqualTo(1),
+                () -> assertThat(match.getMatchResult().getHomeScorers()).isEqualTo(homeScorer),
+                () -> assertThat(match.getMatchResult().getAwayScorers()).isEqualTo(awayScorer)
+        );
+    }
 }

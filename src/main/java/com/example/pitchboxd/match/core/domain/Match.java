@@ -124,4 +124,53 @@ public class Match extends BaseEntity {
 
         return this.finishedAt.plus(duration).isBefore(now);
     }
+
+    public void update(Long homeTeamId, Long awayTeamId, LocalDateTime startTime, LocalDateTime finishedAt,
+                       MatchStatus status, String location, MatchResult result, String naverId) {
+
+        if (homeTeamId != null) {
+            this.homeTeamId = homeTeamId;
+        }
+        if (awayTeamId != null) {
+            this.awayTeamId = awayTeamId;
+        }
+        if (startTime != null) {
+            this.startTime = startTime;
+        }
+        if (finishedAt != null) {
+            this.finishedAt = finishedAt;
+        }
+        if (status != null) {
+            this.status = status;
+        }
+        if (location != null) {
+            this.location = location;
+        }
+        if (naverId != null) {
+            this.naverId = naverId;
+        }
+
+        // 중첩 객체(Embeddable) 부분 수정 처리
+        if (result != null) {
+            this.updateMatchResult(result);
+        }
+    }
+
+    private void updateMatchResult(MatchResult newResult) {
+        if (newResult == null) {
+            return;
+        }
+
+        if (this.matchResult == null) {
+            this.matchResult = newResult;
+            return;
+        }
+
+        this.matchResult = new MatchResult(
+                newResult.getHomeScore() != null ? newResult.getHomeScore() : this.matchResult.getHomeScore(),
+                newResult.getAwayScore() != null ? newResult.getAwayScore() : this.matchResult.getAwayScore(),
+                newResult.getHomeScorers() != null ? newResult.getHomeScorers() : this.matchResult.getHomeScorers(),
+                newResult.getAwayScorers() != null ? newResult.getAwayScorers() : this.matchResult.getAwayScorers()
+        );
+    }
 }

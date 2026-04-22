@@ -28,6 +28,7 @@ public class MatchService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));
     }
 
+    @Transactional
     public List<Match> createAllMatches(List<Match> matches) {
         return matchRepository.saveAll(matches);
     }
