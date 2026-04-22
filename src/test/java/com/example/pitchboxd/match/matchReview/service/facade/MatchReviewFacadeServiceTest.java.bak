@@ -12,7 +12,6 @@ import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
-import com.example.pitchboxd.match.matchReview.dto.response.HotReviewResponses;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewCreateResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewUpdateResponse;
@@ -22,8 +21,6 @@ import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.support.TestClockHolder;
-import com.example.pitchboxd.team.domain.Team;
-import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.time.LocalDateTime;
@@ -58,9 +55,6 @@ class MatchReviewFacadeServiceTest {
     private MatchStatisticsRepository matchStatisticsRepository;
 
     @Autowired
-    private TeamRepository teamRepository;
-
-    @Autowired
     private DatabaseCleaner databaseCleaner;
 
     @Autowired
@@ -73,11 +67,8 @@ class MatchReviewFacadeServiceTest {
     void setUp() {
         databaseCleaner.clean();
 
-        Team homeTeam = teamRepository.save(new Team("홈팀", "naver1"));
-        Team awayTeam = teamRepository.save(new Team("어웨이팀", "naver2"));
-
-        user = userRepository.save(new User("테스터", "test@example.com", "password123!", homeTeam.getId()));
-        Match unsavedMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장", "1");
+        user = userRepository.save(new User("테스터", "test@example.com", "password123!", 1L));
+        Match unsavedMatch = new Match(1L, "2", 1L, 2L, LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장", "1");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
         match = matchRepository.save(unsavedMatch);
 
@@ -169,7 +160,7 @@ class MatchReviewFacadeServiceTest {
         // given
         LocalDateTime startTime = LocalDateTime.now().minusHours(60);
         LocalDateTime endTime = startTime.plusMinutes(120);
-        Match oldMatch = new Match(2L, "2", 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장", "1123444");
+        Match oldMatch = new Match(2L, "2", 1L, 2L, startTime, MatchStatus.FINISHED, "상암월드컵경기장", "1");
         oldMatch.finish(endTime);
 
         Match savedOldMatch = matchRepository.save(oldMatch);
@@ -349,84 +340,5 @@ class MatchReviewFacadeServiceTest {
         // then
         MatchStatistics statistics = matchStatisticsRepository.findByMatchId(match.getId()).orElseThrow();
         assertThat(statistics.getHomeFanRatingSum()).isEqualTo(0);
-    }
-
-    @Test
-    void 리뷰_작성_임계치_시간을_조회한다() {
-        // given
-        LocalDateTime now = LocalDateTime.of(2026, 4, 22, 12, 0);
-        clockHolder.setTime(now);
-
-        // when
-        LocalDateTime threshold = matchReviewFacadeService.getReviewableThreshold();
-
-        // then
-        assertThat(threshold).isEqualTo(now.minusHours(48));
-    }
-
-    @Test
-    void 최근_종료된_경기의_인기_리뷰를_조회한다() {
-        // given
-        LocalDateTime now = LocalDateTime.now();
-        clockHolder.setTime(now);
-
-        Team homeTeam = teamRepository.save(new Team("홈팀1", "1234"));
-        Team awayTeam = teamRepository.save(new Team("원정팀1", "12354"));
-
-        // 1. 리뷰 가능한 경기 3개 생성
-        for (int i = 0; i < 3; i++) {
-            Match recentMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), now.minusHours(5 + i),
-                    MatchStatus.FINISHED, "상암", "kk" + i);
-            recentMatch.finish(now.minusHours(3 + i));
-            Match savedMatch = matchRepository.save(recentMatch);
-
-            // 각 경기마다 리뷰 2개씩 생성
-            for (int j = 0; j < 2; j++) {
-                User author = userRepository.save(new User("작성자" + i + j, "author" + i + j + "@example.com", "pw", homeTeam.getId()));
-                MatchReview review = matchReviewRepository.save(
-                        new MatchReview(savedMatch.getId(), author.getId(), 5, "리뷰" + i + j, FanType.HOME));
-                review.addOneLikeCount();
-                matchReviewRepository.save(review);
-            }
-        }
-
-        // 2. 48시간보다 이전에 종료된 경기 1개 생성 (리뷰 불가능)
-        Match oldMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), now.minusDays(5),
-                MatchStatus.FINISHED, "상암", "old-match");
-        oldMatch.finish(now.minusDays(4));
-        Match savedOldMatch = matchRepository.save(oldMatch);
-
-        // 이전 경기에 리뷰 3개 생성
-        for (int k = 0; k < 3; k++) {
-            User author = userRepository.save(new User("과거작성자" + k, "old" + k + "@example.com", "pw", homeTeam.getId()));
-            MatchReview oldReview = matchReviewRepository.save(
-                    new MatchReview(savedOldMatch.getId(), author.getId(), 5, "과거리뷰" + k, FanType.HOME));
-            oldReview.addOneLikeCount();
-            matchReviewRepository.save(oldReview);
-        }
-
-        // when
-        HotReviewResponses responses = matchReviewFacadeService.getHotReviews(10);
-
-        // then
-        assertThat(responses.responses()).hasSize(6);
-    }
-
-    @Test
-    void 최근_종료된_경기가_없으면_빈_인기_리뷰_목록을_반환한다() {
-        // given
-        LocalDateTime now = LocalDateTime.now();
-        clockHolder.setTime(now);
-
-        // 48시간보다 이전에 종료된 경기
-        Match oldMatch = new Match(11L, "2", 1L, 2L, now.minusDays(5), MatchStatus.FINISHED, "상암", "9999");
-        oldMatch.finish(now.minusDays(4));
-        matchRepository.save(oldMatch);
-
-        // when
-        HotReviewResponses responses = matchReviewFacadeService.getHotReviews(5);
-
-        // then
-        assertThat(responses.responses()).isEmpty();
     }
 }
