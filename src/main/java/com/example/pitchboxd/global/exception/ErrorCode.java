@@ -44,7 +44,8 @@ public enum ErrorCode {
     USER_UNAUTHENTICATED("A-006", "로그인이 필요한 서비스입니다.", HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN_GOOGLE("A-007", "유효하지 않은 구글 토큰입니다.", HttpStatus.UNAUTHORIZED),
     REFRESH_TOKEN_NOT_FOUND("A-008", "리프레시 토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    REFRESH_TOKEN_MISSING("A-009", "리프레시 토큰이 없습니다.", HttpStatus.NOT_FOUND);
+    REFRESH_TOKEN_MISSING("A-009", "리프레시 토큰이 없습니다.", HttpStatus.NOT_FOUND),
+    GOOGLE_AUTH_ERROR("A-010", "구글 인증 에러입니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     private final String code;

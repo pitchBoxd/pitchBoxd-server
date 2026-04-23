@@ -1,6 +1,7 @@
 package com.example.pitchboxd.auth.presentation;
 
 import com.example.pitchboxd.auth.application.AuthService;
+import com.example.pitchboxd.auth.application.GoogleAuthService;
 import com.example.pitchboxd.auth.domain.Tokens;
 import com.example.pitchboxd.auth.dto.GoogleLoginResult;
 import com.example.pitchboxd.auth.dto.request.GoogleLoginRequest;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final GoogleAuthService googleAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<SuccessResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
@@ -47,7 +49,7 @@ public class AuthController {
     public ResponseEntity<SuccessResponse<GoogleLoginResponse>> googleLogin(
             @Valid @RequestBody GoogleLoginRequest request) {
 
-        GoogleLoginResult result = authService.googleLogin(request);
+        GoogleLoginResult result = googleAuthService.googleLogin(request);
         HttpStatus status = HttpStatus.OK;
 
         if (result.isRegistered()) {
@@ -59,14 +61,14 @@ public class AuthController {
                     .body(SuccessResponse.of(status, response));
         }
 
-        GoogleLoginResponse response = GoogleLoginResponse.newMember(result.userInfo());
+        GoogleLoginResponse response = GoogleLoginResponse.newMember(result.userInfo(), result.idToken());
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
     @PostMapping("/google/signup")
     public ResponseEntity<SuccessResponse<TokenResponse>> googleSignup(
             @Valid @RequestBody GoogleSignupRequest request) {
-        Tokens tokens = authService.googleSignup(request);
+        Tokens tokens = googleAuthService.googleSignup(request);
         ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), 604800);
 
         TokenResponse response = new TokenResponse(tokens.accessToken());
@@ -97,7 +99,7 @@ public class AuthController {
         if (refreshTokenCookie == null || refreshTokenCookie.isBlank()) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_MISSING);
         }
-        
+
         Tokens tokens = authService.reissue(refreshTokenCookie);
         ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), 604800);
         TokenResponse response = new TokenResponse(tokens.accessToken());

@@ -5,15 +5,16 @@ import com.example.pitchboxd.auth.dto.response.GoogleUserInfoResponse;
 
 public record GoogleLoginResult(
         boolean isRegistered,
-        String accessToken,      // 가입된 경우 존재
+        String accessToken,
         String refreshToken,
-        GoogleUserInfoResponse userInfo// 가입된 경우 존재 (쿠키용)
+        GoogleUserInfoResponse userInfo,
+        String idToken
 ) {
     public static GoogleLoginResult registered(Tokens tokens) {
-        return new GoogleLoginResult(true, tokens.accessToken(), tokens.refreshToken().getTokenValue(), null);
+        return new GoogleLoginResult(true, tokens.accessToken(), tokens.refreshToken().getTokenValue(), null, null);
     }
 
-    public static GoogleLoginResult newMember(GoogleUserInfoResponse userInfo) {
-        return new GoogleLoginResult(false, null, null, userInfo);
+    public static GoogleLoginResult newMember(GoogleUserInfoResponse userInfo, String idToken) {
+        return new GoogleLoginResult(false, null, null, userInfo, idToken);
     }
 }
