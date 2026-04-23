@@ -10,8 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -43,20 +41,20 @@ public class RefreshToken {
     @Column(nullable = false)
     private LocalDateTime expiredAt;
 
-    public RefreshToken(String tokenValue, User user, Date issuedAt, Date expiredAt) {
+    public RefreshToken(String tokenValue, User user, LocalDateTime issuedAt, LocalDateTime expiredAt) {
         this.tokenValue = tokenValue;
         this.user = user;
-        this.issuedAt = issuedAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        this.expiredAt = expiredAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        this.issuedAt = issuedAt;
+        this.expiredAt = expiredAt;
     }
 
     public boolean isExpired(LocalDateTime now) {
         return now.isAfter(expiredAt);
     }
 
-    public void renew(String newRefreshToken, Date issuedAt, Date expiredAt) {
+    public void renew(String newRefreshToken, LocalDateTime issuedAt, LocalDateTime expiredAt) {
         this.tokenValue = newRefreshToken;
-        this.issuedAt = issuedAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        this.expiredAt = expiredAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        this.issuedAt = issuedAt;
+        this.expiredAt = expiredAt;
     }
 }

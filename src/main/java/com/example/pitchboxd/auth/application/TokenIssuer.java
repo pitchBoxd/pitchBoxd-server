@@ -1,6 +1,9 @@
 package com.example.pitchboxd.auth.application;
 
-import com.example.pitchboxd.auth.dto.response.TokenResponse;
+import com.example.pitchboxd.auth.domain.RefreshToken;
+import com.example.pitchboxd.auth.domain.Tokens;
+import com.example.pitchboxd.auth.dto.TokenDto;
+import com.example.pitchboxd.auth.infrastructure.RefreshTokenRepository;
 import com.example.pitchboxd.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,14 +14,33 @@ import org.springframework.transaction.annotation.Transactional;
 public class TokenIssuer {
 
     private final TokenManager tokenManager;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public TokenResponse issueTokens(User user) {
+    public Tokens issueTokens(User user) {
         String accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
 
-        // 💡 힌트: 나중에 여기에 tokenManager.createRefreshToken() 과
-        // refreshTokenRepository.save() 로직이 한 줄씩 추가될 것입니다.
+        TokenDto refreshTokenInfo = tokenManager.createRefreshToken(user.getId(), user.getEmail());
 
-        return new TokenResponse(accessToken); // 추후 Tokens(accessToken, refreshToken) 형태로 확장
+        RefreshToken refreshToken = new RefreshToken(
+                refreshTokenInfo.tokenValue(),
+                user,
+                refreshTokenInfo.issuedAt(),
+                refreshTokenInfo.expiredAt());
+
+        refreshTokenRepository.save(refreshToken);
+
+        return new Tokens(accessToken, refreshToken);
+    }
+
+    @Transactional
+    public Tokens reissueToken(RefreshToken refreshToken) {
+        User user = refreshToken.getUser();
+        String accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
+        TokenDto refreshTokenInfo = tokenManager.createRefreshToken(user.getId(), user.getEmail());
+
+        refreshToken.renew(refreshTokenInfo.tokenValue(), refreshTokenInfo.issuedAt(), refreshTokenInfo.expiredAt());
+
+        return new Tokens(accessToken, refreshToken);
     }
 }

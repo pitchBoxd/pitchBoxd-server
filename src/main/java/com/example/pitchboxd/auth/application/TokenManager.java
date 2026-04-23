@@ -1,13 +1,17 @@
 package com.example.pitchboxd.auth.application;
 
+import com.example.pitchboxd.auth.dto.TokenDto;
+
 public interface TokenManager {
-    String createRefreshToken(Long userId, String email);
+    TokenDto createRefreshToken(Long userId, String email);
 
     String createAccessToken(Long userId, String email);
 
     Long getUserIdFromToken(String token);
 
-    boolean validateToken(String token);
+    boolean validateAccessToken(String token);
+
+    boolean validateRefreshToken(String token);
 
     String getEmailFromToken(String token);
 }

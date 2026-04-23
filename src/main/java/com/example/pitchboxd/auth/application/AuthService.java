@@ -1,17 +1,20 @@
 package com.example.pitchboxd.auth.application;
 
+import com.example.pitchboxd.auth.domain.RefreshToken;
+import com.example.pitchboxd.auth.domain.Tokens;
+import com.example.pitchboxd.auth.dto.GoogleLoginResult;
 import com.example.pitchboxd.auth.dto.request.GoogleLoginRequest;
 import com.example.pitchboxd.auth.dto.request.GoogleSignupRequest;
 import com.example.pitchboxd.auth.dto.request.LoginRequest;
-import com.example.pitchboxd.auth.dto.response.GoogleLoginResponse;
 import com.example.pitchboxd.auth.dto.response.GoogleUserInfoResponse;
-import com.example.pitchboxd.auth.dto.response.TokenResponse;
 import com.example.pitchboxd.auth.infrastructure.GoogleClient;
+import com.example.pitchboxd.auth.infrastructure.RefreshTokenRepository;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.user.domain.Provider;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,8 +30,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenIssuer tokenIssuer;
     private final GoogleClient googleClient;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenManager tokenManager;
 
-    public TokenResponse login(LoginRequest request) {
+    public Tokens login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -39,19 +44,19 @@ public class AuthService {
         return tokenIssuer.issueTokens(user);
     }
 
-    public GoogleLoginResponse googleLogin(GoogleLoginRequest request) {
+    public GoogleLoginResult googleLogin(GoogleLoginRequest request) {
         GoogleUserInfoResponse googleUserInfo = googleClient.getUserInfo(request.idToken());
 
         return userRepository.findByEmail(googleUserInfo.email())
                 .map(user -> {
-                    TokenResponse tokenResponse = tokenIssuer.issueTokens(user);
-                    return GoogleLoginResponse.registered(tokenResponse.accessToken());
+                    Tokens tokens = tokenIssuer.issueTokens(user);
+                    return GoogleLoginResult.registered(tokens);
                 })
-                .orElseGet(() -> GoogleLoginResponse.newMember(googleUserInfo));
+                .orElseGet(() -> GoogleLoginResult.newMember(googleUserInfo));
     }
 
     @Transactional
-    public TokenResponse googleSignup(GoogleSignupRequest request) {
+    public Tokens googleSignup(GoogleSignupRequest request) {
         GoogleUserInfoResponse googleUserInfo = googleClient.getUserInfo(request.idToken());
 
         if (userRepository.existsByEmail(googleUserInfo.email())) {
@@ -70,5 +75,23 @@ public class AuthService {
         User savedUser = userRepository.save(newUser);
 
         return tokenIssuer.issueTokens(savedUser);
+    }
+
+    @Transactional
+    public Tokens reissue(String refreshTokenValue) {
+        if (!tokenManager.validateRefreshToken(refreshTokenValue)) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
+
+        RefreshToken oldRefreshToken = refreshTokenRepository.findByTokenValue(refreshTokenValue)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+
+        if (oldRefreshToken.isExpired(LocalDateTime.now())) {
+            refreshTokenRepository.delete(oldRefreshToken);
+
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
+        }
+
+        return tokenIssuer.reissueToken(oldRefreshToken);
     }
 }
