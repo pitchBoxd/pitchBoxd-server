@@ -3,7 +3,7 @@ package com.example.pitchboxd.match.matchReview.presentation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import com.example.pitchboxd.global.security.JwtProvider;
+import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
@@ -55,7 +55,7 @@ class MatchReviewCommandControllerTest {
     private MatchReviewRepository matchReviewRepository;
 
     @Autowired
-    private JwtProvider jwtProvider;
+    private TokenManager tokenManager;
 
     private String accessToken;
     private Long matchId;
@@ -66,7 +66,7 @@ class MatchReviewCommandControllerTest {
         databaseCleaner.clean();
 
         User user = userRepository.save(new User("nickname", "email@gmail.com", "1234!"));
-        accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
+        accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
 
         Match match = new Match(1L, "1", 1L, 1L, LocalDateTime.now().minusHours(3), MatchStatus.FINISHED, "지구", "1");
 
@@ -138,7 +138,7 @@ class MatchReviewCommandControllerTest {
         String[] tokens = new String[threadCount];
         for (int i = 0; i < threadCount; i++) {
             User user = userRepository.save(new User("user" + i, "user" + i + "@gmail.com", "password!"));
-            tokens[i] = jwtProvider.createToken(user.getId(), user.getEmail());
+            tokens[i] = tokenManager.createAccessToken(user.getId(), user.getEmail());
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

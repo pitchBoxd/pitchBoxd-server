@@ -3,7 +3,7 @@ package com.example.pitchboxd.match.playerReview.presentation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import com.example.pitchboxd.global.security.JwtProvider;
+import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
@@ -62,7 +62,7 @@ class PlayerReviewCommandControllerTest {
     private PlayerStatisticsRepository playerStatisticsRepository;
 
     @Autowired
-    private JwtProvider jwtProvider;
+    private TokenManager tokenManager;
 
     @Autowired
     private TestClockHolder clockHolder;
@@ -94,7 +94,7 @@ class PlayerReviewCommandControllerTest {
         playerStatisticsRepository.save(playerStatistics);
 
         user = userRepository.save(new User("nickname", "email @gmail.com", "abcd1234!", homeTeamId));
-        accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
+        accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
     }
 
     @AfterEach

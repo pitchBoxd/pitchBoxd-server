@@ -9,7 +9,6 @@ import com.example.pitchboxd.auth.dto.response.TokenResponse;
 import com.example.pitchboxd.auth.infrastructure.GoogleClient;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
-import com.example.pitchboxd.global.security.JwtProvider;
 import com.example.pitchboxd.user.domain.Provider;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
@@ -26,7 +25,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtProvider jwtProvider;
+    private final TokenIssuer tokenIssuer;
     private final GoogleClient googleClient;
 
     public TokenResponse login(LoginRequest request) {
@@ -37,9 +36,7 @@ public class AuthService {
             throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCH);
         }
 
-        String accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
-
-        return new TokenResponse(accessToken);
+        return tokenIssuer.issueTokens(user);
     }
 
     public GoogleLoginResponse googleLogin(GoogleLoginRequest request) {
@@ -47,14 +44,13 @@ public class AuthService {
 
         return userRepository.findByEmail(googleUserInfo.email())
                 .map(user -> {
-                    String accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
-                    return GoogleLoginResponse.registered(accessToken);
+                    TokenResponse tokenResponse = tokenIssuer.issueTokens(user);
+                    return GoogleLoginResponse.registered(tokenResponse.accessToken());
                 })
-                .orElseGet(() -> {
-                    return GoogleLoginResponse.newMember(googleUserInfo);
-                });
+                .orElseGet(() -> GoogleLoginResponse.newMember(googleUserInfo));
     }
 
+    @Transactional
     public TokenResponse googleSignup(GoogleSignupRequest request) {
         GoogleUserInfoResponse googleUserInfo = googleClient.getUserInfo(request.idToken());
 
@@ -73,8 +69,6 @@ public class AuthService {
 
         User savedUser = userRepository.save(newUser);
 
-        String accessToken = jwtProvider.createToken(savedUser.getId(), savedUser.getEmail());
-
-        return new TokenResponse(accessToken);
+        return tokenIssuer.issueTokens(savedUser);
     }
 }

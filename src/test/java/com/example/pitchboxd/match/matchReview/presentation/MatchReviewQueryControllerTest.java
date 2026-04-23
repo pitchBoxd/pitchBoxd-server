@@ -2,7 +2,7 @@ package com.example.pitchboxd.match.matchReview.presentation;
 
 import static org.hamcrest.Matchers.hasSize;
 
-import com.example.pitchboxd.global.security.JwtProvider;
+import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
@@ -57,7 +57,7 @@ class MatchReviewQueryControllerTest {
     private TestClockHolder clockHolder;
 
     @Autowired
-    private JwtProvider jwtProvider;
+    private TokenManager tokenManager;
 
     private String accessToken;
 
@@ -67,7 +67,7 @@ class MatchReviewQueryControllerTest {
         databaseCleaner.clean();
 
         User user = userRepository.save(new User("테스트유저", "test@example.com", "password123!"));
-        accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
+        accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
     }
 
     @AfterEach

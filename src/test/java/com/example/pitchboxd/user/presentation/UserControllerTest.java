@@ -3,7 +3,7 @@ package com.example.pitchboxd.user.presentation;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import com.example.pitchboxd.global.security.JwtProvider;
+import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.dto.request.UserCreateRequest;
@@ -32,7 +32,7 @@ class UserControllerTest {
     private DatabaseCleaner dbCleaner;
 
     @Autowired
-    private JwtProvider jwtProvider;
+    private TokenManager tokenManager;
 
     @Autowired
     private UserService userService; // Add UserService to directly create a user for token generation
@@ -85,7 +85,7 @@ class UserControllerTest {
                 .jsonPath()
                 .getObject("data", UserCreateResponse.class);
 
-        String accessToken = jwtProvider.createToken(createdUser.id(), email);
+        String accessToken = tokenManager.createAccessToken(createdUser.id(), email);
 
         // when & then
         RestAssured.given().log().all()
@@ -105,7 +105,7 @@ class UserControllerTest {
         UserCreateRequest userCreateRequest = new UserCreateRequest(username, email, password);
         UserCreateResponse createdUser = userService.addUser(userCreateRequest); // Directly create user for simplicity
 
-        String accessToken = jwtProvider.createToken(createdUser.id(), email);
+        String accessToken = tokenManager.createAccessToken(createdUser.id(), email);
 
         // when
         UserResponse response = RestAssured.given().log().all()

@@ -1,5 +1,6 @@
 package com.example.pitchboxd.global.security;
 
+import com.example.pitchboxd.auth.application.TokenManager;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -18,8 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtProvider jwtProvider;
+    private final TokenManager tokenManager;
     private final UserDetailsService userDetailsService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final Environment env;
 
     @Bean
@@ -33,7 +35,7 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 끄기
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/auth/login",
@@ -50,11 +52,11 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
                 )
-                // 커스텀 필터를 아이디/비번 필터 앞에 배치
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, userDetailsService),
+                .addFilterBefore(new JwtAuthenticationFilter(tokenManager, userDetailsService),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

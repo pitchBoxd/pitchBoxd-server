@@ -1,5 +1,6 @@
 package com.example.pitchboxd.global.security;
 
+import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -18,7 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtProvider jwtProvider;
+    private final TokenManager tokenManager;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -28,9 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         try {
-            if (token != null && jwtProvider.validateToken(token)) {
-                String username = jwtProvider.getUsername(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if (token != null && tokenManager.validateToken(token)) {
+                String userEmail = tokenManager.getEmailFromToken(token);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null,
                         userDetails.getAuthorities());

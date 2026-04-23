@@ -1,8 +1,11 @@
 spring:
+  mvc:
+    async:
+      request-timeout: -1
   datasource:
-    url: jdbc:mysql://db:3306/db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: root_password
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   sql:
     init:
@@ -27,11 +30,17 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: profile, email
 
+jwt:
+  secret:
+    access_key: ${JWT_ACCESS_SECRET_KEY}
+    refresh_key: ${JWT_REFRESH_SECRET_KEY}
+
+expiration:
+  access-token-time: ${ACCESS_TOKEN_EXPIRATION_TIME}
+  refresh-token-time: ${REFRESH_TOKEN_EXPIRATION_TIME}
+
 logging:
   level:
-    # 1. Spring Security의 필터 통과/거절 과정을 상세히 출력 (403 해결용)
     org.springframework.security: DEBUG
-    # 2. 어떤 컨트롤러의 어떤 메서드로 매핑되는지 확인
     org.springframework.web: DEBUG
-    # 3. JPA 쿼리의 '?'에 들어가는 실제 파라미터 값을 확인 (Spring Boot 3.x 버전)
     org.hibernate.orm.jdbc.bind: TRACE

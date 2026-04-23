@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
+import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.global.domain.ClockHolder;
-import com.example.pitchboxd.global.security.JwtProvider;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
@@ -39,7 +39,7 @@ class AdminControllerTest {
     @Autowired
     private DatabaseCleaner databaseCleaner;
     @Autowired
-    private JwtProvider jwtProvider;
+    private TokenManager tokenManager;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -57,7 +57,7 @@ class AdminControllerTest {
         databaseCleaner.clean();
 
         User user = userRepository.save(new User("테스트유저", "test@example.com", "password123!"));
-        accessToken = jwtProvider.createToken(user.getId(), user.getEmail());
+        accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
     }
 
     @AfterEach
