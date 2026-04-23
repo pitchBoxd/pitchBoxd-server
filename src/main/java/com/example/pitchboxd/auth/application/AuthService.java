@@ -25,6 +25,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenManager tokenManager;
 
+    @Transactional
     public Tokens login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));

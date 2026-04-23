@@ -28,6 +28,7 @@ public class GoogleAuthService {
     private final TokenIssuer tokenIssuer;
     private final GoogleOAuthClient googleOAuthClient;
 
+    @Transactional
     public GoogleLoginResult googleLogin(GoogleLoginRequest request) {
         GoogleAccessToken googleToken = googleOAuthClient.getAccessToken(request.authorizationCode());
         GoogleUserInfoResponse googleUserInfo = googleOAuthClient.getUserInfo(googleToken.idToken());

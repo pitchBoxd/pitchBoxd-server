@@ -1,4 +1,4 @@
-package com.example.pitchboxd.admin.presnetation;
+package com.example.pitchboxd.admin.presentation;
 
 import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
