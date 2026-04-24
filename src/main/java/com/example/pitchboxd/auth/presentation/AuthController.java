@@ -29,13 +29,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
+    private static final long COOKIE_MAX_AGE = 604800;
+
     private final AuthService authService;
     private final GoogleAuthService googleAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<SuccessResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
         Tokens tokens = authService.login(request);
-        ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), 604800);
+        ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE);
 
         TokenResponse response = new TokenResponse(tokens.accessToken());
         HttpStatus status = HttpStatus.OK;
@@ -54,7 +56,7 @@ public class AuthController {
 
         if (result.isRegistered()) {
             GoogleLoginResponse response = GoogleLoginResponse.registered(result.accessToken());
-            ResponseCookie cookie = createRefreshTokenCookie(result.refreshToken(), 604800);
+            ResponseCookie cookie = createRefreshTokenCookie(result.refreshToken(), COOKIE_MAX_AGE);
 
             return ResponseEntity.status(status)
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -69,7 +71,7 @@ public class AuthController {
     public ResponseEntity<SuccessResponse<TokenResponse>> googleSignup(
             @Valid @RequestBody GoogleSignupRequest request) {
         Tokens tokens = googleAuthService.googleSignup(request);
-        ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), 604800);
+        ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE);
 
         TokenResponse response = new TokenResponse(tokens.accessToken());
         HttpStatus status = HttpStatus.OK;
@@ -101,7 +103,7 @@ public class AuthController {
         }
 
         Tokens tokens = authService.reissue(refreshTokenCookie);
-        ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), 604800);
+        ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE);
         TokenResponse response = new TokenResponse(tokens.accessToken());
 
         return ResponseEntity.ok()
