@@ -18,6 +18,15 @@ spring:
         static: ap-northeast-2
       stack:
         auto: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 1234
+            client-secret: 1234
+            redirect-uri: 1234
+            scope: profile, email, openid
 
 s3:
   bucket-name: test-bucket
