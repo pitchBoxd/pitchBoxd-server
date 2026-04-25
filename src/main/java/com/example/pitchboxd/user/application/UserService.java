@@ -5,6 +5,7 @@ import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.dto.request.UserCreateRequest;
 import com.example.pitchboxd.user.dto.response.EmailAvailabilityResponse;
+import com.example.pitchboxd.user.dto.response.NicknameAvailabilityResponse;
 import com.example.pitchboxd.user.dto.response.UserCreateResponse;
 import com.example.pitchboxd.user.dto.response.UserResponse;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
@@ -63,5 +64,9 @@ public class UserService {
     public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    public NicknameAvailabilityResponse isNicknameDuplicated(String nickname) {
+        return new NicknameAvailabilityResponse(userRepository.existsByNickname(nickname));
     }
 }

@@ -5,6 +5,7 @@ import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.dto.request.UserCreateRequest;
 import com.example.pitchboxd.user.dto.response.EmailAvailabilityResponse;
+import com.example.pitchboxd.user.dto.response.NicknameAvailabilityResponse;
 import com.example.pitchboxd.user.dto.response.UserCreateResponse;
 import com.example.pitchboxd.user.dto.response.UserResponse;
 import jakarta.validation.Valid;
@@ -34,9 +35,18 @@ public class UserController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
-    @GetMapping("/exists")
+    @GetMapping("/email/exists")
     public ResponseEntity<SuccessResponse<EmailAvailabilityResponse>> checkEmailDuplicate(@RequestParam String email) {
         EmailAvailabilityResponse response = userService.isEmailDuplicated(email);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @GetMapping("/nickname/exist")
+    public ResponseEntity<SuccessResponse<NicknameAvailabilityResponse>> checkNicknameDuplicate(
+            @RequestParam String nickname) {
+        NicknameAvailabilityResponse response = userService.isNicknameDuplicated(nickname);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));

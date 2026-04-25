@@ -40,7 +40,7 @@ class UserRepositoryTest {
     @Test
     void 이메일로_사용자를_조회한다() {
         // given
-        String email = "test@example.com";
+        String email = "test @example.com";
         User user = new User("nickname", email, "password");
         userRepository.save(user);
 
@@ -85,6 +85,32 @@ class UserRepositoryTest {
 
         // when
         boolean exists = userRepository.existsByEmail(email);
+
+        // then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void 닉네임이_존재하는_경우_true를_반환한다() {
+        // given
+        String nickname = "uniqueNickname";
+        User user = new User(nickname, "nickname@example.com", "password");
+        userRepository.save(user);
+
+        // when
+        boolean exists = userRepository.existsByNickname(nickname);
+
+        // then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    void 닉네임이_존재하지_않는_경우_false를_반환한다() {
+        // given
+        String nickname = "nonExistentNickname";
+
+        // when
+        boolean exists = userRepository.existsByNickname(nickname);
 
         // then
         assertThat(exists).isFalse();

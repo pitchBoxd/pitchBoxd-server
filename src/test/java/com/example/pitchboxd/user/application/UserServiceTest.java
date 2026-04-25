@@ -10,6 +10,7 @@ import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.dto.request.UserCreateRequest;
 import com.example.pitchboxd.user.dto.response.EmailAvailabilityResponse;
+import com.example.pitchboxd.user.dto.response.NicknameAvailabilityResponse;
 import com.example.pitchboxd.user.dto.response.UserCreateResponse;
 import com.example.pitchboxd.user.dto.response.UserResponse;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
@@ -175,5 +176,30 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.findById(999L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    void 닉네임_중복_여부를_확인한다_중복인_경우() {
+        // given
+        String nickname = "테스트유저";
+        userRepository.save(new User(nickname, "test@example.com", "password123!"));
+
+        // when
+        NicknameAvailabilityResponse response = userService.isNicknameDuplicated(nickname);
+
+        // then
+        assertThat(response.isDuplicated()).isTrue();
+    }
+
+    @Test
+    void 닉네임_중복_여부를_확인한다_중복이_아닌_경우() {
+        // given
+        String nickname = "새로운유저";
+
+        // when
+        NicknameAvailabilityResponse response = userService.isNicknameDuplicated(nickname);
+
+        // then
+        assertThat(response.isDuplicated()).isFalse();
     }
 }

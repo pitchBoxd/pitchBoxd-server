@@ -7,6 +7,7 @@ import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.dto.request.UserCreateRequest;
+import com.example.pitchboxd.user.dto.response.NicknameAvailabilityResponse;
 import com.example.pitchboxd.user.dto.response.UserCreateResponse;
 import com.example.pitchboxd.user.dto.response.UserResponse;
 import io.restassured.RestAssured;
@@ -123,5 +124,46 @@ class UserControllerTest {
                 () -> assertThat(response.id()).isEqualTo(createdUser.id()),
                 () -> assertThat(response.nickname()).isEqualTo(username)
         );
+    }
+
+    @Test
+    void 중복된_닉네임인지_확인한다_중복인_경우() {
+        // given
+        String nickname = "duplicatedNickname";
+        userService.addUser(new UserCreateRequest(nickname, "test@example.com", "password123!"));
+
+        // when
+        NicknameAvailabilityResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .param("nickname", nickname)
+                .when().get("/api/v1/users/nickname/exist")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", NicknameAvailabilityResponse.class);
+
+        // then
+        assertThat(response.isDuplicated()).isTrue();
+    }
+
+    @Test
+    void 중복된_닉네임인지_확인한다_중복이_아닌_경우() {
+        // given
+        String nickname = "uniqueNickname";
+
+        // when
+        NicknameAvailabilityResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .param("nickname", nickname)
+                .when().get("/api/v1/users/nickname/exist")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", NicknameAvailabilityResponse.class);
+
+        // then
+        assertThat(response.isDuplicated()).isFalse();
     }
 }

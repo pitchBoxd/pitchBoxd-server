@@ -295,7 +295,7 @@ class PlayerReviewFacadeServiceTest {
         // given
         Match ongoingMatch = matchRepository.save(
                 new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now().plusHours(1),
-                        MatchStatus.SCHEDULED, "상암 월드컵 경기장", "1"));
+                        MatchStatus.SCHEDULED, "상암 월드컵 경기장", "naver-id-1111"));
         User user = userRepository.save(new User("유저", "user@gmail.com", "password", homeTeam.getId()));
         matchLineupRepository.save(
                 new MatchLineup(ongoingMatch.getId(), homeTeamPlayer.getId(), 10, ParticipationStatus.STARTER));
