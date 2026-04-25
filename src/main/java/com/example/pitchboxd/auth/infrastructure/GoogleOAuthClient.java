@@ -20,11 +20,13 @@ public class GoogleOAuthClient {
     private static final String GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo?id_token={idToken}";
     private final RestClient restClient;
 
-    @Value("${auth.google.client-id}")
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
-    @Value("${auth.google.client-secret}")
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String clientSecret;
-    @Value("${auth.google.redirect-uri}")
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String redirectUri;
 
     public GoogleOAuthClient(RestClient.Builder restClientBuilder) {
