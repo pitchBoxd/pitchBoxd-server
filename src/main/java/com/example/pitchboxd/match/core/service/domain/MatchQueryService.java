@@ -1,5 +1,6 @@
 package com.example.pitchboxd.match.core.service.domain;
 
+import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.infrastructure.MatchQueryRepository;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import java.time.LocalDateTime;
@@ -21,5 +22,9 @@ public class MatchQueryService {
 
     public List<MatchSummary> findRecentlyFinishedMatchesByTeam(LocalDateTime finishedAtThreshold, Long teamId) {
         return matchQueryRepository.findFinishedMatchesSince(finishedAtThreshold, teamId);
+    }
+
+    public List<MatchSummary> findMatches(Long seasonId, MatchFilter state, LocalDateTime reviewableThreshold) {
+        return matchQueryRepository.findMatches(seasonId, state, reviewableThreshold);
     }
 }

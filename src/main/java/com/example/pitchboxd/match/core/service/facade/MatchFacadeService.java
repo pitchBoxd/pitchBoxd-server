@@ -1,13 +1,11 @@
 package com.example.pitchboxd.match.core.service.facade;
 
-import com.example.pitchboxd.global.exception.BusinessException;
-import com.example.pitchboxd.global.exception.ErrorCode;
+import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.dto.response.MatchResponses;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import com.example.pitchboxd.match.core.service.domain.MatchQueryService;
 import com.example.pitchboxd.match.matchReview.service.facade.MatchReviewFacadeService;
 import com.example.pitchboxd.user.application.UserService;
-import com.example.pitchboxd.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,24 +23,11 @@ public class MatchFacadeService {
     private final MatchReviewFacadeService matchReviewFacadeService;
     private final UserService userService;
 
-    public MatchResponses findReviewableMatches(Long userId, String filter) {
-        log.info("userId: {}, filter: {}", userId, filter);
-        if (userId == null && "my".equals(filter)) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
+    public MatchResponses findMatches(MatchFilter state, Long seasonId) {
+        log.info("state: {}, seasonId: {}", state, seasonId);
 
         LocalDateTime threshold = matchReviewFacadeService.getReviewableThreshold();
-
-        if (userId != null && "my".equals(filter)) {
-            User user = userService.findById(userId);
-            Long favoriteTeamId = user.getFavoriteTeamId();
-
-            List<MatchSummary> myMatchSummaries = matchQueryService.findRecentlyFinishedMatchesByTeam(threshold,
-                    favoriteTeamId);
-            return MatchResponses.of(myMatchSummaries);
-        }
-
-        List<MatchSummary> matchSummaries = matchQueryService.findRecentlyFinishedMatches(threshold);
+        List<MatchSummary> matchSummaries = matchQueryService.findMatches(seasonId, state, threshold);
 
         return MatchResponses.of(matchSummaries);
     }

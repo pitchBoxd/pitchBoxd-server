@@ -1,19 +1,16 @@
 package com.example.pitchboxd.match.core.service.facade;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import com.example.pitchboxd.global.exception.BusinessException;
-import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.dto.response.MatchResponses;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.infrastructure.TeamRepository;
-import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
@@ -94,7 +91,7 @@ class MatchFacadeServiceTest {
                 now.minusDays(7),
                 MatchStatus.FINISHED,
                 "경기장",
-                "1"
+                "2"
         );
         oldMatch.finish(now.minusDays(6));
         matchRepository.save(oldMatch);
@@ -108,12 +105,12 @@ class MatchFacadeServiceTest {
                 now.minusDays(7),
                 MatchStatus.SCHEDULED,
                 "경기장",
-                "1"
+                "3"
         );
         matchRepository.save(upcomingMatch);
 
         // when
-        MatchResponses result = matchFacadeService.findReviewableMatches(null, "all");
+        MatchResponses result = matchFacadeService.findMatches(MatchFilter.REVIEWABLE, null);
 
         // then
         assertAll(
@@ -124,54 +121,21 @@ class MatchFacadeServiceTest {
     }
 
     @Test
-    void 비로그인_유저가_내_팀_경기_목록을_조회하면_예외가_발생한다() {
-        // when & then
-        assertThatThrownBy(() -> matchFacadeService.findReviewableMatches(null, "my"))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.UNAUTHORIZED.getMessage());
-    }
-
-    @Test
-    void 로그인_유저는_내_팀_경기_목록만_조회한다() {
+    void 특정_시즌의_경기_목록을_조회한다() {
         // given
-        User user = userRepository.save(new User("닉네임", "test@test.com", "password", homeTeam.getId()));
         LocalDateTime now = LocalDateTime.now();
+        Long season1 = 1L;
+        Long season2 = 2L;
 
-        // 내 팀 경기 (리뷰 가능)
-        Match myMatch = new Match(
-                1L,
-                "1",
-                homeTeam.getId(),
-                awayTeam.getId(),
-                now.minusHours(3),
-                MatchStatus.FINISHED,
-                "경기장",
-                "1"
-        );
-        myMatch.finish(now.minusHours(1));
-        matchRepository.save(myMatch);
-
-        // 다른 팀 경기 (리뷰 가능하지만 내 팀이 아님)
-        Match otherMatch = new Match(
-                1L,
-                "2",
-                otherTeam1.getId(),
-                otherTeam2.getId(),
-                now.minusHours(3),
-                MatchStatus.FINISHED,
-                "경기장",
-                "1"
-        );
-        otherMatch.finish(now.minusHours(1));
-        matchRepository.save(otherMatch);
+        matchRepository.save(
+                new Match(season1, "1", homeTeam.getId(), awayTeam.getId(), now, MatchStatus.SCHEDULED, "장소1", "1"));
+        matchRepository.save(
+                new Match(season2, "1", homeTeam.getId(), awayTeam.getId(), now, MatchStatus.SCHEDULED, "장소2", "2"));
 
         // when
-        MatchResponses result = matchFacadeService.findReviewableMatches(user.getId(), "my");
+        MatchResponses result = matchFacadeService.findMatches(null, season1);
 
         // then
-        assertAll(
-                () -> assertThat(result.matchResponses()).hasSize(1),
-                () -> assertThat(result.matchResponses().get(0).homeTeam()).isEqualTo("홈팀")
-        );
+        assertThat(result.matchResponses()).hasSize(1);
     }
 }

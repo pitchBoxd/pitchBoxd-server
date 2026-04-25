@@ -1,7 +1,7 @@
 package com.example.pitchboxd.match.core.presentation;
 
-import com.example.pitchboxd.auth.presentation.LoginUserId;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
+import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.dto.response.MatchResponses;
 import com.example.pitchboxd.match.core.service.facade.MatchFacadeService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +19,12 @@ public class MatchController {
 
     private final MatchFacadeService matchFacadeService;
 
-    @GetMapping("/reviewable")
-    public ResponseEntity<SuccessResponse<MatchResponses>> getReviewableMatches(
-            @LoginUserId(required = false) Long userId,
-            @RequestParam(required = false) String filter
+    @GetMapping
+    public ResponseEntity<SuccessResponse<MatchResponses>> getMatches(
+            @RequestParam(required = false) MatchFilter state,
+            @RequestParam(required = false) Long season
     ) {
-        MatchResponses responses = matchFacadeService.findReviewableMatches(userId, filter);
+        MatchResponses responses = matchFacadeService.findMatches(state, season);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));

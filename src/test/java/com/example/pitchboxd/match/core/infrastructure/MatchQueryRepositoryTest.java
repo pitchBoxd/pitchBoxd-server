@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.global.config.QueryDslConfig;
 import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
@@ -139,6 +140,62 @@ class MatchQueryRepositoryTest {
 
                 () -> assertThat(teamCResults).hasSize(1),
                 () -> assertThat(teamCResults.get(0).id()).isEqualTo(match2.getId())
+        );
+    }
+
+    @Test
+    void 시즌_및_상태_필터를_사용해_경기를_조회한다() {
+        // given
+        Team teamA = teamRepository.save(new Team("팀A", "n1"));
+        Team teamB = teamRepository.save(new Team("팀B", "n2"));
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threshold = now.minusHours(48);
+
+        // 1. 시즌 1, 종료됨 (리뷰 가능)
+        Match match1 = matchRepository.save(
+                new Match(1L, "1", teamA.getId(), teamB.getId(), now.minusHours(3), MatchStatus.FINISHED,
+                        "경기장", "match-1"));
+        match1.finish(now.minusHours(1));
+
+        // 2. 시즌 1, 진행 예정 (리뷰 불가능)
+        matchRepository.save(
+                new Match(1L, "2", teamA.getId(), teamB.getId(), now.plusHours(1), MatchStatus.SCHEDULED,
+                        "경기장", "match-2"));
+
+        // 3. 시즌 2, 종료됨 (리뷰 가능)
+        Match match3 = matchRepository.save(
+                new Match(2L, "1", teamA.getId(), teamB.getId(), now.minusHours(3), MatchStatus.FINISHED,
+                        "경기장", "match-3"));
+        match3.finish(now.minusHours(1));
+
+        // when & then
+        assertAll(
+                () -> {
+                    // 시즌 1의 모든 경기 조회
+                    List<MatchSummary> results = matchQueryRepository.findMatches(1L, null, threshold);
+                    assertThat(results).hasSize(2);
+                },
+                () -> {
+                    // 모든 시즌의 리뷰 가능한 경기 조회
+                    List<MatchSummary> results = matchQueryRepository.findMatches(null, MatchFilter.REVIEWABLE,
+                            threshold);
+                    assertThat(results).hasSize(2);
+                    assertThat(results).extracting(MatchSummary::id)
+                            .containsExactlyInAnyOrder(match1.getId(), match3.getId());
+                },
+                () -> {
+                    // 시즌 1의 리뷰 가능한 경기 조회
+                    List<MatchSummary> results = matchQueryRepository.findMatches(1L, MatchFilter.REVIEWABLE,
+                            threshold);
+                    assertThat(results).hasSize(1);
+                    assertThat(results.get(0).id()).isEqualTo(match1.getId());
+                },
+                () -> {
+                    // 필터 없이 모든 경기 조회
+                    List<MatchSummary> results = matchQueryRepository.findMatches(null, null, threshold);
+                    assertThat(results).hasSize(3);
+                }
         );
     }
 }
