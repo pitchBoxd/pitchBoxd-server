@@ -2,6 +2,7 @@ package com.example.pitchboxd.match.matchReview.presentation;
 
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.HotReviewResponses;
+import com.example.pitchboxd.match.matchReview.dto.response.MatchHotReviewResponses;
 import com.example.pitchboxd.match.matchReview.service.facade.MatchReviewFacadeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,14 @@ public class MatchReviewQueryController {
             @RequestParam(defaultValue = "10") int size
     ) {
         HotReviewResponses responses = matchReviewFacadeService.getHotReviews(size);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));
+    }
+
+    @GetMapping("/hot-matches")
+    public ResponseEntity<SuccessResponse<MatchHotReviewResponses>> getHotMatchReviews() {
+        MatchHotReviewResponses responses = matchReviewFacadeService.getHotMatchReviews();
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));

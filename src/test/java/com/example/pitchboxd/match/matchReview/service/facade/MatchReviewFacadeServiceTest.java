@@ -14,6 +14,7 @@ import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequ
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
 import com.example.pitchboxd.match.matchReview.dto.response.HotReviewResponses;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
+import com.example.pitchboxd.match.matchReview.dto.response.MatchHotReviewResponses;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewCreateResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewUpdateResponse;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
@@ -77,7 +78,8 @@ class MatchReviewFacadeServiceTest {
         Team awayTeam = teamRepository.save(new Team("어웨이팀", "naver2"));
 
         user = userRepository.save(new User("테스터", "test@example.com", "password123!", homeTeam.getId()));
-        Match unsavedMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(), MatchStatus.FINISHED, "상암월드컵경기장", "1");
+        Match unsavedMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(),
+                MatchStatus.FINISHED, "상암월드컵경기장", "1");
         unsavedMatch.finish(LocalDateTime.now().minusHours(1));
         match = matchRepository.save(unsavedMatch);
 
@@ -382,7 +384,8 @@ class MatchReviewFacadeServiceTest {
 
             // 각 경기마다 리뷰 2개씩 생성
             for (int j = 0; j < 2; j++) {
-                User author = userRepository.save(new User("작성자" + i + j, "author" + i + j + "@example.com", "pw", homeTeam.getId()));
+                User author = userRepository.save(
+                        new User("작성자" + i + j, "author" + i + j + "@example.com", "pw", homeTeam.getId()));
                 MatchReview review = matchReviewRepository.save(
                         new MatchReview(savedMatch.getId(), author.getId(), 5, "리뷰" + i + j, FanType.HOME));
                 review.addOneLikeCount();
@@ -398,7 +401,8 @@ class MatchReviewFacadeServiceTest {
 
         // 이전 경기에 리뷰 3개 생성
         for (int k = 0; k < 3; k++) {
-            User author = userRepository.save(new User("과거작성자" + k, "old" + k + "@example.com", "pw", homeTeam.getId()));
+            User author = userRepository.save(
+                    new User("과거작성자" + k, "old" + k + "@example.com", "pw", homeTeam.getId()));
             MatchReview oldReview = matchReviewRepository.save(
                     new MatchReview(savedOldMatch.getId(), author.getId(), 5, "과거리뷰" + k, FanType.HOME));
             oldReview.addOneLikeCount();
@@ -428,5 +432,58 @@ class MatchReviewFacadeServiceTest {
 
         // then
         assertThat(responses.responses()).isEmpty();
+    }
+
+    @Test
+    void 최근_종료된_경기별로_상위_3개의_인기_리뷰를_조회한다() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        clockHolder.setTime(now);
+
+        Team homeTeam = teamRepository.save(new Team("홈팀1", "naver-home-1"));
+        Team awayTeam = teamRepository.save(new Team("원정팀1", "naver-away-1"));
+
+        // 0. 오래 전 생성딘 경기
+        Match oldMatch = new Match(11L, "2", 1L, 2L, now.minusDays(5), MatchStatus.FINISHED, "상암", "9999");
+        oldMatch.finish(now.minusDays(4));
+        matchRepository.save(oldMatch);
+        matchReviewRepository.save(new MatchReview(oldMatch.getId(), user.getId(), 5, "올드 리뷰", FanType.HOME));
+
+        // 1. 리뷰 가능한 경기 2개 생성
+        for (int i = 0; i < 2; i++) {
+            Match recentMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), now.minusHours(5 + i),
+                    MatchStatus.FINISHED, "상암", "match-naver-id-" + i);
+            recentMatch.finish(now.minusHours(3 + i));
+            Match savedMatch = matchRepository.save(recentMatch);
+
+            // 각 경기마다 리뷰 5개씩 생성 (그 중 3개만 조회되어야 함)
+            for (int j = 0; j < 5; j++) {
+                User author = userRepository.save(
+                        new User("작성자" + i + j, "author" + i + j + "@example.com", "pw", homeTeam.getId()));
+                MatchReview review = new MatchReview(savedMatch.getId(), author.getId(), 5, "리뷰" + i + j,
+                        FanType.HOME);
+
+                // 좋아요 수를 다르게 설정 (j가 클수록 좋아요가 많음)
+                for (int l = 0; l < j; l++) {
+                    review.addOneLikeCount();
+                }
+                matchReviewRepository.save(review);
+            }
+        }
+
+        // when
+        MatchHotReviewResponses responses = matchReviewFacadeService.getHotMatchReviews();
+
+        // then
+        assertAll(
+                () -> assertThat(responses.responses()).hasSize(3), // setUp에서 생성된 경기 포함
+                () -> assertThat(responses.responses().get(0).hotReviews()).hasSize(3),
+                () -> assertThat(responses.responses().get(1).hotReviews()).hasSize(3),
+                () -> assertThat(responses.responses().get(2).hotReviews()).isEmpty(), // setUp 경기는 리뷰 없음
+                // 좋아요가 가장 많은 리뷰(j=4, 3, 2) 순으로 정렬되었는지 확인
+                () -> assertThat(responses.responses().get(0).hotReviews().get(0).likeCount()).isEqualTo(4),
+                () -> assertThat(responses.responses().get(0).hotReviews().get(1).likeCount()).isEqualTo(3),
+                () -> assertThat(responses.responses().get(0).hotReviews().get(2).likeCount()).isEqualTo(2)
+        );
     }
 }

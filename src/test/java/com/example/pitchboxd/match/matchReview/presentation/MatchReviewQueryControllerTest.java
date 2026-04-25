@@ -131,4 +131,46 @@ class MatchReviewQueryControllerTest {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.responses", hasSize(6));
     }
+
+    @Test
+    void 경기별_인기_리뷰_목록을_조회한다() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        clockHolder.setTime(now);
+
+        Team homeTeam = teamRepository.save(new Team("홈팀1", "naver1"));
+        Team awayTeam = teamRepository.save(new Team("원정팀1", "naver2"));
+
+        // 리뷰 가능한 경기 2개 생성
+        for (int i = 0; i < 2; i++) {
+            Match recentMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), now.minusHours(5 + i),
+                    MatchStatus.FINISHED, "상암", "match" + i);
+            recentMatch.finish(now.minusHours(3 + i));
+            Match savedMatch = matchRepository.save(recentMatch);
+
+            // 각 경기마다 리뷰 4개 생성 (응답에는 경기당 최대 3개씩 포함되어야 함)
+            for (int j = 0; j < 4; j++) {
+                User author = userRepository.save(
+                        new User("작성자" + i + j, "author" + i + j + "@example.com", "pw", homeTeam.getId()));
+                MatchReview review = new MatchReview(savedMatch.getId(), author.getId(), 5, "리뷰" + i + j,
+                        FanType.HOME);
+                for (int l = 0; l <= j; l++) {
+                    review.addOneLikeCount();
+                }
+                matchReviewRepository.save(review);
+            }
+        }
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/match-reviews/hot-matches")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.responses", hasSize(2))
+                .body("data.responses[0].hotReviews", hasSize(3))
+                .body("data.responses[1].hotReviews", hasSize(3));
+    }
 }

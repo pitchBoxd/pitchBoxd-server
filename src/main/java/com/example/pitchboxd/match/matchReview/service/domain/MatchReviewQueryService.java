@@ -15,4 +15,8 @@ public class MatchReviewQueryService {
     public List<HotReviewSummary> getTopHotReviews(List<Long> reviewableMatchIds, int limit) {
         return matchReviewQueryRepository.findHotReviews(reviewableMatchIds, limit);
     }
+
+    public List<HotReviewSummary> getTopHotReviewsByMatchId(Long matchId, int limit) {
+        return matchReviewQueryRepository.findHotReviewsByMatchId(matchId, limit);
+    }
 }
