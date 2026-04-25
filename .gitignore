@@ -1,6 +1,5 @@
 src/main/resources/application-local.yml
 .env
-docker-compose.yml
 HELP.md
 .gradle
 build/
