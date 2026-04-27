@@ -3,6 +3,8 @@ package com.example.pitchboxd.user.domain;
 import com.example.pitchboxd.global.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -36,6 +38,7 @@ public class User extends BaseEntity {
 
     private Long favoriteTeamId;
 
+    @Enumerated(EnumType.STRING)
     private Provider provider;
 
     public User(String nickname, String email, String password) {
