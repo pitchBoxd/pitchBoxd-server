@@ -1,14 +1,18 @@
-package com.example.pitchboxd.match.matchReview.presentation;
+package com.example.pitchboxd.home.presentation;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.pitchboxd.auth.application.TokenManager;
+import com.example.pitchboxd.home.dto.response.HomeResponses;
 import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.domain.MatchResult;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
+import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
+import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.support.TestClockHolder;
 import com.example.pitchboxd.team.domain.Team;
@@ -18,10 +22,9 @@ import com.example.pitchboxd.user.infrastructure.UserRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,32 +35,34 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@DisplayNameGeneration(ReplaceUnderscores.class)
-class MatchReviewQueryControllerTest {
+class HomeControllerTest {
 
     @LocalServerPort
     private int port;
 
     @Autowired
-    private MatchRepository matchRepository;
+    private DatabaseCleaner databaseCleaner;
+
+    @Autowired
+    private TokenManager tokenManager;
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private MatchReviewRepository matchReviewRepository;
-
-    @Autowired
     private TeamRepository teamRepository;
 
     @Autowired
-    private DatabaseCleaner databaseCleaner;
+    private MatchRepository matchRepository;
+
+    @Autowired
+    private MatchReviewRepository matchReviewRepository;
+
+    @Autowired
+    private MatchStatisticsRepository matchStatisticsRepository;
 
     @Autowired
     private TestClockHolder clockHolder;
-
-    @Autowired
-    private TokenManager tokenManager;
 
     private String accessToken;
 
@@ -76,59 +81,59 @@ class MatchReviewQueryControllerTest {
     }
 
     @Test
-    void 인기_리뷰_목록을_조회한다() {
+    void 홈_화면_데이터를_조회한다() {
         // given
         LocalDateTime now = LocalDateTime.now();
         clockHolder.setTime(now);
 
-        Team homeTeam = teamRepository.save(new Team("홈팀1", "1234"));
-        Team awayTeam = teamRepository.save(new Team("원정팀1", "12354"));
+        Team homeTeam = teamRepository.save(new Team("홈팀1", "naver1"));
+        Team awayTeam = teamRepository.save(new Team("원정팀1", "naver2"));
 
-        // 1. 리뷰 가능한 경기 3개 생성
-        for (int i = 0; i < 3; i++) {
+        // 리뷰 가능한 경기 2개 생성
+        for (int i = 0; i < 2; i++) {
             Match recentMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), now.minusHours(5 + i),
-                    MatchStatus.FINISHED, "상암", "kk" + i);
+                    MatchStatus.FINISHED, "상암", "match" + i);
             recentMatch.finish(now.minusHours(3 + i));
+            recentMatch.decideMatchResult(new MatchResult(2, 1, List.of(), List.of()));
             Match savedMatch = matchRepository.save(recentMatch);
+            matchStatisticsRepository.save(new MatchStatistics(savedMatch.getId()));
 
-            // 각 경기마다 리뷰 2개씩 생성
-            for (int j = 0; j < 2; j++) {
+            // 각 경기마다 리뷰 4개 생성 (응답에는 경기당 최대 3개씩 포함되어야 함)
+            for (int j = 0; j < 4; j++) {
                 User author = userRepository.save(
                         new User("작성자" + i + j, "author" + i + j + "@example.com", "pw", homeTeam.getId()));
-                MatchReview review = matchReviewRepository.save(
-                        new MatchReview(savedMatch.getId(), author.getId(), 5, "리뷰" + i + j, FanType.HOME));
-                review.addOneLikeCount();
+                MatchReview review = new MatchReview(savedMatch.getId(), author.getId(), 5, "리뷰" + i + j,
+                        FanType.HOME);
+                for (int l = 0; l <= j; l++) {
+                    review.addOneLikeCount();
+                }
                 matchReviewRepository.save(review);
             }
         }
 
-        // 2. 48시간보다 이전에 종료된 경기 1개 생성 (리뷰 불가능)
-        Match oldMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), now.minusDays(5),
-                MatchStatus.FINISHED, "상암", "old-match");
+        // 리뷰 불가능한 경기 생성 (48시간 이전 종료)
+        Match oldMatch = new Match(1L, "1", homeTeam.getId(), awayTeam.getId(), now.minusDays(5),
+                MatchStatus.FINISHED, "상암", "oldMatch");
         oldMatch.finish(now.minusDays(4));
-        Match savedOldMatch = matchRepository.save(oldMatch);
-
-        // 이전 경기에 리뷰 3개 생성
-        for (int k = 0; k < 3; k++) {
-            User author = userRepository.save(
-                    new User("과거작성자" + k, "old" + k + "@example.com", "pw", homeTeam.getId()));
-            MatchReview oldReview = matchReviewRepository.save(
-                    new MatchReview(savedOldMatch.getId(), author.getId(), 5, "과거리뷰" + k, FanType.HOME));
-            oldReview.addOneLikeCount();
-            matchReviewRepository.save(oldReview);
-        }
-
-        int size = 10;
+        oldMatch.decideMatchResult(new MatchResult(1, 1, List.of(), List.of()));
+        matchRepository.save(oldMatch);
+        matchStatisticsRepository.save(new MatchStatistics(oldMatch.getId()));
 
         // when & then
-        RestAssured.given().log().all()
+        HomeResponses response = RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
-                .queryParam("size", size)
+                .queryParam("state", "REVIEWABLE")
                 .when()
-                .get("/api/v1/match-reviews/hot")
+                .get("/api/v1/home")
                 .then().log().all()
                 .statusCode(HttpStatus.OK.value())
-                .body("data.responses", hasSize(6));
+                .extract()
+                .jsonPath()
+                .getObject("data", HomeResponses.class);
+
+        assertThat(response.responses()).hasSize(2);
+        assertThat(response.responses().get(0).hotReviews()).hasSize(3);
+        assertThat(response.responses().get(1).hotReviews()).hasSize(3);
     }
 }

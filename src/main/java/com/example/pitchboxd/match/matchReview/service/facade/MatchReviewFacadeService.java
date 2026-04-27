@@ -11,11 +11,8 @@ import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.MatchReviewSubmitPolicy;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
-import com.example.pitchboxd.match.matchReview.dto.response.HotReviewResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.HotReviewResponses;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
-import com.example.pitchboxd.match.matchReview.dto.response.MatchHotReviewResponse;
-import com.example.pitchboxd.match.matchReview.dto.response.MatchHotReviewResponses;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewCreateResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewUpdateResponse;
 import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSummary;
@@ -27,7 +24,6 @@ import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatistic
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.domain.User;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -138,13 +134,11 @@ public class MatchReviewFacadeService {
     }
 
     public LocalDateTime getReviewableThreshold() {
-        LocalDateTime now = clockHolder.now();
-        return matchReviewSubmitPolicy.getReviewableThreshold(now);
+        return matchReviewQueryService.getReviewableThreshold();
     }
 
     public HotReviewResponses getHotReviews(int limit) {
-        LocalDateTime now = clockHolder.now();
-        LocalDateTime threshold = matchReviewSubmitPolicy.getReviewableThreshold(now);
+        LocalDateTime threshold = matchReviewQueryService.getReviewableThreshold();
 
         List<MatchSummary> matchSummaries = matchQueryService.findRecentlyFinishedMatches(threshold);
         List<Long> reviewableMatchIds = matchSummaries.stream()
@@ -158,28 +152,5 @@ public class MatchReviewFacadeService {
         List<HotReviewSummary> hotReviews = matchReviewQueryService.getTopHotReviews(reviewableMatchIds, limit);
 
         return HotReviewResponses.of(hotReviews);
-    }
-
-    public MatchHotReviewResponses getHotMatchReviews() {
-        LocalDateTime now = clockHolder.now();
-        LocalDateTime threshold = matchReviewSubmitPolicy.getReviewableThreshold(now);
-
-        List<MatchSummary> matchSummaries = matchQueryService.findRecentlyFinishedMatches(threshold);
-
-        List<MatchHotReviewResponse> responses = new ArrayList<>();
-
-        for (MatchSummary match : matchSummaries) {
-            List<HotReviewSummary> topSummariesPerMatch = matchReviewQueryService.getTopHotReviewsByMatchId(match.id(),
-                    3);
-
-            List<HotReviewResponse> hotReviews = new ArrayList<>();
-            for (HotReviewSummary summary : topSummariesPerMatch) {
-                hotReviews.add(HotReviewResponse.of(summary));
-            }
-
-            responses.add(MatchHotReviewResponse.of(match.id(), hotReviews));
-        }
-
-        return MatchHotReviewResponses.of(responses);
     }
 }

@@ -105,7 +105,7 @@ public class MatchQueryRepository {
     // 3. 동적 쿼리를 위한 BooleanExpression 메서드
     private BooleanExpression eqTeamId(Long teamId) {
         if (teamId == null) {
-            return null; // QueryDSL은 where 절에 null이 들어오면 무시(동적 필터링)합니다.
+            return null;
         }
         // 홈 팀이거나 어웨이 팀인 경우
         return match.homeTeamId.eq(teamId).or(match.awayTeamId.eq(teamId));

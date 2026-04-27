@@ -11,6 +11,7 @@ import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewReposit
 import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSummary;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.support.DatabaseCleaner;
+import com.example.pitchboxd.support.TestClockHolder;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import com.example.pitchboxd.user.domain.User;
@@ -47,6 +48,9 @@ class MatchReviewQueryServiceTest {
     @Autowired
     private DatabaseCleaner databaseCleaner;
 
+    @Autowired
+    private TestClockHolder clockHolder;
+
     @BeforeEach
     void setUp() {
         databaseCleaner.clean();
@@ -55,6 +59,19 @@ class MatchReviewQueryServiceTest {
     @AfterEach
     void tearDown() {
         databaseCleaner.clean();
+    }
+
+    @Test
+    void 리뷰_작성_임계치_시간을_조회한다() {
+        // given
+        LocalDateTime now = LocalDateTime.of(2026, 4, 22, 12, 0);
+        clockHolder.setTime(now);
+
+        // when
+        LocalDateTime threshold = matchReviewQueryService.getReviewableThreshold();
+
+        // then
+        assertThat(threshold).isEqualTo(now.minusHours(48));
     }
 
     @Test
