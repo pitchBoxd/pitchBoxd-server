@@ -1,5 +1,6 @@
 src/main/resources/application-local.yml
 .env
+*.csv
 HELP.md
 .gradle
 build/
