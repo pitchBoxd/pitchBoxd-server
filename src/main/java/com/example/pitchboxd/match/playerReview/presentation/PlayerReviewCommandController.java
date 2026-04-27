@@ -8,6 +8,8 @@ import com.example.pitchboxd.match.playerReview.dto.request.PlayerReviewUpdateRe
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewCreateResponse;
 import com.example.pitchboxd.match.playerReview.dto.response.PlayerReviewUpdateResponse;
 import com.example.pitchboxd.match.playerReview.service.facade.PlayerReviewFacadeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "PlayerReviewCommand API", description = "PlayerReview 커맨드 API 명세")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class PlayerReviewCommandController {
 
     private final PlayerReviewFacadeService playerReviewFacadeService;
 
+    @Operation(summary = "선수 리뷰 제출", description = "특정 경기에서 활약한 선수의 리뷰를 저장합니다.")
     @PostMapping("/matches/{matchId}/player-reviews")
     public ResponseEntity<SuccessResponse<PlayerReviewCreateResponse>> createReview(
             @PathVariable Long matchId,
@@ -39,6 +43,7 @@ public class PlayerReviewCommandController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
+    @Operation(summary = "선수 리뷰 추천", description = "선수 리뷰에 좋아요를 누르거나 취소합니다.")
     @PostMapping("/player-reviews/{playerReviewId}/likes")
     public ResponseEntity<SuccessResponse<LikeToggleResponse>> toggleLike(
             @PathVariable Long playerReviewId,
@@ -50,6 +55,7 @@ public class PlayerReviewCommandController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
+    @Operation(summary = "선수 리뷰 수정", description = "선수 리뷰를 수정합니다.")
     @PatchMapping("/player-reviews/{playerReviewId}")
     public ResponseEntity<SuccessResponse<PlayerReviewUpdateResponse>> patchReview(
             @PathVariable Long playerReviewId,
@@ -62,6 +68,7 @@ public class PlayerReviewCommandController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
+    @Operation(summary = "선수 리뷰 삭제", description = "선수 리뷰를 삭제합니다.")
     @DeleteMapping("/player-reviews/{playerReviewId}")
     public ResponseEntity<SuccessResponse<Void>> deleteReview(
             @PathVariable Long playerReviewId,

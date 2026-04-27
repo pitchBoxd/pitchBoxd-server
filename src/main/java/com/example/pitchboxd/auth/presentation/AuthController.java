@@ -12,6 +12,8 @@ import com.example.pitchboxd.auth.dto.response.TokenResponse;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Auth API", description = "Auth API 명세")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
@@ -34,6 +37,8 @@ public class AuthController {
     private final AuthService authService;
     private final GoogleAuthService googleAuthService;
 
+    @Operation(summary = "로컬 로그인", description = "서비스 자체 로그인 서비스입니다.")
+    @Deprecated
     @PostMapping("/login")
     public ResponseEntity<SuccessResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
         Tokens tokens = authService.login(request);
@@ -47,6 +52,7 @@ public class AuthController {
                 .body(SuccessResponse.of(status, response));
     }
 
+    @Operation(summary = "구글 로그인", description = "구글 로그인입니다.")
     @PostMapping("/google/login")
     public ResponseEntity<SuccessResponse<GoogleLoginResponse>> googleLogin(
             @Valid @RequestBody GoogleLoginRequest request) {
@@ -67,6 +73,7 @@ public class AuthController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
+    @Operation(summary = "구글 회원가입", description = "구글 회원가입입니다.")
     @PostMapping("/google/signup")
     public ResponseEntity<SuccessResponse<TokenResponse>> googleSignup(
             @Valid @RequestBody GoogleSignupRequest request) {
@@ -81,6 +88,7 @@ public class AuthController {
                 .body(SuccessResponse.of(status, response));
     }
 
+    @Operation(summary = "로그아웃", description = "로그아웃입니다.")
     @PostMapping("/logout")
     public ResponseEntity<SuccessResponse<TokenResponse>> logout() {
         // 현재는 Redis가 없으므로 별도의 비즈니스 로직 없이 성공 응답만 반환
@@ -93,6 +101,7 @@ public class AuthController {
                 .body(SuccessResponse.of(HttpStatus.OK, null));
     }
 
+    @Operation(summary = "리프레시 토큰 재발급", description = "리프레시 토큰을 재발급합니다.")
     @PostMapping("/reissue")
     public ResponseEntity<SuccessResponse<TokenResponse>> reissue(
             @CookieValue(value = "refreshToken", required = false) String refreshTokenCookie

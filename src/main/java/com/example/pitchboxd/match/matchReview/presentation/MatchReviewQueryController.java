@@ -19,6 +19,7 @@ public class MatchReviewQueryController {
     private final MatchReviewFacadeService matchReviewFacadeService;
 
     @GetMapping("/hot")
+    @Deprecated
     public ResponseEntity<SuccessResponse<HotReviewResponses>> getHotReviews(
             @RequestParam(defaultValue = "10") int size
     ) {
