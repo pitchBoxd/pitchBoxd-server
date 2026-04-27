@@ -26,7 +26,7 @@ public class MatchSyncService {
     private final NaverSportsClient naverSportsClient;
     private final TeamQueryService teamQueryService;
     private final MatchService matchService;
-    private ClockHolder clockHolder;
+    private final ClockHolder clockHolder;
 
     @Transactional
     public List<Long> syncLeagueMatches(CreateMatchRequest request) {

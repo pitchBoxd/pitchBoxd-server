@@ -74,7 +74,7 @@ public class NaverSportsClient {
 
     public NaverLineupResponse getMatchLineup(String gameCode) {
         return restClient.get()
-                .uri(NAVER_GAMES_BASE_URL + "/{gameCode}" + "/lineup", gameCode) // 엔드포인트는 상세 조회와 동일하지만, 파싱하는 DTO가 다릅니다.
+                .uri(NAVER_GAMES_BASE_URL + "/{gameCode}" + "/lineup", gameCode)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (request, response) -> {
                     log.warn("네이버 api 호출 실패 (라인업 조회): 게임코드: {}", gameCode);
