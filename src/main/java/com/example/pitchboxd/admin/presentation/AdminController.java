@@ -36,7 +36,7 @@ public class AdminController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
     }
 
-    @Operation(summary = "K리그 전 경기 저장", description = "특정 시즌의 K리그 모든 선수를 DB에 저장합니다.")
+    @Operation(summary = "K리그 선수 저장", description = "특정 시즌의 K리그 모든 선수를 DB에 저장합니다.")
     @PostMapping("/sync-tasks/players")
     public ResponseEntity<SuccessResponse<Void>> syncPlayers(
             @RequestBody CreatePlayerRequest request

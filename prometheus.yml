@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 5s # 5초마다 데이터 수집
+
+scrape_configs:
+  # 프로메테우스 자기 자신 상태 수집
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: [ 'localhost:9090' ]
+
+  # 스프링 부트 서버 상태 수집
+  - job_name: 'spring-boot-application'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      # ⭐️ 로그를 보니 스프링 부트 컨테이너 이름이 'pitchboxd-server'네요.
+      - targets: [ 'pitchboxd-server:8080' ]

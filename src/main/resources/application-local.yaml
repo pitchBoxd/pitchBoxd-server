@@ -40,8 +40,26 @@ expiration:
   access-token-time: ${ACCESS_TOKEN_EXPIRATION_TIME}
   refresh-token-time: ${REFRESH_TOKEN_EXPIRATION_TIME}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info, metrics
+  metrics:
+    tags:
+      application: pitchboxd-api
+
 logging:
   level:
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+    
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+      # 콘솔에 여러 줄로 예쁘게(포맷팅) 출력
+      multiline: true
+      # 쿼리 실행 시간과 파라미터 바인딩 결과 출력
+      logging: slf4j
