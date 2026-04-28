@@ -75,37 +75,6 @@ class MatchReviewQueryServiceTest {
     }
 
     @Test
-    void 인기_리뷰_목록을_조회한다() {
-        // given
-        User user = userRepository.save(new User("테스터", "test@example.com", "1234", 1L));
-
-        Team homeTeam1 = teamRepository.save(new Team("홈팀1", "1"));
-        Team awayTeam1 = teamRepository.save(new Team("어웨이팀1", "2"));
-
-        Team homeTeam2 = teamRepository.save(new Team("홈팀2", "3"));
-        Team awayTeam2 = teamRepository.save(new Team("어웨이팀2", "4"));
-
-        Match match1 = matchRepository.save(
-                new Match(1L, "3R", homeTeam1.getId(), awayTeam1.getId(), LocalDateTime.now(), MatchStatus.FINISHED,
-                        "STADIUM", "1"));
-        Match match2 = matchRepository.save(
-                new Match(1L, "3R", homeTeam2.getId(), awayTeam2.getId(), LocalDateTime.now(), MatchStatus.FINISHED,
-                        "OTHER_STADIUM", "2"));
-
-        MatchReview review1 = matchReviewRepository.save(
-                new MatchReview(match1.getId(), user.getId(), 10, "쩐다", FanType.NEUTRAL));
-        MatchReview review2 = matchReviewRepository.save(
-                new MatchReview(match2.getId(), user.getId(), 1, "노잼ㅋ", FanType.AWAY));
-
-        // when
-        List<HotReviewSummary> result = matchReviewQueryService.getTopHotReviews(
-                List.of(match1.getId(), match2.getId()), 10);
-
-        // then
-        assertThat(result).hasSize(2);
-    }
-
-    @Test
     void 경기_ID로_인기_리뷰_목록을_조회한다() {
         // given
         User user = userRepository.save(new User("테스터", "test@example.com", "1234", 1L));
