@@ -42,12 +42,14 @@ public class User extends BaseEntity {
     private Provider provider;
 
     public User(String nickname, String email, String password) {
+        validateNickname(nickname);
         this.nickname = nickname;
         this.email = email;
         this.password = password;
     }
 
     public User(String nickname, String email, String password, Long favoriteTeamId) {
+        validateNickname(nickname);
         this.nickname = nickname;
         this.email = email;
         this.password = password;
@@ -55,11 +57,22 @@ public class User extends BaseEntity {
     }
 
     public User(String nickname, String email, String password, Long favoriteTeamId, Provider provider) {
+        validateNickname(nickname);
         this.nickname = nickname;
         this.email = email;
         this.password = password;
         this.favoriteTeamId = favoriteTeamId;
         this.provider = provider;
+    }
+
+    private void validateNickname(String nickname) {
+        if (nickname == null) {
+            throw new IllegalArgumentException("닉네임이 입력되지 않았습니다.");
+        }
+
+        if (nickname.isBlank() || nickname.length() > 20) {
+            throw new IllegalArgumentException("닉네임은 1자 이상, 20자 이하여야 합니다.");
+        }
     }
 
     public boolean matchId(Long id) {
