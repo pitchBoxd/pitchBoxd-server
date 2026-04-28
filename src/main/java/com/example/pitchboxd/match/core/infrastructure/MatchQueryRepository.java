@@ -2,17 +2,21 @@ package com.example.pitchboxd.match.core.infrastructure;
 
 import static com.example.pitchboxd.match.core.domain.QMatch.match;
 import static com.example.pitchboxd.match.matchStatistics.domain.QMatchStatistics.matchStatistics;
+import static com.example.pitchboxd.season.domain.QSeason.season;
 import static com.querydsl.core.types.dsl.Expressions.numberTemplate;
 
 import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
+import com.example.pitchboxd.match.core.infrastructure.dto.MatchDetailStaticModel;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
+import com.example.pitchboxd.match.core.infrastructure.dto.QMatchDetailStaticModel;
 import com.example.pitchboxd.match.core.infrastructure.dto.QMatchSummary;
 import com.example.pitchboxd.team.domain.QTeam;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,12 +26,38 @@ public class MatchQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
+    public Optional<MatchDetailStaticModel> findMatchStaticDetailById(Long matchId) {
+        QTeam homeTeam = new QTeam("homeTeam");
+        QTeam awayTeam = new QTeam("awayTeam");
+
+        return Optional.ofNullable(queryFactory
+                .select(new QMatchDetailStaticModel(
+                        match.id,
+                        season.name,
+                        match.round,
+                        match.startTime,
+                        match.location,
+                        homeTeam.name,
+                        homeTeam.id,
+                        awayTeam.name,
+                        awayTeam.id,
+                        match.matchResult.homeScore,
+                        match.matchResult.awayScore
+                ))
+                .from(match)
+                .innerJoin(season).on(match.seasonId.eq(season.id))
+                .innerJoin(homeTeam).on(match.homeTeamId.eq(homeTeam.id))
+                .innerJoin(awayTeam).on(match.awayTeamId.eq(awayTeam.id))
+                .where(match.id.eq(matchId))
+                .fetchOne());
+    }
+
     // 1. 서비스 계층을 위한 오버로딩 (기존 코드 호환성 유지)
     public List<MatchSummary> findFinishedMatchesSince(LocalDateTime threshold) {
         return findMatches(null, MatchFilter.REVIEWABLE, threshold);
     }
 
-    //TODO: 더 이상 사용하지 않을 것으로 판단됨. 추후 삭제 필
+    //TODO: 더 이상 사용하지 않을 것으로 판단됨. 추후 확인 & 삭제 요망
     public List<MatchSummary> findFinishedMatchesSince(LocalDateTime threshold, Long teamId) {
         return queryFactory
                 .select(new QMatchSummary(

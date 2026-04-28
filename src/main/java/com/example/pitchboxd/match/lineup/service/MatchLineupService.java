@@ -21,6 +21,7 @@ public class MatchLineupService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_LINEUP_NOT_FOUND));
     }
 
+    @Transactional
     public List<MatchLineup> createAllMatchLineup(List<MatchLineup> matchLineups) {
         return matchLineupRepository.saveAll(matchLineups);
     }

@@ -27,4 +27,8 @@ public class Season extends BaseEntity {
     private Long id;
 
     private String name;
+
+    public Season(String name) {
+        this.name = name;
+    }
 }

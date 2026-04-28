@@ -7,14 +7,18 @@ import com.example.pitchboxd.global.config.QueryDslConfig;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
+import com.example.pitchboxd.match.core.infrastructure.dto.MatchDetailStaticModel;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
+import com.example.pitchboxd.season.domain.Season;
+import com.example.pitchboxd.season.infrastructure.SeasonRepository;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Test;
@@ -39,7 +43,41 @@ class MatchQueryRepositoryTest {
     private TeamRepository teamRepository;
 
     @Autowired
+    private SeasonRepository seasonRepository;
+
+    @Autowired
     private MatchStatisticsRepository matchStatisticsRepository;
+
+    @Test
+    void 경기의_정적_데이터를_상세_조회한다() {
+        // given
+        Season season = seasonRepository.save(new Season("2026 K리그1"));
+        Team homeTeam = teamRepository.save(new Team("FC서울", "n1"));
+        Team awayTeam = teamRepository.save(new Team("울산현대HD", "n2"));
+
+        LocalDateTime startTime = LocalDateTime.of(2026, 4, 28, 19, 0);
+        Match match = matchRepository.save(
+                new Match(season.getId(), "5", homeTeam.getId(), awayTeam.getId(), startTime, MatchStatus.FINISHED,
+                        "상암", "match-1"));
+
+        // when
+        Optional<MatchDetailStaticModel> result = matchQueryRepository.findMatchStaticDetailById(match.getId());
+
+        // then
+        assertThat(result).isPresent();
+        MatchDetailStaticModel model = result.get();
+        assertAll(
+                () -> assertThat(model.matchId()).isEqualTo(match.getId()),
+                () -> assertThat(model.seasonName()).isEqualTo("2026 K리그1"),
+                () -> assertThat(model.round()).isEqualTo("5"),
+                () -> assertThat(model.startTime()).isEqualTo(startTime),
+                () -> assertThat(model.location()).isEqualTo("상암"),
+                () -> assertThat(model.homeTeamName()).isEqualTo("FC서울"),
+                () -> assertThat(model.homeTeamId()).isEqualTo(homeTeam.getId()),
+                () -> assertThat(model.awayTeamName()).isEqualTo("울산현대HD"),
+                () -> assertThat(model.awayTeamId()).isEqualTo(awayTeam.getId())
+        );
+    }
 
     @Test
     void 종료된_경기_중_특정_시점_이후에_종료된_경기를_조회한다() {

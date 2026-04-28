@@ -1,15 +1,21 @@
 package com.example.pitchboxd.match.core.service.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.global.domain.ClockHolder;
+import com.example.pitchboxd.global.exception.BusinessException;
+import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.domain.MatchResult;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
+import com.example.pitchboxd.match.core.infrastructure.dto.MatchDetailStaticModel;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
+import com.example.pitchboxd.season.domain.Season;
+import com.example.pitchboxd.season.infrastructure.SeasonRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.infrastructure.TeamRepository;
@@ -39,6 +45,9 @@ class MatchQueryServiceTest {
     private TeamRepository teamRepository;
 
     @Autowired
+    private SeasonRepository seasonRepository;
+
+    @Autowired
     private DatabaseCleaner databaseCleaner;
 
     @Autowired
@@ -58,6 +67,34 @@ class MatchQueryServiceTest {
     @AfterEach
     void tearDown() {
         databaseCleaner.clean();
+    }
+
+    @Test
+    void 경기의_정적_데이터를_상세_조회한다() {
+        // given
+        Season season = seasonRepository.save(new Season("2026 K리그1"));
+        Match match = matchRepository.save(
+                new Match(season.getId(), "5", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(),
+                        MatchStatus.FINISHED, "상암", "match-1"));
+
+        // when
+        MatchDetailStaticModel result = matchQueryService.findMatchStaticDetailById(match.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(result.matchId()).isEqualTo(match.getId()),
+                () -> assertThat(result.seasonName()).isEqualTo("2026 K리그1"),
+                () -> assertThat(result.homeTeamName()).isEqualTo("Home Team"),
+                () -> assertThat(result.awayTeamName()).isEqualTo("Away Team")
+        );
+    }
+
+    @Test
+    void 존재하지_않는_경기를_조회하면_예외가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> matchQueryService.findMatchStaticDetailById(999L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MATCH_NOT_FOUND);
     }
 
     @Test

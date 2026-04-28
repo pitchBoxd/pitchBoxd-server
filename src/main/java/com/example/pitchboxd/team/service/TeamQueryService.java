@@ -21,6 +21,11 @@ public class TeamQueryService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
     }
 
+    public Team findById(Long id) {
+        return teamRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+    }
+
     public List<Team> findAllTeam() {
         return teamRepository.findAll();
     }

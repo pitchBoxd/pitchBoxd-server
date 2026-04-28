@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
-        log.warn(e.getMessage());
+        log.warn("Business Exception: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
 
         ErrorResponse response = ErrorResponse.from(errorCode);
@@ -23,16 +23,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.warn(e.getMessage());
+        log.warn("Validation Exception: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.INVALID_INPUT;
 
         ErrorResponse response = ErrorResponse.from(errorCode);
         return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error(e.getMessage());
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    public ResponseEntity<ErrorResponse> handleBadRequestException(RuntimeException e) {
+        log.warn("Bad Request Exception: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.INVALID_INPUT;
 
         ErrorResponse response = ErrorResponse.from(errorCode);
@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        log.error(e.getMessage());
+        log.error("Internal Server Error: ", e);
         ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
 
         ErrorResponse response = ErrorResponse.from(errorCode);

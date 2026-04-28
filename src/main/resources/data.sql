@@ -1,7 +1,7 @@
 -- Season
-INSERT INTO seasons (name, created_at) VALUES ('2026', NOW());
-INSERT INTO seasons (name, created_at) VALUES ('2025', NOW());
-INSERT INTO seasons (name, created_at) VALUES ('2024', NOW());
+INSERT INTO seasons (name, created_at) VALUES ('K리그1 2026', NOW());
+INSERT INTO seasons (name, created_at) VALUES ('K리그1 2025', NOW());
+INSERT INTO seasons (name, created_at) VALUES ('K리그1 2024', NOW());
 
 -- Teams
 INSERT INTO teams (name, naver_id, created_at) VALUES ('seoul', '09', NOW());

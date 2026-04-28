@@ -1,7 +1,10 @@
 package com.example.pitchboxd.match.core.service.domain;
 
+import com.example.pitchboxd.global.exception.BusinessException;
+import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.MatchFilter;
 import com.example.pitchboxd.match.core.infrastructure.MatchQueryRepository;
+import com.example.pitchboxd.match.core.infrastructure.dto.MatchDetailStaticModel;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class MatchQueryService {
 
     private final MatchQueryRepository matchQueryRepository;
+
+    public MatchDetailStaticModel findMatchStaticDetailById(Long matchId) {
+        return matchQueryRepository.findMatchStaticDetailById(matchId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));
+    }
 
     public List<MatchSummary> findRecentlyFinishedMatches(LocalDateTime finishedAtThreshold) {
         return matchQueryRepository.findFinishedMatchesSince(finishedAtThreshold);
