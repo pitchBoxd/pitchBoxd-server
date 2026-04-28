@@ -133,10 +133,6 @@ public class MatchReviewFacadeService {
         matchStatisticsService.removeReview(matchReview.getMatchId(), matchReview.getPoint(), matchReview.getFanType());
     }
 
-    public LocalDateTime getReviewableThreshold() {
-        return matchReviewQueryService.getReviewableThreshold();
-    }
-
     public HotReviewResponses getHotReviews(int limit) {
         LocalDateTime threshold = matchReviewQueryService.getReviewableThreshold();
 

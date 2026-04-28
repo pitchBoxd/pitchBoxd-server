@@ -5,8 +5,6 @@ import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSumma
 public record HotReviewResponse(
         Long id,
         Long matchId,
-        String homeTeamName,
-        String awayTeamName,
         String authorNickname,
         Long userId,
         String content,
@@ -18,8 +16,6 @@ public record HotReviewResponse(
         return new HotReviewResponse(
                 summary.reviewId(),
                 summary.matchId(),
-                summary.homeTeamName(),
-                summary.awayTeamName(),
                 summary.authorNickname(),
                 summary.authorId(),
                 summary.content(),

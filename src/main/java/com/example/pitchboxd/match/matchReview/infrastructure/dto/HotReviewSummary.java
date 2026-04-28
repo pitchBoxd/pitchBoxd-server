@@ -5,8 +5,6 @@ import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 public record HotReviewSummary(
         Long reviewId,
         Long matchId,
-        String homeTeamName,
-        String awayTeamName,
         String authorNickname,
         Long authorId,
         FanType fanType,

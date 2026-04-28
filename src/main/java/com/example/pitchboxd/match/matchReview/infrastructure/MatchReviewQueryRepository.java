@@ -50,17 +50,12 @@ public class MatchReviewQueryRepository {
 
     public List<HotReviewSummary> findHotReviewsByMatchId(Long matchId, int limit) {
         QMatchReview matchReview = QMatchReview.matchReview;
-        QMatch match = QMatch.match;
         QUser user = QUser.user;
-        QTeam homeTeam = new QTeam("homeTeam");
-        QTeam awayTeam = new QTeam("awayTeam");
 
         return queryFactory
                 .select(Projections.constructor(HotReviewSummary.class,
                         matchReview.id,
                         matchReview.matchId,
-                        homeTeam.name,
-                        awayTeam.name,
                         user.nickname,
                         user.id,
                         matchReview.fanType,
@@ -69,9 +64,6 @@ public class MatchReviewQueryRepository {
                         matchReview.likeCount
                 ))
                 .from(matchReview)
-                .join(match).on(matchReview.matchId.eq(match.id))
-                .join(homeTeam).on(match.homeTeamId.eq(homeTeam.id))
-                .join(awayTeam).on(match.awayTeamId.eq(awayTeam.id))
                 .join(user).on(matchReview.userId.eq(user.id))
                 .where(matchReview.matchId.eq(matchId))
                 .orderBy(matchReview.likeCount.desc(), matchReview.id.desc())
