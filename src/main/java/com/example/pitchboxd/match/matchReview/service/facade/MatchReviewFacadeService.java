@@ -4,18 +4,15 @@ import com.example.pitchboxd.global.domain.ClockHolder;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.Match;
-import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import com.example.pitchboxd.match.core.service.domain.MatchQueryService;
 import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.MatchReviewSubmitPolicy;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewCreateRequest;
 import com.example.pitchboxd.match.matchReview.dto.request.MatchReviewUpdateRequest;
-import com.example.pitchboxd.match.matchReview.dto.response.HotReviewResponses;
 import com.example.pitchboxd.match.matchReview.dto.response.LikeToggleResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewCreateResponse;
 import com.example.pitchboxd.match.matchReview.dto.response.MatchReviewUpdateResponse;
-import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSummary;
 import com.example.pitchboxd.match.matchReview.service.domain.MatchReviewLikeService;
 import com.example.pitchboxd.match.matchReview.service.domain.MatchReviewQueryService;
 import com.example.pitchboxd.match.matchReview.service.domain.MatchReviewService;
@@ -24,8 +21,6 @@ import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatistic
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.domain.User;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -131,22 +126,5 @@ public class MatchReviewFacadeService {
 
         // TODO: 다른 트랜잭션으로 분리 필요. 나중에 이벤트 리스너로 분리 ㄱㄱ
         matchStatisticsService.removeReview(matchReview.getMatchId(), matchReview.getPoint(), matchReview.getFanType());
-    }
-
-    public HotReviewResponses getHotReviews(int limit) {
-        LocalDateTime threshold = matchReviewQueryService.getReviewableThreshold();
-
-        List<MatchSummary> matchSummaries = matchQueryService.findRecentlyFinishedMatches(threshold);
-        List<Long> reviewableMatchIds = matchSummaries.stream()
-                .map(MatchSummary::id)
-                .toList();
-
-        if (reviewableMatchIds.isEmpty()) {
-            return new HotReviewResponses(Collections.emptyList());
-        }
-
-        List<HotReviewSummary> hotReviews = matchReviewQueryService.getTopHotReviews(reviewableMatchIds, limit);
-
-        return HotReviewResponses.of(hotReviews);
     }
 }
