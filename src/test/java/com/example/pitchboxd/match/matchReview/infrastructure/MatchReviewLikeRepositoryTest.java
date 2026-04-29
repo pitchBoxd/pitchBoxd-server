@@ -90,4 +90,25 @@ class MatchReviewLikeRepositoryTest {
         boolean exists = matchReviewLikeRepository.existsByMatchReviewIdAndUserId(review.getId(), liker.getId());
         assertThat(exists).isFalse();
     }
+
+    @Test
+    void 유저_ID와_여러_리뷰_ID로_좋아요_목록을_조회한다() {
+        // given
+        MatchReview review2 = matchReviewRepository.save(new MatchReview(review.getMatchId(), review.getUserId(), 4, "두 번째 리뷰", FanType.HOME));
+        MatchReview review3 = matchReviewRepository.save(new MatchReview(review.getMatchId(), review.getUserId(), 3, "세 번째 리뷰", FanType.HOME));
+
+        matchReviewLikeRepository.save(new MatchReviewLike(review.getId(), liker.getId()));
+        matchReviewLikeRepository.save(new MatchReviewLike(review2.getId(), liker.getId()));
+        matchReviewLikeRepository.save(new MatchReviewLike(review3.getId(), 999L)); // 다른 유저의 좋아요
+
+        // when
+        java.util.List<MatchReviewLike> likes = matchReviewLikeRepository.findByUserIdAndMatchReviewIdIn(
+                liker.getId(), java.util.List.of(review.getId(), review2.getId(), review3.getId())
+        );
+
+        // then
+        assertThat(likes).hasSize(2)
+                .extracting(MatchReviewLike::getMatchReviewId)
+                .containsExactlyInAnyOrder(review.getId(), review2.getId());
+    }
 }

@@ -11,6 +11,12 @@ import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.lineup.domain.MatchLineup;
 import com.example.pitchboxd.match.lineup.domain.ParticipationStatus;
 import com.example.pitchboxd.match.lineup.infrastructure.MatchLineupRepository;
+import com.example.pitchboxd.match.matchReview.domain.MatchReview;
+import com.example.pitchboxd.match.matchReview.domain.MatchReviewLike;
+import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewLikeRepository;
+import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
@@ -68,7 +74,14 @@ class MatchDetailControllerTest {
     @Autowired
     private MatchLineupRepository matchLineupRepository;
 
+    @Autowired
+    private MatchReviewRepository matchReviewRepository;
+
+    @Autowired
+    private MatchReviewLikeRepository matchReviewLikeRepository;
+
     private String accessToken;
+    private User loginUser;
     private Match match;
 
     @BeforeEach
@@ -76,8 +89,8 @@ class MatchDetailControllerTest {
         RestAssured.port = port;
         databaseCleaner.clean();
 
-        User user = userRepository.save(new User("테스트유저", "test@example.com", "password123!"));
-        accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
+        loginUser = userRepository.save(new User("테스트유저", "test@example.com", "password123!"));
+        accessToken = tokenManager.createAccessToken(loginUser.getId(), loginUser.getEmail());
 
         Season season = seasonRepository.save(new Season("2026 K리그1"));
         Team homeTeam = teamRepository.save(new Team("홈팀", "naver1"));
@@ -123,6 +136,65 @@ class MatchDetailControllerTest {
                 () -> assertThat(response.awayScore()).isEqualTo(1),
                 () -> assertThat(response.homeLineups().responses()).hasSize(1),
                 () -> assertThat(response.awayLineups().responses()).hasSize(1)
+        );
+    }
+
+    @Test
+    void 경기_상세_핫한_리뷰_데이터를_조회한다() {
+        // given
+        User author = userRepository.save(new User("작성자", "author@test.com", "pass"));
+        MatchReview hotReview = new MatchReview(match.getId(), author.getId(), 10, "대박 경기", FanType.HOME);
+        hotReview.addOneLikeCount();
+        matchReviewRepository.save(hotReview);
+        matchReviewLikeRepository.save(new MatchReviewLike(hotReview.getId(), loginUser.getId()));
+
+        // when
+        MatchDetailMatchReviewResponses response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .queryParam("limit", 5)
+                .when()
+                .get("/api/v1/matches/{matchId}/match-reviews/hot", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailMatchReviewResponses.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.responses()).hasSize(1),
+                () -> assertThat(response.responses().get(0).reviewId()).isEqualTo(hotReview.getId()),
+                () -> assertThat(response.responses().get(0).isLiked()).isTrue(),
+                () -> assertThat(response.responses().get(0).likeCount()).isEqualTo(1)
+        );
+    }
+
+    @Test
+    void 비로그인_유저도_경기_상세_핫한_리뷰_데이터를_조회한다() {
+        // given
+        User author = userRepository.save(new User("작성자", "author@test.com", "pass"));
+        MatchReview hotReview = new MatchReview(match.getId(), author.getId(), 10, "대박 경기", FanType.HOME);
+        hotReview.addOneLikeCount();
+        matchReviewRepository.save(hotReview);
+
+        // when
+        MatchDetailMatchReviewResponses response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("limit", 5)
+                .when()
+                .get("/api/v1/matches/{matchId}/match-reviews/hot", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailMatchReviewResponses.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.responses()).hasSize(1),
+                () -> assertThat(response.responses().get(0).reviewId()).isEqualTo(hotReview.getId()),
+                () -> assertThat(response.responses().get(0).isLiked()).isFalse()
         );
     }
 }

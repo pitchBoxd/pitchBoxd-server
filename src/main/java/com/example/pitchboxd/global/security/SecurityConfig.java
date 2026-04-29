@@ -49,7 +49,9 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/h2-console/**",
                                 "/api/v1/auth/google/login",
-                                "/api/v1/auth/google/signup"
+                                "/api/v1/auth/google/signup",
+                                "/api/v1/matches/*/detail/static",
+                                "/api/v1/matches/*/match-reviews/hot"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
