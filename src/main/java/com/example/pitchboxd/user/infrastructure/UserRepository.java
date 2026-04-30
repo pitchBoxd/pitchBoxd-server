@@ -13,7 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByNickname(String nickname);
 
-    Optional<User> findByProviderAndProviderId(Provider provider, String googleSub);
+    Optional<User> findByProviderAndProviderKey(Provider provider, String googleSub);
 
-    boolean existsByProviderAndProviderId(Provider provider, String googleSub);
+    boolean existsByProviderAndProviderKey(Provider provider, String googleSub);
 }

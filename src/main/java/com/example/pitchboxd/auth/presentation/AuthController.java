@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-    private static final long COOKIE_MAX_AGE = 604800;
+    private static final long COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 일주일
 
     private final AuthService authService;
     private final GoogleAuthService googleAuthService;
@@ -101,7 +101,7 @@ public class AuthController {
                 .body(SuccessResponse.of(HttpStatus.OK, null));
     }
 
-    @Operation(summary = "리프레시 토큰 재발급", description = "리프레시 토큰을 재발급합니다.")
+    @Operation(summary = "엑세스 토큰 재발급", description = "리프레시 토큰이 유효할 때, 엑세스 토큰과 리프레시 토큰을 재발급합니다.")
     @PostMapping("/reissue")
     public ResponseEntity<SuccessResponse<TokenResponse>> reissue(
             @CookieValue(value = "refreshToken", required = false) String refreshTokenCookie

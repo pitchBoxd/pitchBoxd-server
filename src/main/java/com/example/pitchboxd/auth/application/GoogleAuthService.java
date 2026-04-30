@@ -38,7 +38,7 @@ public class GoogleAuthService {
         String email = payload.getEmail();
         String googleSub = payload.getSubject();
 
-        Optional<User> userByGoogle = userRepository.findByProviderAndProviderId(Provider.GOOGLE, googleSub);
+        Optional<User> userByGoogle = userRepository.findByProviderAndProviderKey(Provider.GOOGLE, googleSub);
 
         if (userByGoogle.isPresent()) {
             Tokens tokens = tokenIssuer.issueTokens(userByGoogle.get());
@@ -60,7 +60,7 @@ public class GoogleAuthService {
         String email = payload.getEmail();
         String googleSub = payload.getSubject();
 
-        if (userRepository.existsByProviderAndProviderId(Provider.GOOGLE, googleSub)) {
+        if (userRepository.existsByProviderAndProviderKey(Provider.GOOGLE, googleSub)) {
             throw new BusinessException(ErrorCode.USER_ALREADY_REGISTERED);
         }
 
@@ -71,7 +71,7 @@ public class GoogleAuthService {
         if (userRepository.existsByNickname(request.nickname())) {
             throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
         }
-        
+
         String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
         User newUser = new User(
