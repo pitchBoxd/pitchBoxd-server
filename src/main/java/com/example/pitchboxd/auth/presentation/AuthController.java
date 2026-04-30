@@ -37,8 +37,8 @@ public class AuthController {
     private final AuthService authService;
     private final GoogleAuthService googleAuthService;
 
-    @Operation(summary = "로컬 로그인", description = "서비스 자체 로그인 서비스입니다.")
     @Deprecated
+    @Operation(summary = "로컬 로그인", description = "서비스 자체 로그인 서비스입니다.")
     @PostMapping("/login")
     public ResponseEntity<SuccessResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
         Tokens tokens = authService.login(request);
@@ -69,7 +69,7 @@ public class AuthController {
                     .body(SuccessResponse.of(status, response));
         }
 
-        GoogleLoginResponse response = GoogleLoginResponse.newMember(result.userInfo(), result.idToken());
+        GoogleLoginResponse response = GoogleLoginResponse.newMember(result.idToken());
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 

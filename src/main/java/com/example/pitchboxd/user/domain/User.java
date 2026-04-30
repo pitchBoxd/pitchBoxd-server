@@ -41,6 +41,8 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Provider provider;
 
+    private String providerKey;
+
     public User(String nickname, String email, String password) {
         validateNickname(nickname);
         this.nickname = nickname;
@@ -63,6 +65,16 @@ public class User extends BaseEntity {
         this.password = password;
         this.favoriteTeamId = favoriteTeamId;
         this.provider = provider;
+    }
+
+    public User(String nickname, String email, String password, Long favoriteTeamId, Provider provider,
+                String providerKey) {
+        this.nickname = nickname;
+        this.email = email;
+        this.password = password;
+        this.favoriteTeamId = favoriteTeamId;
+        this.provider = provider;
+        this.providerKey = providerKey;
     }
 
     private void validateNickname(String nickname) {

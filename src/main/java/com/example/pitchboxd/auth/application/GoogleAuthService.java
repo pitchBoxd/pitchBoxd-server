@@ -1,17 +1,19 @@
 package com.example.pitchboxd.auth.application;
 
 import com.example.pitchboxd.auth.domain.Tokens;
-import com.example.pitchboxd.auth.dto.GoogleAccessToken;
 import com.example.pitchboxd.auth.dto.GoogleLoginResult;
 import com.example.pitchboxd.auth.dto.request.GoogleLoginRequest;
 import com.example.pitchboxd.auth.dto.request.GoogleSignupRequest;
-import com.example.pitchboxd.auth.dto.response.GoogleUserInfoResponse;
-import com.example.pitchboxd.auth.infrastructure.GoogleOAuthClient;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.user.domain.Provider;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,40 +28,74 @@ public class GoogleAuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenIssuer tokenIssuer;
-    private final GoogleOAuthClient googleOAuthClient;
+    private final GoogleIdTokenVerifier verifier;
 
     @Transactional
     public GoogleLoginResult googleLogin(GoogleLoginRequest request) {
-        GoogleAccessToken googleToken = googleOAuthClient.getAccessToken(request.authorizationCode());
-        GoogleUserInfoResponse googleUserInfo = googleOAuthClient.getUserInfo(googleToken.idToken());
+        GoogleIdToken idToken = verifyToken(request.googleIdToken());
+        GoogleIdToken.Payload payload = idToken.getPayload();
 
-        return userRepository.findByEmail(googleUserInfo.email())
-                .map(user -> {
-                    Tokens tokens = tokenIssuer.issueTokens(user);
-                    return GoogleLoginResult.registered(tokens);
-                })
-                .orElseGet(() -> GoogleLoginResult.newMember(googleUserInfo, googleToken.idToken()));
+        String email = payload.getEmail();
+        String googleSub = payload.getSubject();
+
+        Optional<User> userByGoogle = userRepository.findByProviderAndProviderId(Provider.GOOGLE, googleSub);
+
+        if (userByGoogle.isPresent()) {
+            Tokens tokens = tokenIssuer.issueTokens(userByGoogle.get());
+            return GoogleLoginResult.registered(tokens);
+        }
+
+        if (userRepository.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.ALREADY_SIGNED_UP_OTHER_PROVIDER);
+        }
+
+        return GoogleLoginResult.newMember(idToken);
     }
 
     @Transactional
     public Tokens googleSignup(GoogleSignupRequest request) {
-        GoogleUserInfoResponse googleUserInfo = googleOAuthClient.getUserInfo(request.idToken());
+        GoogleIdToken idToken = verifyToken(request.googleIdToken());
+        GoogleIdToken.Payload payload = idToken.getPayload();
 
-        if (userRepository.existsByEmail(googleUserInfo.email())) {
-            throw new BusinessException(ErrorCode.USER_EMAIL_CONFLICT);
+        String email = payload.getEmail();
+        String googleSub = payload.getSubject();
+
+        if (userRepository.existsByProviderAndProviderId(Provider.GOOGLE, googleSub)) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_REGISTERED);
         }
 
+        userRepository.findByEmail(email).ifPresent(existingUser -> {
+            throw new BusinessException(ErrorCode.USER_EMAIL_CONFLICT);
+        });
+
+        if (userRepository.existsByNickname(request.nickname())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+        
         String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
         User newUser = new User(
                 request.nickname(),
-                googleUserInfo.email(),
+                email,
                 dummyPassword,
                 request.favoriteTeamId(),
-                Provider.GOOGLE);
-
+                Provider.GOOGLE,
+                googleSub
+        );
         User savedUser = userRepository.save(newUser);
 
         return tokenIssuer.issueTokens(savedUser);
+    }
+
+    private GoogleIdToken verifyToken(String idTokenString) {
+        try {
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken == null) {
+                throw new BusinessException(ErrorCode.INVALID_TOKEN);
+            }
+            return idToken;
+        } catch (GeneralSecurityException | IOException e) {
+            throw new BusinessException(ErrorCode.GOOGLE_AUTH_ERROR);
+        }
     }
 }

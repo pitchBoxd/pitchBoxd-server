@@ -13,6 +13,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
+// TODO: 흐름에 따라 필요 없게 될 수도 있음.
 @Component
 @Slf4j
 public class GoogleOAuthClient {

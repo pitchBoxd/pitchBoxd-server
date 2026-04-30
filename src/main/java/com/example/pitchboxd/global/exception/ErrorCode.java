@@ -12,6 +12,9 @@ public enum ErrorCode {
 
     USER_NOT_FOUND("U-001", "존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND),
     USER_EMAIL_CONFLICT("U-002", "이미 존재하는 이메일입니다.", HttpStatus.CONFLICT),
+    USER_ALREADY_REGISTERED("U-003", "이미 존재하는 유저입니다.", HttpStatus.CONFLICT),
+    ALREADY_SIGNED_UP_OTHER_PROVIDER("U-004", "다른 소셜 이메일로 회원가입 되어있습니다.", HttpStatus.CONFLICT),
+    DUPLICATE_NICKNAME("U-005", "이미 존재하는 닉네임입니다.", HttpStatus.CONFLICT),
 
     MATCH_NOT_FOUND("M-001", "존재하지 않는 경기입니다.", HttpStatus.NOT_FOUND),
     SEASON_NOT_FOUND("S-001", "존재하지 않는 시즌입니다.", HttpStatus.NOT_FOUND),
