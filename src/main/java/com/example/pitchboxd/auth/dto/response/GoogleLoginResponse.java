@@ -1,18 +1,16 @@
 package com.example.pitchboxd.auth.dto.response;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-
 public record GoogleLoginResponse(
         boolean isRegistered,
         String accessToken,
-        GoogleIdToken idToken
+        String idToken
 ) {
 
     public static GoogleLoginResponse registered(String accessToken) {
         return new GoogleLoginResponse(true, accessToken, null);
     }
 
-    public static GoogleLoginResponse newMember(GoogleIdToken idToken) {
+    public static GoogleLoginResponse newMember(String idToken) {
         return new GoogleLoginResponse(false, null, idToken);
     }
 }

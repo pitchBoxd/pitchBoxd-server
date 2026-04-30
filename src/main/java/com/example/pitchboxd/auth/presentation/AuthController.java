@@ -90,7 +90,7 @@ public class AuthController {
 
     @Operation(summary = "로그아웃", description = "로그아웃입니다.")
     @PostMapping("/logout")
-    public ResponseEntity<SuccessResponse<TokenResponse>> logout() {
+    public ResponseEntity<SuccessResponse<Void>> logout() {
         // 현재는 Redis가 없으므로 별도의 비즈니스 로직 없이 성공 응답만 반환
         // 나중에 로그를 남기거나, 리프레시 토큰을 DB에서 지우는 로직이 추가될 수 있음
 

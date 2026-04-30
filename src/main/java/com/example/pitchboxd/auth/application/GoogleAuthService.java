@@ -49,7 +49,7 @@ public class GoogleAuthService {
             throw new BusinessException(ErrorCode.ALREADY_SIGNED_UP_OTHER_PROVIDER);
         }
 
-        return GoogleLoginResult.newMember(idToken);
+        return GoogleLoginResult.newMember(request.googleIdToken());
     }
 
     @Transactional
