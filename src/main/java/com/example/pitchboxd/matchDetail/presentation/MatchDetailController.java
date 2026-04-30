@@ -33,7 +33,7 @@ public class MatchDetailController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));
     }
 
-    @Operation(summary = "경기 페이지 핫한 리뷰", description = "해당 경기의 핫한 리뷰를 가져옵니다. 갯수를 결정할 수 있고, 기본값은 5입니다.")
+    @Operation(summary = "경기 페이지 핫한 경기 리뷰", description = "해당 경기의 핫한 경기 리뷰를 가져옵니다. 갯수를 결정할 수 있고, 기본값은 5입니다.")
     @GetMapping("{matchId}/match-reviews/hot")
     public ResponseEntity<SuccessResponse<MatchDetailMatchReviewResponses>> getMatchHotReviewData(
             @PathVariable Long matchId,

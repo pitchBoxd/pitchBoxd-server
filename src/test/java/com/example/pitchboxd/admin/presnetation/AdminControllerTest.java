@@ -4,12 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
+import com.example.pitchboxd.admin.dto.request.UpdatePlayerRequest;
 import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.global.domain.ClockHolder;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
+import com.example.pitchboxd.player.domain.Player;
+import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.support.TestClockHolder;
 import com.example.pitchboxd.team.domain.Team;
@@ -48,6 +51,8 @@ class AdminControllerTest {
     private MatchRepository matchRepository;
     @Autowired
     private MatchStatisticsRepository matchStatisticsRepository;
+    @Autowired
+    private PlayerRepository playerRepository;
 
     private String accessToken;
 
@@ -102,6 +107,34 @@ class AdminControllerTest {
                 () -> assertThat(updatedMatch.getNaverId()).isEqualTo(newNaverId),
                 () -> assertThat(updatedMatch.getHomeTeamId()).isEqualTo(homeTeam.getId()),
                 () -> assertThat(updatedMatch.getAwayTeamId()).isEqualTo(awayTeam.getId())
+        );
+    }
+
+    @Test
+    void 선수_정보를_수정한다() {
+        // given
+        Player player = playerRepository.save(new Player(1L, "기존 이름", "oldNaverId"));
+
+        Long newTeamId = 2L;
+        String newName = "새 이름";
+        String newNaverId = "newNaverId";
+        UpdatePlayerRequest request = new UpdatePlayerRequest(newTeamId, newName, newNaverId);
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(request)
+                .when()
+                .patch("/api/v1/admin/players/{playerId}", player.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+
+        Player updatedPlayer = playerRepository.findById(player.getId()).orElseThrow();
+        assertAll(
+                () -> assertThat(updatedPlayer.getTeamId()).isEqualTo(newTeamId),
+                () -> assertThat(updatedPlayer.getName()).isEqualTo(newName),
+                () -> assertThat(updatedPlayer.getNaverId()).isEqualTo(newNaverId)
         );
     }
 }

@@ -3,6 +3,7 @@ package com.example.pitchboxd.admin.presentation;
 import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
 import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
+import com.example.pitchboxd.admin.dto.request.UpdatePlayerRequest;
 import com.example.pitchboxd.admin.service.facade.AdminFacadeService;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,6 +66,19 @@ public class AdminController {
     ) {
 
         adminFacadeService.updateMatch(matchId, request);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
+    }
+
+    @Operation(summary = "선수 업데이트", description = "선수 정보를 업데이트합니다.")
+    @PatchMapping("/players/{playerId}")
+    public ResponseEntity<SuccessResponse<Void>> updatePlayer(
+            @PathVariable Long playerId,
+            @RequestBody UpdatePlayerRequest request
+    ) {
+
+        adminFacadeService.updatePlayer(playerId, request);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));

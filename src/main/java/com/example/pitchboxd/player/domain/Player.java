@@ -42,4 +42,18 @@ public class Player extends BaseEntity {
         this.name = name;
         this.naverId = naverId;
     }
+
+    public void update(Long teamId, String name, String naverId) {
+        if (teamId != null) {
+            this.teamId = teamId;
+        }
+        
+        if (name != null) {
+            this.name = name;
+        }
+
+        if (naverId != null) {
+            this.naverId = naverId;
+        }
+    }
 }
