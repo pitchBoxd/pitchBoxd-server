@@ -1,6 +1,7 @@
 package com.example.pitchboxd.global.infrastructure.naver.dto;
 
 import com.example.pitchboxd.match.core.domain.GoalScorer;
+import com.example.pitchboxd.match.core.domain.MatchResult;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
@@ -9,6 +10,11 @@ public record NaverMatchDetailResponse(ResultNode result) {
     // 1. Service 레이어를 위한 편의성 메서드 (Deep 체이닝 방지)
     public boolean isFinished() {
         return "RESULT".equals(result.game().statusCode());
+    }
+
+
+    public MatchResult toMatchResult() {
+        return new MatchResult(homeTeamScore(), awayTeamScore(), toHomeScorers(), toAwayScorers());
     }
 
     public int homeTeamScore() {

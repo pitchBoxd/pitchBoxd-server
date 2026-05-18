@@ -3,7 +3,10 @@ package com.example.pitchboxd.match.core.service.domain;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.domain.MatchResult;
+import com.example.pitchboxd.match.core.domain.MatchStatus;
 import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,5 +34,18 @@ public class MatchService {
     @Transactional
     public List<Match> createAllMatches(List<Match> matches) {
         return matchRepository.saveAll(matches);
+    }
+
+    public List<Match> findByMatchStatusAndStartTimeBetween(MatchStatus matchStatus, LocalDateTime timeLimit,
+                                                            LocalDateTime now) {
+        return matchRepository.findByMatchStatusAndStartTimeBetween(matchStatus, timeLimit, now);
+    }
+
+    @Transactional
+    public void updateMatchResult(Long matchId, MatchResult result, LocalDateTime now) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MATCH_NOT_FOUND));
+        match.finish(now);
+        match.decideMatchResult(result);
     }
 }
