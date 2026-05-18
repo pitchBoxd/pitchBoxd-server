@@ -25,12 +25,13 @@ spring:
     open-in-view: false
   security:
     oauth2:
+      success-redirect-url: ${OAUTH2_SUCCESS_URL}
+      signup-redirect-url: ${OAUTH2_SIGNUP_URL}
       client:
         registration:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: ${GOOGLE_REDIRECT_URL}
             scope: profile, email, openid
 
 jwt:

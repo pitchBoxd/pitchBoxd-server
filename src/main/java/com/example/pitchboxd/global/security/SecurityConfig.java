@@ -23,6 +23,8 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final Environment env;
+    private final CustomOidcUserService customOidcUserService;
+    private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -48,12 +50,18 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/h2-console/**",
-                                "/api/v1/auth/google/login",
                                 "/api/v1/auth/google/signup",
                                 "/api/v1/matches/*/detail/static",
-                                "/api/v1/matches/*/match-reviews/hot"
+                                "/api/v1/matches/*/match-reviews/hot",
+                                "/login/oauth2/code/google"
                         ).permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .oidcUserService(customOidcUserService)
+                        )
+                        .successHandler(oauth2AuthenticationSuccessHandler)
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .headers(headers -> headers

@@ -3,11 +3,8 @@ package com.example.pitchboxd.auth.presentation;
 import com.example.pitchboxd.auth.application.AuthService;
 import com.example.pitchboxd.auth.application.GoogleAuthService;
 import com.example.pitchboxd.auth.domain.Tokens;
-import com.example.pitchboxd.auth.dto.GoogleLoginResult;
-import com.example.pitchboxd.auth.dto.request.GoogleLoginRequest;
 import com.example.pitchboxd.auth.dto.request.GoogleSignupRequest;
 import com.example.pitchboxd.auth.dto.request.LoginRequest;
-import com.example.pitchboxd.auth.dto.response.GoogleLoginResponse;
 import com.example.pitchboxd.auth.dto.response.TokenResponse;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.global.exception.BusinessException;
@@ -50,27 +47,6 @@ public class AuthController {
         return ResponseEntity.status(status)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(SuccessResponse.of(status, response));
-    }
-
-    @Operation(summary = "구글 로그인", description = "구글 로그인입니다.")
-    @PostMapping("/google/login")
-    public ResponseEntity<SuccessResponse<GoogleLoginResponse>> googleLogin(
-            @Valid @RequestBody GoogleLoginRequest request) {
-
-        GoogleLoginResult result = googleAuthService.googleLogin(request);
-        HttpStatus status = HttpStatus.OK;
-
-        if (result.isRegistered()) {
-            GoogleLoginResponse response = GoogleLoginResponse.registered(result.accessToken());
-            ResponseCookie cookie = createRefreshTokenCookie(result.refreshToken(), COOKIE_MAX_AGE);
-
-            return ResponseEntity.status(status)
-                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(SuccessResponse.of(status, response));
-        }
-
-        GoogleLoginResponse response = GoogleLoginResponse.newMember(result.idToken());
-        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 
     @Operation(summary = "구글 회원가입", description = "구글 회원가입입니다.")
