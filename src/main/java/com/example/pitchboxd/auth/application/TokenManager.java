@@ -9,7 +9,7 @@ public interface TokenManager {
 
     Long getUserIdFromToken(String token);
 
-    boolean validateAccessToken(String token);
+    void verifyAccessToken(String token);
 
     boolean validateRefreshToken(String token);
 

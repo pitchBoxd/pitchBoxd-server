@@ -3,6 +3,7 @@ package com.example.pitchboxd.auth.infrastructure;
 import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.auth.dto.TokenDto;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -81,16 +82,11 @@ public class JwtTokenManager implements TokenManager {
     }
 
     @Override
-    public boolean validateAccessToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(accessKey)
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void verifyAccessToken(String token) {
+        Jwts.parserBuilder()
+                .setSigningKey(accessKey)
+                .build()
+                .parseClaimsJws(token);
     }
 
     @Override
@@ -101,7 +97,7 @@ public class JwtTokenManager implements TokenManager {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }

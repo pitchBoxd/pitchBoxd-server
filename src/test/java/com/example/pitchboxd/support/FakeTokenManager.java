@@ -11,8 +11,10 @@ import java.util.Date;
 
 public class FakeTokenManager implements TokenManager {
 
-    private final Key accessKey = Keys.hmacShaKeyFor("test-access-secret-key-for-testing-purposes-only-32bytes-long".getBytes());
-    private final Key refreshKey = Keys.hmacShaKeyFor("test-refresh-secret-key-for-testing-purposes-only-32bytes-long".getBytes());
+    private final Key accessKey = Keys.hmacShaKeyFor(
+            "test-access-secret-key-for-testing-purposes-only-32bytes-long".getBytes());
+    private final Key refreshKey = Keys.hmacShaKeyFor(
+            "test-refresh-secret-key-for-testing-purposes-only-32bytes-long".getBytes());
 
     @Override
     public TokenDto createRefreshToken(Long userId, String email) {
@@ -67,12 +69,11 @@ public class FakeTokenManager implements TokenManager {
     }
 
     @Override
-    public boolean validateAccessToken(String token) {
+    public void verifyAccessToken(String token) {
         Jwts.parserBuilder()
                 .setSigningKey(accessKey)
                 .build()
                 .parseClaimsJws(token);
-        return true;
     }
 
     @Override
