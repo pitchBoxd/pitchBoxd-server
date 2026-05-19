@@ -23,8 +23,8 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final Environment env;
-    private final CustomOidcUserService customOidcUserService;
     private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -59,7 +59,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
-                                .oidcUserService(customOidcUserService)
+                                .userService(customOAuth2UserService)
                         )
                         .successHandler(oauth2AuthenticationSuccessHandler)
                 )

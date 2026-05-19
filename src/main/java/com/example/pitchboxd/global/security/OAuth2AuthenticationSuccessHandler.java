@@ -14,7 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -36,11 +37,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
-        String email = oidcUser.getEmail();
-        String providerKey = oidcUser.getSubject();
+        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        String registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+        OAuth2UserInfo userInfo = OAuth2UserFactory.get(registrationId, oAuth2User.getAttributes());
 
-        Optional<User> userOptional = userRepository.findByProviderAndProviderKey(Provider.GOOGLE, providerKey);
+        String email = userInfo.getEmail();
+        String providerKey = userInfo.getProviderId();
+        Provider provider = userInfo.getProvider();
+
+        Optional<User> userOptional = userRepository.findByProviderAndProviderKey(provider, providerKey);
 
         String targetUrl;
         if (userOptional.isPresent()) {
