@@ -1,7 +1,7 @@
 package com.example.pitchboxd.auth.application;
 
 import com.example.pitchboxd.auth.domain.Tokens;
-import com.example.pitchboxd.auth.dto.request.GoogleSignupRequest;
+import com.example.pitchboxd.auth.dto.request.OAuthSignupRequest;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.user.domain.Provider;
@@ -16,35 +16,40 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class GoogleAuthService {
+public class OAuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenIssuer tokenIssuer;
 
     @Transactional
-    public Tokens googleSignup(GoogleSignupRequest request) {
-        if (userRepository.existsByProviderAndProviderKey(Provider.GOOGLE, request.providerKey())) {
+    public Tokens signup(OAuthSignupRequest request) {
+        Provider provider = request.provider();
+        String providerKey = request.providerKey();
+        String email = request.email();
+        String nickname = request.nickname();
+
+        if (userRepository.existsByProviderAndProviderKey(provider, providerKey)) {
             throw new BusinessException(ErrorCode.USER_ALREADY_REGISTERED);
         }
 
-        if (userRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.USER_EMAIL_CONFLICT);
         }
 
-        if (userRepository.existsByNickname(request.nickname())) {
+        if (userRepository.existsByNickname(nickname)) {
             throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
         String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
         User newUser = new User(
-                request.nickname(),
-                request.email(),
+                nickname,
+                email,
                 dummyPassword,
                 request.favoriteTeamId(),
-                Provider.GOOGLE,
-                request.providerKey()
+                provider,
+                providerKey
         );
         User savedUser = userRepository.save(newUser);
 

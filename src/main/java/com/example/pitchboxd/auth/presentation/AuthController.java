@@ -1,10 +1,10 @@
 package com.example.pitchboxd.auth.presentation;
 
 import com.example.pitchboxd.auth.application.AuthService;
-import com.example.pitchboxd.auth.application.GoogleAuthService;
+import com.example.pitchboxd.auth.application.OAuthService;
 import com.example.pitchboxd.auth.domain.Tokens;
-import com.example.pitchboxd.auth.dto.request.GoogleSignupRequest;
 import com.example.pitchboxd.auth.dto.request.LoginRequest;
+import com.example.pitchboxd.auth.dto.request.OAuthSignupRequest;
 import com.example.pitchboxd.auth.dto.response.TokenResponse;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.global.exception.BusinessException;
@@ -32,7 +32,7 @@ public class AuthController {
     private static final long COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 일주일
 
     private final AuthService authService;
-    private final GoogleAuthService googleAuthService;
+    private final OAuthService oAuthService;
 
     @Deprecated
     @Operation(summary = "로컬 로그인", description = "서비스 자체 로그인 서비스입니다.")
@@ -49,11 +49,11 @@ public class AuthController {
                 .body(SuccessResponse.of(status, response));
     }
 
-    @Operation(summary = "구글 회원가입", description = "구글 회원가입입니다.")
-    @PostMapping("/google/signup")
-    public ResponseEntity<SuccessResponse<TokenResponse>> googleSignup(
-            @Valid @RequestBody GoogleSignupRequest request) {
-        Tokens tokens = googleAuthService.googleSignup(request);
+    @Operation(summary = "소셜 회원가입", description = "소셜 회원가입입니다.")
+    @PostMapping("/oauth/signup")
+    public ResponseEntity<SuccessResponse<TokenResponse>> oAuthSignup(
+            @Valid @RequestBody OAuthSignupRequest request) {
+        Tokens tokens = oAuthService.signup(request);
         ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE);
 
         TokenResponse response = new TokenResponse(tokens.accessToken());
@@ -69,7 +69,7 @@ public class AuthController {
     public ResponseEntity<SuccessResponse<Void>> logout() {
         // 현재는 Redis가 없으므로 별도의 비즈니스 로직 없이 성공 응답만 반환
         // 나중에 로그를 남기거나, 리프레시 토큰을 DB에서 지우는 로직이 추가될 수 있음
-        
+
         ResponseCookie deleteCookie = createRefreshTokenCookie("", 0);
 
         return ResponseEntity.ok()
