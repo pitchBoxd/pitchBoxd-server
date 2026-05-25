@@ -7,6 +7,7 @@ import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.user.domain.Provider;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,12 +22,15 @@ public class OAuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenIssuer tokenIssuer;
+    private final TokenManager tokenManager;
 
     @Transactional
     public Tokens signup(OAuthSignupRequest request) {
-        Provider provider = request.provider();
-        String providerKey = request.providerKey();
-        String email = request.email();
+        Map<String, String> signupInfo = tokenManager.parseSignupToken(request.signupToken());
+        String email = signupInfo.get("email");
+        Provider provider = Provider.valueOf(signupInfo.get("provider"));
+        String providerKey = signupInfo.get("providerKey");
+
         String nickname = request.nickname();
 
         if (userRepository.existsByProviderAndProviderKey(provider, providerKey)) {

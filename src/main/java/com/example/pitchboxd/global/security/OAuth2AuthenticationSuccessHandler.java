@@ -58,10 +58,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     .queryParam("accessToken", tokens.accessToken())
                     .build().toUriString();
         } else {
+            String signupToken = tokenIssuer.createSignupToken(email, provider.name(), providerKey);
             targetUrl = UriComponentsBuilder.fromUriString(signupRedirectUrl)
-                    .queryParam("email", email)
-                    .queryParam("providerKey", providerKey)
-                    .queryParam("provider", provider.name())
+                    .queryParam("signupToken", signupToken)
                     .build().toUriString();
         }
 

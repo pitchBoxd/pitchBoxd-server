@@ -38,10 +38,12 @@ jwt:
   secret:
     access_key: ${JWT_ACCESS_SECRET_KEY}
     refresh_key: ${JWT_REFRESH_SECRET_KEY}
+    signup_key: ${JWT_SIGNUP_SECRET_KEY}
 
 expiration:
   access-token-time: ${ACCESS_TOKEN_EXPIRATION_TIME}
   refresh-token-time: ${REFRESH_TOKEN_EXPIRATION_TIME}
+  signup-token-time: ${SIGNUP_TOKEN_EXPIRATION_TIME}
 
 management:
   endpoints:

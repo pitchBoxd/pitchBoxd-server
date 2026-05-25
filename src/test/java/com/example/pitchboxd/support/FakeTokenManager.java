@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Map;
 
 public class FakeTokenManager implements TokenManager {
 
@@ -93,5 +94,32 @@ public class FakeTokenManager implements TokenManager {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    @Override
+    public String createSignupToken(String email, String provider, String providerKey) {
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("provider", provider)
+                .claim("providerKey", providerKey)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
+                .signWith(accessKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    @Override
+    public Map<String, String> parseSignupToken(String token) {
+        var claims = Jwts.parserBuilder()
+                .setSigningKey(accessKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return Map.of(
+                "email", claims.getSubject(),
+                "provider", claims.get("provider", String.class),
+                "providerKey", claims.get("providerKey", String.class)
+        );
     }
 }

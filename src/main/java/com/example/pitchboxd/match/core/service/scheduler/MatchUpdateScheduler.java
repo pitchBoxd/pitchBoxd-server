@@ -22,13 +22,13 @@ public class MatchUpdateScheduler {
     private final NaverSportsClient naverSportsClient;
     private final ClockHolder clockHolder;
 
-    /***
-     * 5분마다 db를 조회해, 오늘 경기 + 경기 시작 시간에서 100분이 지났다면 종료됐는지 확인 후 종료시킵니다.
-     * ***/
+    /**
+     * 5분마다 db를 조회해, 오늘 경기 && 경기 시작 시간에서 105분이 지났다면 종료됐는지 확인 후 종료시킵니다.
+     */
     @Scheduled(cron = "0 0/5 * * * *")
     public void updateFinishedMatches() {
         LocalDateTime now = clockHolder.now();
-        LocalDateTime checkTime = now.minusMinutes(100);
+        LocalDateTime checkTime = now.minusMinutes(105);
         LocalDateTime timeLimit = now.minusDays(1);
 
         List<Match> matches = matchService.findByMatchStatusAndStartTimeBetween(MatchStatus.SCHEDULED, timeLimit,

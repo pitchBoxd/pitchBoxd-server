@@ -10,6 +10,7 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,19 +19,25 @@ public class JwtTokenManager implements TokenManager {
 
     private final long accessTokenExpirationTime;
     private final long refreshTokenExpirationTime;
+    private final long signupTokenExpirationTime;
     private final Key accessKey;
     private final Key refreshKey;
+    private final Key signupKey;
 
     public JwtTokenManager(
             @Value("${expiration.access-token-time}") long ACCESS_TOKEN_EXPIRATION_TIME,
             @Value("${expiration.refresh-token-time}") long REFRESH_TOKEN_EXPIRATION_TIME,
+            @Value("${expiration.signup-token-time}") long SIGNUP_TOKEN_EXPIRATION_TIME,
             @Value("${jwt.secret.access_key}") String ACCESS_SECRET_KEY,
-            @Value("${jwt.secret.refresh_key}") String REFRESH_SECRET_KEY
+            @Value("${jwt.secret.refresh_key}") String REFRESH_SECRET_KEY,
+            @Value("${jwt.secret.signup_key}") String SIGNUP_SECRET_KEY
     ) {
         this.accessTokenExpirationTime = ACCESS_TOKEN_EXPIRATION_TIME;
         this.refreshTokenExpirationTime = REFRESH_TOKEN_EXPIRATION_TIME;
+        this.signupTokenExpirationTime = SIGNUP_TOKEN_EXPIRATION_TIME;
         this.accessKey = Keys.hmacShaKeyFor(ACCESS_SECRET_KEY.getBytes());
         this.refreshKey = Keys.hmacShaKeyFor(REFRESH_SECRET_KEY.getBytes());
+        this.signupKey = Keys.hmacShaKeyFor(SIGNUP_SECRET_KEY.getBytes());
     }
 
     @Override
@@ -110,5 +117,34 @@ public class JwtTokenManager implements TokenManager {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    @Override
+    public String createSignupToken(String email, String provider, String providerKey) {
+        Claims claims = Jwts.claims().setSubject(email);
+        claims.put("provider", provider);
+        claims.put("providerKey", providerKey);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + signupTokenExpirationTime))
+                .signWith(signupKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    @Override
+    public Map<String, String> parseSignupToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(signupKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return Map.of(
+                "email", claims.getSubject(),
+                "provider", claims.get("provider", String.class),
+                "providerKey", claims.get("providerKey", String.class)
+        );
     }
 }

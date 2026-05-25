@@ -38,7 +38,9 @@ jwt:
   secret:
     access_key: "test-access-secret-key-at-least-32-characters"
     refresh_key: "test-refresh-secret-key-at-least-32-characters"
+    signup_key: "test-signup-secret-key-at-least-32-characters"
 
 expiration:
   access-token-time: 3600000
   refresh-token-time: 86400000
+  signup-token-time: 900000

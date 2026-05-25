@@ -43,4 +43,8 @@ public class TokenIssuer {
 
         return new Tokens(accessToken, refreshToken);
     }
+
+    public String createSignupToken(String email, String provider, String providerKey) {
+        return tokenManager.createSignupToken(email, provider, providerKey);
+    }
 }

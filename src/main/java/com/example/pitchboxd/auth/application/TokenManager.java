@@ -7,6 +7,8 @@ public interface TokenManager {
 
     String createAccessToken(Long userId, String email);
 
+    String createSignupToken(String email, String provider, String providerKey);
+
     Long getUserIdFromToken(String token);
 
     void verifyAccessToken(String token);
@@ -14,4 +16,6 @@ public interface TokenManager {
     boolean validateRefreshToken(String token);
 
     String getEmailFromToken(String token);
+
+    java.util.Map<String, String> parseSignupToken(String token);
 }
