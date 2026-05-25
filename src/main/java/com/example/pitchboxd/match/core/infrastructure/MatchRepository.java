@@ -11,6 +11,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     Optional<Match> findByNaverId(String matchCode);
 
-    List<Match> findByMatchStatusAndStartTimeBetween(MatchStatus matchStatus, LocalDateTime timeLimit,
-                                                     LocalDateTime now);
+    List<Match> findByStatusAndStartTimeBetween(MatchStatus status, LocalDateTime timeLimit,
+                                                LocalDateTime now);
 }
