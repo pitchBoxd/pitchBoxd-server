@@ -1,0 +1,46 @@
+src/test/java/com/example/pitchboxd/support/FakeTokenManager.java
+  s_dbc65becfc91b3::t_297297cedf2594 11,98-123
+src/main/java/com/example/pitchboxd/auth/application/TokenIssuer.java
+  s_dbc65becfc91b3::t_3efa2a59aa7dab 46-49
+src/main/java/com/example/pitchboxd/auth/application/TokenManager.java
+  s_dbc65becfc91b3::t_62cf91a099b56c 10-11,19-20
+src/main/java/com/example/pitchboxd/global/security/OAuth2AuthenticationSuccessHandler.java
+  s_dbc65becfc91b3::t_d0fce5ae7dd304 61,63
+src/main/java/com/example/pitchboxd/auth/infrastructure/JwtTokenManager.java
+  s_dbc65becfc91b3::t_092118ca10d771 13
+  s_dbc65becfc91b3::t_caaa31a99ffb72 121-130,133-138,140-149
+  s_dbc65becfc91b3::t_9ad0f76f4155ac 22,25,30,32-33,37,40,131-132,139
+src/test/resources/application-test.yaml
+  s_dbc65becfc91b3::t_08ead0bd894b14 41,45-46
+src/main/java/com/example/pitchboxd/auth/dto/request/OAuthSignupRequest.java
+  s_dbc65becfc91b3::t_1e0b9ed72d37e0 7-8
+src/main/java/com/example/pitchboxd/auth/application/OAuthService.java
+  s_dbc65becfc91b3::t_abf5ab7762077f 10,25,29-33
+src/test/java/com/example/pitchboxd/auth/application/OAuthSignupServiceTest.java
+  s_dbc65becfc91b3::t_d0c0f9fbdb1556 5,13-17,72-80,82-88,90-96
+  s_dbc65becfc91b3::t_a1596da7d16290 1-4,6-12,18-71,97-98
+  s_dbc65becfc91b3::t_87eed36ee8bbfc 81,89
+src/main/resources/application-local.yaml
+  h_09d9451df330ee 41,46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "fc4a1c345c76bd84e0cc36dab0842e5b3f82f314",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_dbc65becfc91b3": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "4ee53cac-cdda-4a86-be27-ec0a6b3a66cf",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
