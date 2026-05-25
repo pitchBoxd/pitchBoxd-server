@@ -1,0 +1,21 @@
+src/main/java/com/example/pitchboxd/match/core/infrastructure/MatchRepository.java
+  s_dbc65becfc91b3::t_031b8863a8406f 14-15
+src/main/java/com/example/pitchboxd/match/core/service/domain/MatchService.java
+  s_dbc65becfc91b3::t_f727be33f81bbc 40-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "cf1287dad456b3dfb5266f8d520178bf57c5459e",
+  "prompts": {},
+  "sessions": {
+    "s_dbc65becfc91b3": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "4ee53cac-cdda-4a86-be27-ec0a6b3a66cf",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
