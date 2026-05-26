@@ -69,7 +69,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
         return ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false) // 로컬 테스트를 위해 false
                 .path("/")
                 .maxAge(maxAge)
                 .sameSite("Lax")
@@ -81,7 +81,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .path("/")
                 .maxAge(60) // 1분만 유지
                 .httpOnly(false)
-                .secure(true)
+                .secure(false) // 로컬 테스트를 위해 false
                 .sameSite("Lax")
                 .build();
     }
@@ -91,7 +91,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .path("/")
                 .maxAge(60) // 1분만 유지
                 .httpOnly(false)
-                .secure(true)
+                .secure(false) // 로컬 테스트를 위해 false
                 .sameSite("Lax")
                 .build();
     }
