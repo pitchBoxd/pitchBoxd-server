@@ -54,4 +54,9 @@ public class AuthService {
 
         return tokenIssuer.reissueToken(oldRefreshToken);
     }
+
+    @Transactional
+    public void logout(Long userId) {
+        refreshTokenRepository.deleteByUserId(userId);
+    }
 }

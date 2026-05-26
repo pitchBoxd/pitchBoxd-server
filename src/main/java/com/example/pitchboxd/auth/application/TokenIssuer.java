@@ -22,11 +22,17 @@ public class TokenIssuer {
 
         TokenDto refreshTokenInfo = tokenManager.createRefreshToken(user.getId(), user.getEmail());
 
-        RefreshToken refreshToken = new RefreshToken(
-                refreshTokenInfo.tokenValue(),
-                user,
-                refreshTokenInfo.issuedAt(),
-                refreshTokenInfo.expiredAt());
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
+                .map(existingToken -> {
+                    existingToken.renew(refreshTokenInfo.tokenValue(), refreshTokenInfo.issuedAt(),
+                            refreshTokenInfo.expiredAt());
+                    return existingToken;
+                })
+                .orElseGet(() -> new RefreshToken(
+                        refreshTokenInfo.tokenValue(),
+                        user,
+                        refreshTokenInfo.issuedAt(),
+                        refreshTokenInfo.expiredAt()));
 
         refreshTokenRepository.save(refreshToken);
 
@@ -40,6 +46,7 @@ public class TokenIssuer {
         TokenDto refreshTokenInfo = tokenManager.createRefreshToken(user.getId(), user.getEmail());
 
         refreshToken.renew(refreshTokenInfo.tokenValue(), refreshTokenInfo.issuedAt(), refreshTokenInfo.expiredAt());
+        refreshTokenRepository.save(refreshToken);
 
         return new Tokens(accessToken, refreshToken);
     }

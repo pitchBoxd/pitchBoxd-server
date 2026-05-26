@@ -18,7 +18,6 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @RequiredArgsConstructor
@@ -51,7 +50,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         if (userOptional.isPresent()) {
             Tokens tokens = tokenIssuer.issueTokens(userOptional.get());
 
-            response.addHeader(HttpHeaders.SET_COOKIE, createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE).toString());
+            response.addHeader(HttpHeaders.SET_COOKIE,
+                    createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE).toString());
             response.addHeader(HttpHeaders.SET_COOKIE, createAccessTokenCookie(tokens.accessToken()).toString());
 
             targetUrl = successRedirectUrl;

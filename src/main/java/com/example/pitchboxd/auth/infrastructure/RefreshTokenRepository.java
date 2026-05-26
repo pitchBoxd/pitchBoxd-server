@@ -1,6 +1,7 @@
 package com.example.pitchboxd.auth.infrastructure;
 
 import com.example.pitchboxd.auth.domain.RefreshToken;
+import com.example.pitchboxd.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,12 @@ import org.springframework.data.repository.query.Param;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
     Optional<RefreshToken> findByTokenValue(String refreshTokenValue);
+
+    Optional<RefreshToken> findByUser(User user);
+
+    @Modifying
+    @Query("DELETE FROM RefreshToken r WHERE r.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("DELETE FROM RefreshToken r WHERE r.expiredAt < :now")
