@@ -1,0 +1,34 @@
+src/main/java/com/example/pitchboxd/global/security/SecurityConfig.java
+  s_332f586201bcd5::t_3d19f85b061fa5 50
+src/test/java/com/example/pitchboxd/auth/application/AuthServiceTest.java
+  s_332f586201bcd5::t_fae9d40ada42f7 5
+  s_332f586201bcd5::t_06204400775125 49-50,54
+src/main/java/com/example/pitchboxd/auth/application/AuthService.java
+  s_332f586201bcd5::t_06b6e11fb2d9c8 59-61
+src/test/java/com/example/pitchboxd/auth/presentation/AuthControllerTest.java
+  s_332f586201bcd5::t_fa996f2922d1ca 71-72,77
+  s_332f586201bcd5::t_90c7d98e26b20e 88,100-101
+src/main/java/com/example/pitchboxd/auth/presentation/AuthController.java
+  s_332f586201bcd5::t_4970aabbfd13ce 69-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9d0ba7569f3458af56fe76d144294ea70d7cfba8",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_332f586201bcd5": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "7a3d543b-fbff-428f-bc3b-c0285c668874",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
