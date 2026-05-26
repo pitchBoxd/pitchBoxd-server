@@ -1,0 +1,52 @@
+src/main/java/com/example/pitchboxd/auth/presentation/AuthController.java
+  s_332f586201bcd5::t_f34ca416992733 69-70,72,75
+  h_09d9451df330ee 101
+src/main/java/com/example/pitchboxd/global/security/HttpCookieOAuth2AuthorizationRequestRepository.java
+  s_332f586201bcd5::t_f5dbdf2bdcb2cb 52-56
+src/main/java/com/example/pitchboxd/global/exception/GlobalExceptionHandler.java
+  s_7543b42446b35e::t_572715528ea551 53-54,58-62,64,66-67
+  s_7543b42446b35e::t_8fbf011833a2d7 52,63,65,68-69
+  h_09d9451df330ee 7,11
+  s_7543b42446b35e::t_3fd394f37a2c44 55-57
+src/main/java/com/example/pitchboxd/auth/application/AuthService.java
+  s_332f586201bcd5::t_3537a534ef202e 59-60
+  s_332f586201bcd5::t_794dbd45a83eca 57-58
+src/test/java/com/example/pitchboxd/auth/presentation/AuthControllerTest.java
+  s_332f586201bcd5::t_5f42d8b94228f6 37-45,66-85
+src/main/java/com/example/pitchboxd/auth/infrastructure/RefreshTokenRepository.java
+  s_332f586201bcd5::t_454e80278b49c0 17-19
+  s_332f586201bcd5::t_a876e0908f4e4f 4,15-16
+src/test/java/com/example/pitchboxd/auth/application/AuthServiceTest.java
+  s_332f586201bcd5::t_abe9157f0f3907 1-57
+src/main/java/com/example/pitchboxd/auth/application/TokenIssuer.java
+  s_332f586201bcd5::t_5a177341c0ef91 25-35,49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "76b035f52a5b2bb57d0772c8a2b09d435e41f9c4",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_332f586201bcd5": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "7a3d543b-fbff-428f-bc3b-c0285c668874",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    },
+    "s_7543b42446b35e": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "3695688d-b61b-4798-91ae-82b1e33e64d3",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
