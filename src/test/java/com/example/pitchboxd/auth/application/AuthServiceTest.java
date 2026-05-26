@@ -2,6 +2,7 @@ package com.example.pitchboxd.auth.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.pitchboxd.auth.domain.Tokens;
 import com.example.pitchboxd.auth.infrastructure.RefreshTokenRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.user.domain.User;
@@ -45,11 +46,12 @@ class AuthServiceTest {
     @Test
     void 로그아웃_시_리프레시_토큰이_삭제된다() {
         // given
-        tokenIssuer.issueTokens(user);
+        Tokens tokens = tokenIssuer.issueTokens(user);
+        String refreshTokenValue = tokens.refreshToken().getTokenValue();
         assertThat(refreshTokenRepository.findByUser(user)).isPresent();
 
         // when
-        authService.logout(user.getId());
+        authService.logout(refreshTokenValue);
 
         // then
         assertThat(refreshTokenRepository.findByUser(user)).isEmpty();

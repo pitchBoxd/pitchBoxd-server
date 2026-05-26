@@ -68,14 +68,13 @@ class AuthControllerTest {
         // given
         com.example.pitchboxd.user.domain.User user = new com.example.pitchboxd.user.domain.User("nickname", "test@example.com", "password");
         userRepository.save(user);
-        tokenIssuer.issueTokens(user);
-
-        String accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
+        com.example.pitchboxd.auth.domain.Tokens tokens = tokenIssuer.issueTokens(user);
+        String refreshTokenValue = tokens.refreshToken().getTokenValue();
 
         // when & then
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .header("Authorization", "Bearer " + accessToken)
+                .cookie("refreshToken", refreshTokenValue)
                 .when()
                 .post("/api/v1/auth/logout")
                 .then().log().all()
@@ -86,7 +85,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void 만료된_엑세스_토큰으로_요청을_보내면_401_에러와_함께_토큰_만료_메시지를_반환한다() {
+    void 만료된_엑세스_토큰으로_요청을_보내도_로그아웃은_성공한다() {
         // given
         FakeTokenManager fakeTokenManager = (FakeTokenManager) tokenManager;
         String expiredAccessToken = fakeTokenManager.createExpiredAccessToken(1L, "test@example.com");
@@ -98,8 +97,7 @@ class AuthControllerTest {
                 .when()
                 .post("/api/v1/auth/logout")
                 .then().log().all()
-                .statusCode(HttpStatus.UNAUTHORIZED.value())
-                .body("code", org.hamcrest.Matchers.equalTo(ErrorCode.TOKEN_EXPIRED.getCode()))
-                .body("message", org.hamcrest.Matchers.equalTo(ErrorCode.TOKEN_EXPIRED.getMessage()));
+                .statusCode(HttpStatus.OK.value())
+                .cookie("refreshToken", org.hamcrest.Matchers.emptyString());
     }
 }

@@ -56,7 +56,8 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(Long userId) {
-        refreshTokenRepository.deleteByUserId(userId);
+    public void logout(String refreshTokenValue) {
+        refreshTokenRepository.findByTokenValue(refreshTokenValue)
+                .ifPresent(refreshTokenRepository::delete);
     }
 }

@@ -47,6 +47,7 @@ public class SecurityConfig {
                     } else {
                         auth.requestMatchers(
                                         "/api/v1/auth/login",
+                                        "/api/v1/auth/logout",
                                         "/api/v1/users",
                                         "/api/v1/users/email/exists",
                                         "/api/v1/users/nickname/exist",
