@@ -1,0 +1,42 @@
+src/main/java/com/example/pitchboxd/global/security/CookieUtils.java
+  s_7543b42446b35e::t_d376444250bfee 1-7,9-10,12-15,17-26,34-37,39-40,47-61
+  h_09d9451df330ee 8,16
+  s_7543b42446b35e::t_a09fa9dca901dd 11
+  s_7543b42446b35e::t_7e5377cc81fa75 27-33,38,41-46
+src/main/java/com/example/pitchboxd/global/security/HttpCookieOAuth2AuthorizationRequestRepository.java
+  s_7543b42446b35e::t_d3e3d6b5610ac6 5,11,20,22-29,35,41,45
+  s_7543b42446b35e::t_7633b2804a30c4 1-4,6-10,12-19,21,30-34,36-40,42-44,46-59
+src/main/java/com/example/pitchboxd/global/security/SecurityConfig.java
+  s_7543b42446b35e::t_3f5b15ec836bdc 19,78
+  h_09d9451df330ee 4,7,13,59
+  s_7543b42446b35e::t_1f911e0ba1b34e 44-58,60-68,81-83
+  s_7543b42446b35e::t_23132630c99f91 77,84
+  s_7543b42446b35e::t_934d19a006e34b 31,70-72
+  s_7543b42446b35e::t_0e60f1f3e09b5d 34-37
+  s_7543b42446b35e::t_19b0c04575d1b7 79-80
+src/main/java/com/example/pitchboxd/global/security/OAuth2AuthenticationSuccessHandler.java
+  s_7543b42446b35e::t_f652571a41ca94 72,84,94
+src/main/java/com/example/pitchboxd/global/security/CustomOAuth2UserService.java
+  s_7543b42446b35e::t_60508d93ad562b 3,10,16-22,24-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "bae231f7d268f5ca2cf4b8c0bd71dec1e1a30fa4",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_7543b42446b35e": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "3695688d-b61b-4798-91ae-82b1e33e64d3",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
