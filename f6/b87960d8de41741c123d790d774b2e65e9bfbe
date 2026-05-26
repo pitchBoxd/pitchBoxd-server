@@ -1,0 +1,25 @@
+src/main/java/com/example/pitchboxd/global/security/OAuth2AuthenticationSuccessHandler.java
+  s_7543b42446b35e::t_0f797059ba8fac 57,60,62-63
+  s_7543b42446b35e::t_e11a55f6ae4a10 54-55,61,78-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "f6b87960d8de41741c123d790d774b2e65e9bfbe",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_7543b42446b35e": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "3695688d-b61b-4798-91ae-82b1e33e64d3",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
