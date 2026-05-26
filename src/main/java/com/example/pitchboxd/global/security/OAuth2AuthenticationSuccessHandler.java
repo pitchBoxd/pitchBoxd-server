@@ -51,17 +51,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         if (userOptional.isPresent()) {
             Tokens tokens = tokenIssuer.issueTokens(userOptional.get());
 
-            ResponseCookie cookie = createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE);
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE).toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, createAccessTokenCookie(tokens.accessToken()).toString());
 
-            targetUrl = UriComponentsBuilder.fromUriString(successRedirectUrl)
-                    .queryParam("accessToken", tokens.accessToken())
-                    .build().toUriString();
+            targetUrl = successRedirectUrl;
         } else {
             String signupToken = tokenIssuer.createSignupToken(email, provider.name(), providerKey);
-            targetUrl = UriComponentsBuilder.fromUriString(signupRedirectUrl)
-                    .queryParam("signupToken", signupToken)
-                    .build().toUriString();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, createSignupTokenCookie(signupToken).toString());
+
+            targetUrl = signupRedirectUrl;
         }
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -73,6 +72,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .secure(true)
                 .path("/")
                 .maxAge(maxAge)
+                .sameSite("Lax")
+                .build();
+    }
+
+    private ResponseCookie createAccessTokenCookie(String token) {
+        return ResponseCookie.from("accessToken", token)
+                .path("/")
+                .maxAge(60) // 1분만 유지
+                .httpOnly(false)
+                .secure(true)
+                .sameSite("Lax")
+                .build();
+    }
+
+    private ResponseCookie createSignupTokenCookie(String token) {
+        return ResponseCookie.from("signupToken", token)
+                .path("/")
+                .maxAge(60) // 1분만 유지
+                .httpOnly(false)
+                .secure(true)
                 .sameSite("Lax")
                 .build();
     }
