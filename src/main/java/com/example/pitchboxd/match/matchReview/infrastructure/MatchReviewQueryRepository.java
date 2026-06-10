@@ -37,4 +37,30 @@ public class MatchReviewQueryRepository {
                 .limit(limit)
                 .fetch();
     }
+
+    public List<HotReviewSummary> findHotReviewsByMatchIds(List<Long> matchIds) {
+        if (matchIds == null || matchIds.isEmpty()) {
+            return List.of();
+        }
+
+        QMatchReview matchReview = QMatchReview.matchReview;
+        QUser user = QUser.user;
+
+        return queryFactory
+                .select(Projections.constructor(HotReviewSummary.class,
+                        matchReview.id,
+                        matchReview.matchId,
+                        user.nickname,
+                        user.id,
+                        matchReview.fanType,
+                        matchReview.point,
+                        matchReview.content,
+                        matchReview.likeCount
+                ))
+                .from(matchReview)
+                .join(user).on(matchReview.userId.eq(user.id))
+                .where(matchReview.matchId.in(matchIds))
+                .orderBy(matchReview.likeCount.desc(), matchReview.id.desc())
+                .fetch();
+    }
 }

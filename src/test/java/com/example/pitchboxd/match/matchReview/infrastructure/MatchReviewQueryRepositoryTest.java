@@ -90,4 +90,34 @@ class MatchReviewQueryRepositoryTest {
                 () -> assertThat(result.get(0).matchId()).isEqualTo(match1.getId())
         );
     }
+
+    @Test
+    void 여러_경기의_인기_리뷰_목록을_벌크로_조회한다() {
+        // given
+        User user = new User("닉네임", "user@test.com", "password");
+        entityManager.persist(user);
+
+        Team homeTeam = new Team("홈팀", "1");
+        Team awayTeam = new Team("어웨이팀", "2");
+        entityManager.persist(homeTeam);
+        entityManager.persist(awayTeam);
+
+        Match match1 = new Match(1L, "11R", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(),
+                MatchStatus.FINISHED, "상암", "1");
+        Match match2 = new Match(1L, "12R", homeTeam.getId(), awayTeam.getId(), LocalDateTime.now(),
+                MatchStatus.FINISHED, "빅버드", "2");
+        entityManager.persist(match1);
+        entityManager.persist(match2);
+
+        MatchReview review1 = new MatchReview(match1.getId(), user.getId(), 10, "리뷰1", FanType.HOME);
+        MatchReview review2 = new MatchReview(match2.getId(), user.getId(), 8, "리뷰2", FanType.AWAY);
+        entityManager.persist(review1);
+        entityManager.persist(review2);
+
+        // when
+        List<HotReviewSummary> result = matchReviewQueryRepository.findHotReviewsByMatchIds(List.of(match1.getId(), match2.getId()));
+
+        // then
+        assertThat(result).hasSize(2);
+    }
 }
