@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -26,12 +27,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private static final long COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 일주일
     private final UserRepository userRepository;
     private final TokenIssuer tokenIssuer;
+    private final Environment env;
 
     @Value("${spring.security.oauth2.success-redirect-url}")
     private String successRedirectUrl;
 
     @Value("${spring.security.oauth2.signup-redirect-url}")
     private String signupRedirectUrl;
+
+    @Value("${expiration.access-token-time}")
+    private long accessTokenExpirationTime;
+
+    @Value("${expiration.signup-token-time}")
+    private long signupTokenExpirationTime;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -46,19 +54,22 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         Optional<User> userOptional = userRepository.findByProviderAndProviderKey(provider, providerKey);
 
+        boolean secure = isSecure();
         String targetUrl;
         if (userOptional.isPresent()) {
             Tokens tokens = tokenIssuer.issueTokens(userOptional.get());
 
             response.addHeader(HttpHeaders.SET_COOKIE,
-                    createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE).toString());
-            response.addHeader(HttpHeaders.SET_COOKIE, createAccessTokenCookie(tokens.accessToken()).toString());
+                    createRefreshTokenCookie(tokens.refreshToken().getTokenValue(), COOKIE_MAX_AGE, secure).toString());
+            response.addHeader(HttpHeaders.SET_COOKIE,
+                    createAccessTokenCookie(tokens.accessToken(), accessTokenExpirationTime / 1000, secure).toString());
 
             targetUrl = successRedirectUrl;
         } else {
             String signupToken = tokenIssuer.createSignupToken(email, provider.name(), providerKey);
 
-            response.addHeader(HttpHeaders.SET_COOKIE, createSignupTokenCookie(signupToken).toString());
+            response.addHeader(HttpHeaders.SET_COOKIE,
+                    createSignupTokenCookie(signupToken, signupTokenExpirationTime / 1000, secure).toString());
 
             targetUrl = signupRedirectUrl;
         }
@@ -66,32 +77,37 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
+    private boolean isSecure() {
+        return !java.util.Arrays.asList(env.getActiveProfiles()).contains("local") &&
+                !java.util.Arrays.asList(env.getActiveProfiles()).contains("test");
+    }
+
+    private ResponseCookie createRefreshTokenCookie(String token, long maxAge, boolean secure) {
         return ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
-                .secure(false) // 로컬 테스트를 위해 false
+                .secure(secure)
                 .path("/")
                 .maxAge(maxAge)
                 .sameSite("Lax")
                 .build();
     }
 
-    private ResponseCookie createAccessTokenCookie(String token) {
+    private ResponseCookie createAccessTokenCookie(String token, long maxAge, boolean secure) {
         return ResponseCookie.from("accessToken", token)
                 .path("/")
-                .maxAge(60) // 1분만 유지
+                .maxAge(maxAge)
                 .httpOnly(false)
-                .secure(false) // 로컬 테스트를 위해 false
+                .secure(secure)
                 .sameSite("Lax")
                 .build();
     }
 
-    private ResponseCookie createSignupTokenCookie(String token) {
+    private ResponseCookie createSignupTokenCookie(String token, long maxAge, boolean secure) {
         return ResponseCookie.from("signupToken", token)
                 .path("/")
-                .maxAge(60) // 1분만 유지
+                .maxAge(maxAge)
                 .httpOnly(false)
-                .secure(false) // 로컬 테스트를 위해 false
+                .secure(secure)
                 .sameSite("Lax")
                 .build();
     }
