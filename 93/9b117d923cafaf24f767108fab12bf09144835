@@ -1,0 +1,14 @@
+src/main/java/com/example/pitchboxd/matchDetail/presentation/MatchDetailController.java
+  h_09d9451df330ee 56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "939b117d923cafaf24f767108fab12bf09144835",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
