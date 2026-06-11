@@ -53,7 +53,7 @@ public class MatchDetailController {
     @GetMapping("{matchId}/detail/personal")
     public ResponseEntity<SuccessResponse<MatchDetailPersonalResponse>> getMatchPersonalData(
             @PathVariable Long matchId,
-            @LoginUserId(required = false) Long userId
+            @LoginUserId Long userId
     ) {
         MatchDetailPersonalResponse response = matchDetailFacadeService.getMatchPersonalData(matchId, userId);
         HttpStatus status = HttpStatus.OK;
@@ -71,7 +71,8 @@ public class MatchDetailController {
             @RequestParam(defaultValue = "10") int size,
             @LoginUserId(required = false) Long userId
     ) {
-        MatchReviewSliceResponse response = matchDetailFacadeService.getMatchReviews(matchId, cursorId, cursorLikeCount, sort, size, userId);
+        MatchReviewSliceResponse response = matchDetailFacadeService.getMatchReviews(matchId, cursorId, cursorLikeCount,
+                sort, size, userId);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
