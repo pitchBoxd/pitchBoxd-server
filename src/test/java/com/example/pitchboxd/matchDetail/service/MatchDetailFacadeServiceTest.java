@@ -155,7 +155,9 @@ class MatchDetailFacadeServiceTest {
                 () -> assertThat(result.homeTeam()).isEqualTo("홈팀"),
                 () -> assertThat(result.awayTeam()).isEqualTo("원정팀"),
                 () -> assertThat(result.homeLineups().responses()).isEmpty(),
-                () -> assertThat(result.awayLineups().responses()).isEmpty()
+                () -> assertThat(result.awayLineups().responses()).isEmpty(),
+                () -> assertThat(result.highlights().mom()).isNull(),
+                () -> assertThat(result.highlights().top3()).isEmpty()
         );
     }
 

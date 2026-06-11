@@ -44,7 +44,11 @@ public class MatchDetailFacadeService {
 
         List<PlayerStatistics> playerStats = playerStatisticsRepository.findAllByMatchId(matchId);
         Map<Long, Double> playerRatingsMap = playerStats.stream()
-                .collect(Collectors.toMap(PlayerStatistics::getPlayerId, PlayerStatistics::getAverageRating));
+                .collect(Collectors.toMap(
+                        PlayerStatistics::getPlayerId,
+                        PlayerStatistics::getAverageRating,
+                        (existing, replacement) -> existing
+                ));
 
         List<LineupResponse> homeLineupResponses = lineups.stream()
                 .filter(l -> l.teamId().equals(matchDetail.homeTeamId()))
@@ -68,17 +72,17 @@ public class MatchDetailFacadeService {
 
         int neutralCount = totalCount - homeCount - awayCount;
         long neutralSum = totalSum - homeSum - awaySum;
-        double neutralAverage = neutralCount <= 0 ? 0.0 : (neutralSum / (double) neutralCount) / 2.0;
+        double neutralAverage = neutralCount <= 0 ? 0.0 : Math.max(0.0, (neutralSum / (double) neutralCount) / 2.0);
 
         List<Object[]> rawDistribution = matchReviewRepository.countPointDistributionByMatchId(matchId);
         Map<Integer, Long> distributionMap = new HashMap<>();
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 0; i <= 10; i++) {
             distributionMap.put(i, 0L);
         }
         for (Object[] row : rawDistribution) {
             Integer point = (Integer) row[0];
             Long count = (Long) row[1];
-            if (point >= 1 && point <= 10) {
+            if (point >= 0 && point <= 10) {
                 distributionMap.put(point, count);
             }
         }
@@ -90,10 +94,17 @@ public class MatchDetailFacadeService {
                         .thenComparing(PlayerStatistics::getPlayerId, Comparator.reverseOrder()))
                 .toList();
 
+        Map<Long, String> playerNamesMap = lineups.stream()
+                .collect(Collectors.toMap(
+                        LineupPlayerModel::playerId,
+                        LineupPlayerModel::playerName,
+                        (existing, replacement) -> existing
+                ));
+
         MatchDetailResponse.HighlightPlayerResponse mom = null;
         if (!sortedStats.isEmpty()) {
             PlayerStatistics momStat = sortedStats.get(0);
-            String momName = findPlayerName(lineups, momStat.getPlayerId());
+            String momName = playerNamesMap.getOrDefault(momStat.getPlayerId(), "Unknown Player");
             mom = new MatchDetailResponse.HighlightPlayerResponse(momStat.getPlayerId(), momName, momStat.getAverageRating());
         }
 
@@ -101,7 +112,7 @@ public class MatchDetailFacadeService {
                 .limit(3)
                 .map(ps -> new MatchDetailResponse.HighlightPlayerResponse(
                         ps.getPlayerId(),
-                        findPlayerName(lineups, ps.getPlayerId()),
+                        playerNamesMap.getOrDefault(ps.getPlayerId(), "Unknown Player"),
                         ps.getAverageRating()
                 ))
                 .toList();
@@ -124,14 +135,6 @@ public class MatchDetailFacadeService {
                 distributionMap,
                 new MatchDetailResponse.MatchHighlightsResponse(mom, top3)
         );
-    }
-
-    private String findPlayerName(List<LineupPlayerModel> lineups, Long playerId) {
-        return lineups.stream()
-                .filter(l -> l.playerId().equals(playerId))
-                .map(LineupPlayerModel::playerName)
-                .findFirst()
-                .orElse("Unknown Player");
     }
 
     public MatchDetailMatchReviewResponses getMatchHotReviews(Long matchId, Long userId, int limit) {
