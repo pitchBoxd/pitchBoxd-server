@@ -16,6 +16,10 @@ import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatist
 import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
+import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MyMatchReviewResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MyPlayerReviewResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -37,6 +41,7 @@ public class MatchDetailFacadeService {
     private final PlayerStatisticsRepository playerStatisticsRepository;
     private final MatchStatisticsRepository matchStatisticsRepository;
     private final MatchReviewRepository matchReviewRepository;
+    private final PlayerReviewRepository playerReviewRepository;
 
     public MatchDetailResponse getMatchStaticData(Long matchId) {
         MatchDetailStaticModel matchDetail = matchQueryService.findMatchStaticDetailById(matchId);
@@ -149,5 +154,33 @@ public class MatchDetailFacadeService {
                 userId);
 
         return MatchDetailMatchReviewResponses.of(topHotReviewsByMatchId, likedStatusForReviews);
+    }
+
+    public MatchDetailPersonalResponse getMatchPersonalData(Long matchId, Long userId) {
+        if (userId == null) {
+            return new MatchDetailPersonalResponse(false, null, List.of());
+        }
+
+        return matchReviewRepository.findByMatchIdAndUserId(matchId, userId)
+                .map(matchReview -> {
+                    MyMatchReviewResponse myMatchReview = new MyMatchReviewResponse(
+                            matchReview.getId(),
+                            matchReview.getPoint(),
+                            matchReview.getContent()
+                    );
+
+                    List<MyPlayerReviewResponse> myPlayerReviews = playerReviewRepository.findAllByMatchIdAndUserId(matchId, userId)
+                            .stream()
+                            .map(playerReview -> new MyPlayerReviewResponse(
+                                    playerReview.getId(),
+                                    playerReview.getPlayerId(),
+                                    playerReview.getPoint(),
+                                    playerReview.getContent()
+                            ))
+                            .toList();
+
+                    return new MatchDetailPersonalResponse(true, myMatchReview, myPlayerReviews);
+                })
+                .orElseGet(() -> new MatchDetailPersonalResponse(false, null, List.of()));
     }
 }

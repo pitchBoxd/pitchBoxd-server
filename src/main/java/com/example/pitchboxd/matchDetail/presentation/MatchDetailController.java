@@ -3,6 +3,7 @@ package com.example.pitchboxd.matchDetail.presentation;
 import com.example.pitchboxd.auth.presentation.LoginUserId;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
 import com.example.pitchboxd.matchDetail.service.MatchDetailFacadeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +43,18 @@ public class MatchDetailController {
 
     ) {
         MatchDetailMatchReviewResponses responses = matchDetailFacadeService.getMatchHotReviews(matchId, userId, limit);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));
+    }
+
+    @Operation(summary = "경기 페이지 개인 평가 데이터", description = "로그인 유저의 경기 및 선수 평점/한줄평 조회 데이터를 가져옵니다.")
+    @GetMapping("{matchId}/detail/personal")
+    public ResponseEntity<SuccessResponse<MatchDetailPersonalResponse>> getMatchPersonalData(
+            @PathVariable Long matchId,
+            @LoginUserId(required = false) Long userId
+    ) {
+        MatchDetailPersonalResponse responses = matchDetailFacadeService.getMatchPersonalData(matchId, userId);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));

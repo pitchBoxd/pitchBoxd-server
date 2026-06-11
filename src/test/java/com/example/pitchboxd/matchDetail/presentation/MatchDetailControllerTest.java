@@ -16,7 +16,10 @@ import com.example.pitchboxd.match.matchReview.domain.MatchReviewLike;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewLikeRepository;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
+import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
+import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
@@ -79,6 +82,9 @@ class MatchDetailControllerTest {
 
     @Autowired
     private MatchReviewLikeRepository matchReviewLikeRepository;
+
+    @Autowired
+    private PlayerReviewRepository playerReviewRepository;
 
     private String accessToken;
     private User loginUser;
@@ -195,6 +201,83 @@ class MatchDetailControllerTest {
                 () -> assertThat(response.responses()).hasSize(1),
                 () -> assertThat(response.responses().get(0).reviewId()).isEqualTo(hotReview.getId()),
                 () -> assertThat(response.responses().get(0).isLiked()).isFalse()
+        );
+    }
+
+    @Test
+    void 로그인_유저가_경기와_선수를_모두_평가한_경우_개인_평가_데이터를_조회한다() {
+        // given
+        MatchReview myMatchReview = matchReviewRepository.save(new MatchReview(match.getId(), loginUser.getId(), 8, "좋은 경기였습니다.", FanType.HOME));
+        
+        Player homePlayer = playerRepository.findAll().get(0);
+        PlayerReview myPlayerReview = playerReviewRepository.save(new PlayerReview(match.getId(), homePlayer.getId(), loginUser.getId(), 9, "오늘 활약이 대단했습니다."));
+
+        // when
+        MatchDetailPersonalResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/personal", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailPersonalResponse.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.isEvaluated()).isTrue(),
+                () -> assertThat(response.myMatchReview().reviewId()).isEqualTo(myMatchReview.getId()),
+                () -> assertThat(response.myMatchReview().rating()).isEqualTo(8),
+                () -> assertThat(response.myMatchReview().comment()).isEqualTo("좋은 경기였습니다."),
+                () -> assertThat(response.myPlayerReviews()).hasSize(1),
+                () -> assertThat(response.myPlayerReviews().get(0).playerReviewId()).isEqualTo(myPlayerReview.getId()),
+                () -> assertThat(response.myPlayerReviews().get(0).playerId()).isEqualTo(homePlayer.getId()),
+                () -> assertThat(response.myPlayerReviews().get(0).rating()).isEqualTo(9),
+                () -> assertThat(response.myPlayerReviews().get(0).comment()).isEqualTo("오늘 활약이 대단했습니다.")
+        );
+    }
+
+    @Test
+    void 로그인_유저가_평가하지_않은_경우_평가하지_않음_데이터를_반환한다() {
+        // when
+        MatchDetailPersonalResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/personal", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailPersonalResponse.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.isEvaluated()).isFalse(),
+                () -> assertThat(response.myMatchReview()).isNull(),
+                () -> assertThat(response.myPlayerReviews()).isEmpty()
+        );
+    }
+
+    @Test
+    void 비로그인_유저인_경우_평가하지_않음_데이터를_반환한다() {
+        // when
+        MatchDetailPersonalResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/personal", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailPersonalResponse.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.isEvaluated()).isFalse(),
+                () -> assertThat(response.myMatchReview()).isNull(),
+                () -> assertThat(response.myPlayerReviews()).isEmpty()
         );
     }
 }
