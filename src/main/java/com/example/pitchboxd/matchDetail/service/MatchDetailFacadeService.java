@@ -77,17 +77,6 @@ public class MatchDetailFacadeService {
         MatchStatistics matchStats = matchStatisticsRepository.findByMatchId(matchId)
                 .orElse(new MatchStatistics(matchId));
 
-        long totalSum = matchStats.getTotalRatingSum();
-        long homeSum = matchStats.getHomeFanRatingSum();
-        long awaySum = matchStats.getAwayFanRatingSum();
-        int totalCount = matchStats.getTotalReviewCount();
-        int homeCount = matchStats.getHomeFanReviewCount();
-        int awayCount = matchStats.getAwayFanReviewCount();
-
-        int neutralCount = totalCount - homeCount - awayCount;
-        long neutralSum = totalSum - homeSum - awaySum;
-        double neutralAverage = neutralCount <= 0 ? 0.0 : Math.max(0.0, (neutralSum / (double) neutralCount) / 2.0);
-
         List<Object[]> rawDistribution = matchReviewRepository.countPointDistributionByMatchId(matchId);
         Map<Integer, Long> distributionMap = new HashMap<>();
         for (int i = 0; i <= 10; i++) {
@@ -145,7 +134,6 @@ public class MatchDetailFacadeService {
                 matchStats.getTotalAverage(),
                 matchStats.getHomeAverage(),
                 matchStats.getAwayAverage(),
-                neutralAverage,
                 distributionMap,
                 new MatchDetailResponse.MatchHighlightsResponse(mom, top3)
         );

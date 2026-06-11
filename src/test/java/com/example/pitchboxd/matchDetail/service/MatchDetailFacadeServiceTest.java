@@ -268,7 +268,7 @@ class MatchDetailFacadeServiceTest {
     }
 
     @Test
-    void 경기의_정적_데이터_조회_시_중립팬_평균평점과_평점분포도가_올바르게_계산된다() {
+    void 경기의_정적_데이터_조회_시_평균평점들과_평점분포도가_올바르게_계산된다() {
         // given
         MatchStatistics matchStats = new MatchStatistics(match.getId());
         matchStats.addNewReview(9, FanType.HOME);
@@ -287,7 +287,6 @@ class MatchDetailFacadeServiceTest {
         MatchDetailResponse result = matchDetailFacadeService.getMatchStaticData(match.getId());
 
         // then
-        assertThat(result.neutralFanAverageRating()).isEqualTo(3.5);
         assertThat(result.matchAverageRating()).isEqualTo(4.0);
         assertThat(result.homeFanAverageRating()).isEqualTo(4.5);
         assertThat(result.awayFanAverageRating()).isEqualTo(4.0);

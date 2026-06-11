@@ -18,7 +18,6 @@ public record MatchDetailResponse(
         Double matchAverageRating,
         Double homeFanAverageRating,
         Double awayFanAverageRating,
-        Double neutralFanAverageRating,
         Map<Integer, Long> ratingDistribution,
         MatchHighlightsResponse highlights
 ) {

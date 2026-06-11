@@ -8,7 +8,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 mysql_data/
-.gemini
+.agents
+.agent
 
 ### STS ###
 .apt_generated
