@@ -152,7 +152,7 @@
 * **커서 조건**: `matchReview.id < :cursorId`
 * **QueryDSL Where 조건**:
   ```java
-  private BooleanExpression ltCursorId(Long cursorId) {
+  private BooleanExpression lessThanCursorId(Long cursorId) {
       return cursorId != null ? matchReview.id.lt(cursorId) : null;
   }
   ```
@@ -162,7 +162,7 @@
 * **커서 조건**: `(likeCount < :cursorLikeCount) OR (likeCount = :cursorLikeCount AND id < :cursorId)`
 * **QueryDSL Where 조건**:
   ```java
-  private BooleanExpression ltCursorLike(Long cursorLikeCount, Long cursorId) {
+  private BooleanExpression lessThanCursorLike(Long cursorLikeCount, Long cursorId) {
       if (cursorLikeCount == null || cursorId == null) {
           return null;
       }
