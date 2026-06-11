@@ -22,6 +22,7 @@ import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResp
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchReviewDetailResponse;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.season.domain.Season;
@@ -433,6 +434,46 @@ class MatchDetailControllerTest {
                 () -> assertThat(response2.nextCursorId()).isNull(),
                 () -> assertThat(response2.nextCursorLikeCount()).isNull()
         );
+    }
+
+    @Test
+    void 로그인_유저가_자신이_남긴_리뷰와_좋아요를_누른_리뷰가_포함된_목록을_페이징_조회한다() {
+        // given
+        User otherUser = userRepository.save(new User("다른유저", "other@test.com", "pass"));
+        MatchReview myReview = matchReviewRepository.save(new MatchReview(match.getId(), loginUser.getId(), 8, "내 리뷰", FanType.HOME));
+        MatchReview otherReview = matchReviewRepository.save(new MatchReview(match.getId(), otherUser.getId(), 7, "다른 유저 리뷰", FanType.AWAY));
+        
+        // 내 리뷰에는 좋아요를 안누르고, 다른 유저 리뷰에 내가 좋아요를 누름
+        matchReviewLikeRepository.save(new MatchReviewLike(otherReview.getId(), loginUser.getId()));
+        otherReview.addOneLikeCount();
+        matchReviewRepository.save(otherReview);
+
+        // when
+        MatchReviewSliceResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .queryParam("sort", "LATEST")
+                .queryParam("size", 10)
+                .when()
+                .get("/api/v1/matches/{matchId}/match-reviews", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchReviewSliceResponse.class);
+
+        // then
+        assertThat(response.reviews()).hasSize(2);
+        
+        MatchReviewDetailResponse first = response.reviews().get(0);
+        assertThat(first.reviewId()).isEqualTo(otherReview.getId());
+        assertThat(first.isLiked()).isTrue();
+        assertThat(first.isOwner()).isFalse();
+
+        MatchReviewDetailResponse second = response.reviews().get(1);
+        assertThat(second.reviewId()).isEqualTo(myReview.getId());
+        assertThat(second.isLiked()).isFalse();
+        assertThat(second.isOwner()).isTrue();
     }
 }
 

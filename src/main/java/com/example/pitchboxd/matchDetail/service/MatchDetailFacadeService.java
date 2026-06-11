@@ -193,6 +193,15 @@ public class MatchDetailFacadeService {
     }
 
     public MatchReviewSliceResponse getMatchReviews(Long matchId, Long cursorId, Long cursorLikeCount, String sort, int size, Long userId) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("페이지 크기는 1 이상이어야 합니다.");
+        }
+        if ("LIKE".equalsIgnoreCase(sort)) {
+            if ((cursorId == null && cursorLikeCount != null) || (cursorId != null && cursorLikeCount == null)) {
+                throw new IllegalArgumentException("추천순 정렬 페이징 시 cursorId와 cursorLikeCount는 모두 null이거나 모두 null이 아니어야 합니다.");
+            }
+        }
+
         // 1. QueryDSL로 size+1개 데이터 조회
         List<MatchReview> reviews = matchReviewQueryRepository.findReviewsByCursor(matchId, cursorId, cursorLikeCount, sort, size);
 
@@ -200,9 +209,9 @@ public class MatchDetailFacadeService {
         List<MatchReview> content = hasNext ? reviews.subList(0, size) : reviews;
 
         // 2. 유저 정보 매핑을 위한 userId 조회 (한 번에 조회하여 매핑 성능 확보)
-        List<Long> authorIds = content.stream().map(MatchReview::getUserId).toList();
+        List<Long> authorIds = content.stream().map(MatchReview::getUserId).distinct().toList();
         List<User> authors = userRepository.findAllById(authorIds);
-        Map<Long, User> authorMap = authors.stream().collect(Collectors.toMap(User::getId, Function.identity()));
+        Map<Long, User> authorMap = authors.stream().collect(Collectors.toMap(User::getId, Function.identity(), (existing, replacement) -> existing));
 
         // 3. 좋아요 상태값 조회
         List<Long> reviewIds = content.stream().map(MatchReview::getId).toList();
