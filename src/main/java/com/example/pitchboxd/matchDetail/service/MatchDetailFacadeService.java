@@ -161,26 +161,25 @@ public class MatchDetailFacadeService {
             return new MatchDetailPersonalResponse(false, null, List.of());
         }
 
-        return matchReviewRepository.findByMatchIdAndUserId(matchId, userId)
-                .map(matchReview -> {
-                    MyMatchReviewResponse myMatchReview = new MyMatchReviewResponse(
-                            matchReview.getId(),
-                            matchReview.getPoint(),
-                            matchReview.getContent()
-                    );
+        MyMatchReviewResponse myMatchReview = matchReviewRepository.findByMatchIdAndUserId(matchId, userId)
+                .map(matchReview -> new MyMatchReviewResponse(
+                        matchReview.getId(),
+                        matchReview.getPoint(),
+                        matchReview.getContent()
+                ))
+                .orElse(null);
 
-                    List<MyPlayerReviewResponse> myPlayerReviews = playerReviewRepository.findAllByMatchIdAndUserId(matchId, userId)
-                            .stream()
-                            .map(playerReview -> new MyPlayerReviewResponse(
-                                    playerReview.getId(),
-                                    playerReview.getPlayerId(),
-                                    playerReview.getPoint(),
-                                    playerReview.getContent()
-                            ))
-                            .toList();
+        List<MyPlayerReviewResponse> myPlayerReviews = playerReviewRepository.findAllByMatchIdAndUserId(matchId, userId)
+                .stream()
+                .map(playerReview -> new MyPlayerReviewResponse(
+                        playerReview.getId(),
+                        playerReview.getPlayerId(),
+                        playerReview.getPoint(),
+                        playerReview.getContent()
+                ))
+                .toList();
 
-                    return new MatchDetailPersonalResponse(true, myMatchReview, myPlayerReviews);
-                })
-                .orElseGet(() -> new MatchDetailPersonalResponse(false, null, List.of()));
+        boolean isEvaluated = (myMatchReview != null || !myPlayerReviews.isEmpty());
+        return new MatchDetailPersonalResponse(isEvaluated, myMatchReview, myPlayerReviews);
     }
 }

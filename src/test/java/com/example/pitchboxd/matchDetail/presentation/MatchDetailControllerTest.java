@@ -280,4 +280,36 @@ class MatchDetailControllerTest {
                 () -> assertThat(response.myPlayerReviews()).isEmpty()
         );
     }
+
+    @Test
+    void 로그인_유저가_선수만_평가하고_경기는_평가하지_않은_경우_선수_평가_데이터만_반환한다() {
+        // given
+        Player homePlayer = playerRepository.findAll().get(0);
+        PlayerReview myPlayerReview = playerReviewRepository.save(new PlayerReview(match.getId(), homePlayer.getId(), loginUser.getId(), 9, "오늘 활약이 대단했습니다."));
+
+        // when
+        MatchDetailPersonalResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/personal", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailPersonalResponse.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.isEvaluated()).isTrue(),
+                // Match review is null
+                () -> assertThat(response.myMatchReview()).isNull(),
+                // Player reviews lists our player review
+                () -> assertThat(response.myPlayerReviews()).hasSize(1),
+                () -> assertThat(response.myPlayerReviews().get(0).playerReviewId()).isEqualTo(myPlayerReview.getId()),
+                () -> assertThat(response.myPlayerReviews().get(0).playerId()).isEqualTo(homePlayer.getId()),
+                () -> assertThat(response.myPlayerReviews().get(0).rating()).isEqualTo(9),
+                () -> assertThat(response.myPlayerReviews().get(0).comment()).isEqualTo("오늘 활약이 대단했습니다.")
+        );
+    }
 }

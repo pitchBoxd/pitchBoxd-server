@@ -54,9 +54,9 @@ public class MatchDetailController {
             @PathVariable Long matchId,
             @LoginUserId(required = false) Long userId
     ) {
-        MatchDetailPersonalResponse responses = matchDetailFacadeService.getMatchPersonalData(matchId, userId);
+        MatchDetailPersonalResponse response = matchDetailFacadeService.getMatchPersonalData(matchId, userId);
         HttpStatus status = HttpStatus.OK;
 
-        return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 }
