@@ -2,6 +2,7 @@ package com.example.pitchboxd.match.playerStatistics.infrastructure;
 
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -18,4 +19,6 @@ public interface PlayerStatisticsRepository extends JpaRepository<PlayerStatisti
             @Param("matchId") Long matchId,
             @Param("playerId") Long playerId
     );
+
+    List<PlayerStatistics> findAllByMatchId(Long matchId);
 }

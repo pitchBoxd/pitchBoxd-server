@@ -2,6 +2,7 @@ package com.example.pitchboxd.match.playerReview.infrastructure;
 
 import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -13,4 +14,6 @@ public interface PlayerReviewRepository extends JpaRepository<PlayerReview, Long
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from PlayerReview m where m.id = :id")
     Optional<PlayerReview> findByIdWithPessimisticLock(Long id);
+
+    List<PlayerReview> findAllByMatchIdAndUserId(Long matchId, Long userId);
 }
