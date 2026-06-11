@@ -15,6 +15,10 @@ import com.example.pitchboxd.match.matchReview.domain.MatchReviewLike;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewLikeRepository;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
+import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
+import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
+import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
+import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatisticsRepository;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
@@ -29,6 +33,7 @@ import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -69,6 +74,12 @@ class MatchDetailFacadeServiceTest {
 
     @Autowired
     private MatchReviewLikeRepository matchReviewLikeRepository;
+
+    @Autowired
+    private PlayerStatisticsRepository playerStatisticsRepository;
+
+    @Autowired
+    private MatchStatisticsRepository matchStatisticsRepository;
 
     @Autowired
     private DatabaseCleaner databaseCleaner;
@@ -207,5 +218,82 @@ class MatchDetailFacadeServiceTest {
             review.addOneLikeCount();
         }
         return matchReviewRepository.save(review);
+    }
+
+    @Test
+    void 경기의_정적_데이터_조회_시_MOM과_Top3_선수가_정렬_조건에_맞게_반환된다() {
+        // given
+        Player player1 = playerRepository.save(new Player(homeTeam.getId(), "선수1", "p1"));
+        Player player2 = playerRepository.save(new Player(homeTeam.getId(), "선수2", "p2"));
+        Player player3 = playerRepository.save(new Player(homeTeam.getId(), "선수3", "p3"));
+        Player player4 = playerRepository.save(new Player(homeTeam.getId(), "선수4", "p4"));
+
+        matchLineupRepository.save(new MatchLineup(match.getId(), player1.getId(), 1, ParticipationStatus.STARTER));
+        matchLineupRepository.save(new MatchLineup(match.getId(), player2.getId(), 2, ParticipationStatus.STARTER));
+        matchLineupRepository.save(new MatchLineup(match.getId(), player3.getId(), 3, ParticipationStatus.STARTER));
+        matchLineupRepository.save(new MatchLineup(match.getId(), player4.getId(), 4, ParticipationStatus.STARTER));
+
+        PlayerStatistics stat1 = new PlayerStatistics(player1.getId(), match.getId());
+        stat1.addNewReview(9); // 평점 = 4.5, 투표 = 1
+        playerStatisticsRepository.save(stat1);
+
+        PlayerStatistics stat2 = new PlayerStatistics(player2.getId(), match.getId());
+        stat2.addNewReview(9);
+        stat2.addNewReview(9); // 평점 = 4.5, 투표 = 2
+        playerStatisticsRepository.save(stat2);
+
+        PlayerStatistics stat3 = new PlayerStatistics(player3.getId(), match.getId());
+        stat3.addNewReview(8); // 평점 = 4.0, 투표 = 1
+        playerStatisticsRepository.save(stat3);
+
+        PlayerStatistics stat4 = new PlayerStatistics(player4.getId(), match.getId());
+        stat4.addNewReview(9);
+        stat4.addNewReview(9); // 평점 = 4.5, 투표 = 2 (player4.id > player2.id)
+        playerStatisticsRepository.save(stat4);
+
+        // when
+        MatchDetailResponse result = matchDetailFacadeService.getMatchStaticData(match.getId());
+
+        // then
+        assertThat(result.highlights().mom().playerId()).isEqualTo(player4.getId());
+        assertThat(result.highlights().mom().name()).isEqualTo("선수4");
+        assertThat(result.highlights().mom().averageRating()).isEqualTo(4.5);
+
+        assertThat(result.highlights().top3()).hasSize(3);
+        assertThat(result.highlights().top3().get(0).playerId()).isEqualTo(player4.getId());
+        assertThat(result.highlights().top3().get(1).playerId()).isEqualTo(player2.getId());
+        assertThat(result.highlights().top3().get(2).playerId()).isEqualTo(player1.getId());
+    }
+
+    @Test
+    void 경기의_정적_데이터_조회_시_중립팬_평균평점과_평점분포도가_올바르게_계산된다() {
+        // given
+        MatchStatistics matchStats = new MatchStatistics(match.getId());
+        matchStats.addNewReview(9, FanType.HOME);
+        matchStats.addNewReview(9, FanType.HOME);
+        matchStats.addNewReview(8, FanType.AWAY);
+        matchStats.addNewReview(6, FanType.NEUTRAL);
+        matchStats.addNewReview(8, FanType.NEUTRAL);
+        matchStatisticsRepository.save(matchStats);
+
+        User user = userRepository.save(new User("테스터", "test@test.com", "pass"));
+        matchReviewRepository.save(new MatchReview(match.getId(), user.getId(), 8, "좋은경기", FanType.NEUTRAL));
+        matchReviewRepository.save(new MatchReview(match.getId(), user.getId(), 8, "재밌네요", FanType.HOME));
+        matchReviewRepository.save(new MatchReview(match.getId(), user.getId(), 5, "그저그럼", FanType.AWAY));
+
+        // when
+        MatchDetailResponse result = matchDetailFacadeService.getMatchStaticData(match.getId());
+
+        // then
+        assertThat(result.neutralFanAverageRating()).isEqualTo(3.5);
+        assertThat(result.matchAverageRating()).isEqualTo(4.0);
+        assertThat(result.homeFanAverageRating()).isEqualTo(4.5);
+        assertThat(result.awayFanAverageRating()).isEqualTo(4.0);
+
+        Map<Integer, Long> distribution = result.ratingDistribution();
+        assertThat(distribution.get(8)).isEqualTo(2L);
+        assertThat(distribution.get(5)).isEqualTo(1L);
+        assertThat(distribution.get(1)).isEqualTo(0L);
+        assertThat(distribution.get(10)).isEqualTo(0L);
     }
 }
