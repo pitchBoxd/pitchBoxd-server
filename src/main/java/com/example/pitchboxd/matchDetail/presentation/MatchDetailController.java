@@ -5,6 +5,7 @@ import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
 import com.example.pitchboxd.matchDetail.service.MatchDetailFacadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,6 +56,22 @@ public class MatchDetailController {
             @LoginUserId(required = false) Long userId
     ) {
         MatchDetailPersonalResponse response = matchDetailFacadeService.getMatchPersonalData(matchId, userId);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @Operation(summary = "경기 페이지 전체 경기 리뷰 조회 (무한 스크롤 페이징)", description = "최신순(LATEST) 및 추천순(LIKE)으로 리뷰를 페이징 조회합니다.")
+    @GetMapping("{matchId}/match-reviews")
+    public ResponseEntity<SuccessResponse<MatchReviewSliceResponse>> getMatchReviews(
+            @PathVariable Long matchId,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) Long cursorLikeCount,
+            @RequestParam(defaultValue = "LATEST") String sort,
+            @RequestParam(defaultValue = "10") int size,
+            @LoginUserId(required = false) Long userId
+    ) {
+        MatchReviewSliceResponse response = matchDetailFacadeService.getMatchReviews(matchId, cursorId, cursorLikeCount, sort, size, userId);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));

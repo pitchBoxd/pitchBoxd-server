@@ -1,9 +1,11 @@
 package com.example.pitchboxd.match.matchReview.infrastructure;
 
+import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.QMatchReview;
 import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSummary;
 import com.example.pitchboxd.user.domain.QUser;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -62,5 +64,46 @@ public class MatchReviewQueryRepository {
                 .where(matchReview.matchId.in(matchIds))
                 .orderBy(matchReview.likeCount.desc(), matchReview.id.desc())
                 .fetch();
+    }
+
+    public List<MatchReview> findReviewsByCursor(Long matchId, Long cursorId, Long cursorLikeCount, String sort, int size) {
+        QMatchReview matchReview = QMatchReview.matchReview;
+
+        var query = queryFactory
+                .selectFrom(matchReview)
+                .where(
+                        matchReview.matchId.eq(matchId),
+                        buildCursorCondition(cursorId, cursorLikeCount, sort)
+                )
+                .limit(size + 1);
+
+        if ("LIKE".equalsIgnoreCase(sort)) {
+            query.orderBy(matchReview.likeCount.desc(), matchReview.id.desc());
+        } else {
+            query.orderBy(matchReview.id.desc());
+        }
+
+        return query.fetch();
+    }
+
+    private BooleanExpression buildCursorCondition(Long cursorId, Long cursorLikeCount, String sort) {
+        if ("LIKE".equalsIgnoreCase(sort)) {
+            return lessThanCursorLike(cursorLikeCount, cursorId);
+        }
+        return lessThanCursorId(cursorId);
+    }
+
+    private BooleanExpression lessThanCursorId(Long cursorId) {
+        QMatchReview matchReview = QMatchReview.matchReview;
+        return cursorId != null ? matchReview.id.lt(cursorId) : null;
+    }
+
+    private BooleanExpression lessThanCursorLike(Long cursorLikeCount, Long cursorId) {
+        QMatchReview matchReview = QMatchReview.matchReview;
+        if (cursorLikeCount == null || cursorId == null) {
+            return null;
+        }
+        return matchReview.likeCount.lt(cursorLikeCount)
+                .or(matchReview.likeCount.eq(cursorLikeCount).and(matchReview.id.lt(cursorId)));
     }
 }

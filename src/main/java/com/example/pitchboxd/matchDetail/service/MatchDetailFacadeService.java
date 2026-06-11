@@ -20,10 +20,17 @@ import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepos
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MyMatchReviewResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MyPlayerReviewResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchReviewDetailResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
+import com.example.pitchboxd.match.matchReview.domain.MatchReview;
+import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewQueryRepository;
+import com.example.pitchboxd.user.domain.User;
+import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Comparator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,6 +49,8 @@ public class MatchDetailFacadeService {
     private final MatchStatisticsRepository matchStatisticsRepository;
     private final MatchReviewRepository matchReviewRepository;
     private final PlayerReviewRepository playerReviewRepository;
+    private final MatchReviewQueryRepository matchReviewQueryRepository;
+    private final UserRepository userRepository;
 
     public MatchDetailResponse getMatchStaticData(Long matchId) {
         MatchDetailStaticModel matchDetail = matchQueryService.findMatchStaticDetailById(matchId);
@@ -181,5 +190,56 @@ public class MatchDetailFacadeService {
 
         boolean isEvaluated = (myMatchReview != null || !myPlayerReviews.isEmpty());
         return new MatchDetailPersonalResponse(isEvaluated, myMatchReview, myPlayerReviews);
+    }
+
+    public MatchReviewSliceResponse getMatchReviews(Long matchId, Long cursorId, Long cursorLikeCount, String sort, int size, Long userId) {
+        // 1. QueryDSL로 size+1개 데이터 조회
+        List<MatchReview> reviews = matchReviewQueryRepository.findReviewsByCursor(matchId, cursorId, cursorLikeCount, sort, size);
+
+        boolean hasNext = reviews.size() > size;
+        List<MatchReview> content = hasNext ? reviews.subList(0, size) : reviews;
+
+        // 2. 유저 정보 매핑을 위한 userId 조회 (한 번에 조회하여 매핑 성능 확보)
+        List<Long> authorIds = content.stream().map(MatchReview::getUserId).toList();
+        List<User> authors = userRepository.findAllById(authorIds);
+        Map<Long, User> authorMap = authors.stream().collect(Collectors.toMap(User::getId, Function.identity()));
+
+        // 3. 좋아요 상태값 조회
+        List<Long> reviewIds = content.stream().map(MatchReview::getId).toList();
+        Map<Long, Boolean> likedStatus = matchReviewLikeService.checkLikedStatusForReviews(reviewIds, userId);
+
+        List<MatchReviewDetailResponse> reviewResponses = content.stream()
+                .map(r -> {
+                    User author = authorMap.get(r.getUserId());
+                    String nickname = author != null ? author.getNickname() : "Unknown";
+                    String profile = "";
+                    boolean isLiked = likedStatus.getOrDefault(r.getId(), false);
+                    boolean isOwner = userId != null && r.isOwner(userId);
+                    return new MatchReviewDetailResponse(
+                            r.getId(),
+                            r.getUserId(),
+                            nickname,
+                            profile,
+                            r.getFanType(),
+                            r.getPoint(),
+                            r.getContent(),
+                            r.getLikeCount(),
+                            isLiked,
+                            isOwner,
+                            r.getCreatedAt()
+                    );
+                })
+                .toList();
+
+        // 4. 다음 페이지 커서 정보 빌드
+        Long nextCursorId = null;
+        Long nextCursorLikeCount = null;
+        if (hasNext && !content.isEmpty()) {
+            MatchReview lastReview = content.get(content.size() - 1);
+            nextCursorId = lastReview.getId();
+            nextCursorLikeCount = lastReview.getLikeCount();
+        }
+
+        return new MatchReviewSliceResponse(reviewResponses, nextCursorId, nextCursorLikeCount, hasNext);
     }
 }

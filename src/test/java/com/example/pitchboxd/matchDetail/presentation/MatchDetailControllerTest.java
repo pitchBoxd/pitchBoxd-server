@@ -21,6 +21,7 @@ import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepos
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.season.domain.Season;
@@ -312,4 +313,126 @@ class MatchDetailControllerTest {
                 () -> assertThat(response.myPlayerReviews().get(0).comment()).isEqualTo("오늘 활약이 대단했습니다.")
         );
     }
+
+    @Test
+    void 경기_리뷰를_최신순으로_커서_페이징_조회한다() {
+        // given
+        User author = userRepository.save(new User("작성자1", "author1@test.com", "pass"));
+        MatchReview review1 = matchReviewRepository.save(new MatchReview(match.getId(), author.getId(), 5, "첫번째 리뷰", FanType.NEUTRAL));
+        MatchReview review2 = matchReviewRepository.save(new MatchReview(match.getId(), author.getId(), 6, "두번째 리뷰", FanType.NEUTRAL));
+        MatchReview review3 = matchReviewRepository.save(new MatchReview(match.getId(), author.getId(), 7, "세번째 리뷰", FanType.NEUTRAL));
+
+        // when - first page
+        MatchReviewSliceResponse response1 = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("sort", "LATEST")
+                .queryParam("size", 2)
+                .when()
+                .get("/api/v1/matches/{matchId}/match-reviews", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchReviewSliceResponse.class);
+
+        // then - first page
+        assertAll(
+                () -> assertThat(response1.reviews()).hasSize(2),
+                () -> assertThat(response1.reviews().get(0).reviewId()).isEqualTo(review3.getId()),
+                () -> assertThat(response1.reviews().get(1).reviewId()).isEqualTo(review2.getId()),
+                () -> assertThat(response1.hasNext()).isTrue(),
+                () -> assertThat(response1.nextCursorId()).isEqualTo(review2.getId()),
+                () -> assertThat(response1.nextCursorLikeCount()).isEqualTo(review2.getLikeCount())
+        );
+
+        // when - second page using cursor
+        MatchReviewSliceResponse response2 = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("sort", "LATEST")
+                .queryParam("size", 2)
+                .queryParam("cursorId", response1.nextCursorId())
+                .when()
+                .get("/api/v1/matches/{matchId}/match-reviews", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchReviewSliceResponse.class);
+
+        // then - second page
+        assertAll(
+                () -> assertThat(response2.reviews()).hasSize(1),
+                () -> assertThat(response2.reviews().get(0).reviewId()).isEqualTo(review1.getId()),
+                () -> assertThat(response2.hasNext()).isFalse(),
+                () -> assertThat(response2.nextCursorId()).isNull(),
+                () -> assertThat(response2.nextCursorLikeCount()).isNull()
+        );
+    }
+
+    @Test
+    void 경기_리뷰를_추천순으로_커서_페이징_조회한다() {
+        // given
+        User author = userRepository.save(new User("작성자1", "author1@test.com", "pass"));
+        MatchReview review1 = new MatchReview(match.getId(), author.getId(), 5, "리뷰1", FanType.NEUTRAL);
+        review1.addOneLikeCount(); // likeCount = 1
+        matchReviewRepository.save(review1);
+
+        MatchReview review2 = new MatchReview(match.getId(), author.getId(), 6, "리뷰2", FanType.NEUTRAL);
+        review2.addOneLikeCount();
+        review2.addOneLikeCount(); // likeCount = 2
+        matchReviewRepository.save(review2);
+
+        MatchReview review3 = new MatchReview(match.getId(), author.getId(), 7, "리뷰3", FanType.NEUTRAL);
+        review3.addOneLikeCount();
+        review3.addOneLikeCount(); // likeCount = 2
+        matchReviewRepository.save(review3);
+
+        // when - first page
+        MatchReviewSliceResponse response1 = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("sort", "LIKE")
+                .queryParam("size", 2)
+                .when()
+                .get("/api/v1/matches/{matchId}/match-reviews", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchReviewSliceResponse.class);
+
+        // then - first page
+        assertAll(
+                () -> assertThat(response1.reviews()).hasSize(2),
+                () -> assertThat(response1.reviews().get(0).reviewId()).isEqualTo(review3.getId()),
+                () -> assertThat(response1.reviews().get(1).reviewId()).isEqualTo(review2.getId()),
+                () -> assertThat(response1.hasNext()).isTrue(),
+                () -> assertThat(response1.nextCursorId()).isEqualTo(review2.getId()),
+                () -> assertThat(response1.nextCursorLikeCount()).isEqualTo(2L)
+        );
+
+        // when - second page using cursor
+        MatchReviewSliceResponse response2 = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("sort", "LIKE")
+                .queryParam("size", 2)
+                .queryParam("cursorId", response1.nextCursorId())
+                .queryParam("cursorLikeCount", response1.nextCursorLikeCount())
+                .when()
+                .get("/api/v1/matches/{matchId}/match-reviews", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchReviewSliceResponse.class);
+
+        // then - second page
+        assertAll(
+                () -> assertThat(response2.reviews()).hasSize(1),
+                () -> assertThat(response2.reviews().get(0).reviewId()).isEqualTo(review1.getId()),
+                () -> assertThat(response2.hasNext()).isFalse(),
+                () -> assertThat(response2.nextCursorId()).isNull(),
+                () -> assertThat(response2.nextCursorLikeCount()).isNull()
+        );
+    }
 }
+
