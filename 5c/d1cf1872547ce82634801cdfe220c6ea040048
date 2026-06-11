@@ -1,0 +1,14 @@
+.gitignore
+  h_09d9451df330ee 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5cd1cf1872547ce82634801cdfe220c6ea040048",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
