@@ -1,0 +1,16 @@
+src/main/java/com/example/pitchboxd/match/matchReview/infrastructure/MatchReviewQueryRepository.java
+  h_09d9451df330ee 5,70,82,92
+src/test/java/com/example/pitchboxd/matchDetail/service/MatchDetailFacadeServiceTest.java
+  h_09d9451df330ee 15,21-22,27,29,92,306-367
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "89392cee3225177f28772a3a952ba2c7f6231e75",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
