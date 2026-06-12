@@ -20,7 +20,8 @@ import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
-import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResultResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailStatsResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewDetailResponse;
 import com.example.pitchboxd.player.domain.Player;
@@ -122,28 +123,46 @@ class MatchDetailControllerTest {
     }
 
     @Test
-    void 경기_상세_정적_데이터를_조회한다() {
-        // when
-        MatchDetailResponse response = RestAssured.given().log().all()
+    void 경기_상세_결과와_통계_데이터를_조회한다() {
+        // when - 결과 데이터 조회
+        MatchDetailResultResponse resultResponse = RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
-                .get("/api/v1/matches/{matchId}/detail/static", match.getId())
+                .get("/api/v1/matches/{matchId}/detail/result", match.getId())
                 .then().log().all()
                 .statusCode(HttpStatus.OK.value())
                 .extract()
                 .jsonPath()
-                .getObject("data", MatchDetailResponse.class);
+                .getObject("data", MatchDetailResultResponse.class);
+
+        // when - 통계 데이터 조회
+        MatchDetailStatsResponse statsResponse = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/stats", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailStatsResponse.class);
 
         // then
         assertAll(
-                () -> assertThat(response.season()).isEqualTo("2026 K리그1"),
-                () -> assertThat(response.homeTeam()).isEqualTo("홈팀"),
-                () -> assertThat(response.awayTeam()).isEqualTo("원정팀"),
-                () -> assertThat(response.homeScore()).isEqualTo(2),
-                () -> assertThat(response.awayScore()).isEqualTo(1),
-                () -> assertThat(response.homeLineups().responses()).hasSize(1),
-                () -> assertThat(response.awayLineups().responses()).hasSize(1)
+                () -> assertThat(resultResponse.seasonName()).isEqualTo("2026 K리그1"),
+                () -> assertThat(resultResponse.homeTeamName()).isEqualTo("홈팀"),
+                () -> assertThat(resultResponse.awayTeamName()).isEqualTo("원정팀"),
+                () -> assertThat(resultResponse.homeScore()).isEqualTo(2),
+                () -> assertThat(resultResponse.awayScore()).isEqualTo(1),
+                () -> assertThat(resultResponse.homeLineups().responses()).hasSize(1),
+                () -> assertThat(resultResponse.awayLineups().responses()).hasSize(1),
+                
+                () -> assertThat(statsResponse.totalAverage()).isEqualTo(0.0),
+                () -> assertThat(statsResponse.homeAverage()).isEqualTo(0.0),
+                () -> assertThat(statsResponse.awayAverage()).isEqualTo(0.0),
+                () -> assertThat(statsResponse.highlights().mom()).isNull(),
+                () -> assertThat(statsResponse.highlights().top3()).isEmpty()
         );
     }
 

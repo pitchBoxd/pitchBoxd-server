@@ -12,16 +12,22 @@ import com.example.pitchboxd.match.lineup.domain.ParticipationStatus;
 import com.example.pitchboxd.match.lineup.infrastructure.MatchLineupRepository;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.MatchReviewLike;
+import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewLikeRepository;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
+import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
+import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
 import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatisticsRepository;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
-import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResultResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailStatsResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.season.domain.Season;
@@ -83,6 +89,8 @@ class MatchDetailFacadeServiceTest {
 
     @Autowired
     private DatabaseCleaner databaseCleaner;
+    @Autowired
+    private PlayerReviewRepository playerReviewRepository;
 
     private Team homeTeam;
     private Team awayTeam;
@@ -109,55 +117,27 @@ class MatchDetailFacadeServiceTest {
     }
 
     @Test
-    void 경기의_정적_데이터를_조회한다() {
+    void 경기의_결과와_라인업_데이터를_정확히_조회한다() {
         // given
-        Player homePlayer1 = playerRepository.save(new Player(homeTeam.getId(), "홈선수1", "p1"));
-        Player homePlayer2 = playerRepository.save(new Player(homeTeam.getId(), "홈선수2", "p2"));
-        Player awayPlayer1 = playerRepository.save(new Player(awayTeam.getId(), "원정선수1", "p3"));
-        Player awayPlayer2 = playerRepository.save(new Player(awayTeam.getId(), "원정선수2", "p4"));
-
-        matchLineupRepository.save(new MatchLineup(match.getId(), homePlayer1.getId(), 7, ParticipationStatus.STARTER));
-        matchLineupRepository.save(new MatchLineup(match.getId(), homePlayer2.getId(), 10, ParticipationStatus.BENCH));
-        matchLineupRepository.save(new MatchLineup(match.getId(), awayPlayer1.getId(), 9, ParticipationStatus.STARTER));
-        matchLineupRepository.save(
-                new MatchLineup(match.getId(), awayPlayer2.getId(), 11, ParticipationStatus.SUBSTITUTED_IN));
+        Player player = playerRepository.save(new Player(homeTeam.getId(), "테스트선수", "pT"));
+        matchLineupRepository.save(new MatchLineup(match.getId(), player.getId(), 1, ParticipationStatus.STARTER));
 
         // when
-        MatchDetailResponse result = matchDetailFacadeService.getMatchStaticData(match.getId());
+        MatchDetailResultResponse result = matchDetailFacadeService.getMatchResultData(match.getId());
 
         // then
         assertAll(
-                () -> assertThat(result.season()).isEqualTo("2026 K리그1"),
+                () -> assertThat(result.seasonName()).isEqualTo("2026 K리그1"),
                 () -> assertThat(result.round()).isEqualTo("1R"),
-                () -> assertThat(result.dateTime()).isEqualTo(LocalDateTime.of(2026, 4, 28, 19, 0)),
+                () -> assertThat(result.startTime()).isEqualTo(LocalDateTime.of(2026, 4, 28, 19, 0)),
                 () -> assertThat(result.location()).isEqualTo("상암"),
-                () -> assertThat(result.homeTeam()).isEqualTo("홈팀"),
-                () -> assertThat(result.awayTeam()).isEqualTo("원정팀"),
+                () -> assertThat(result.homeTeamName()).isEqualTo("홈팀"),
+                () -> assertThat(result.awayTeamName()).isEqualTo("원정팀"),
                 () -> assertThat(result.homeScore()).isEqualTo(2),
                 () -> assertThat(result.awayScore()).isEqualTo(1),
                 () -> assertThat(result.homeLineups().responses()).hasSize(1),
-                () -> assertThat(result.homeLineups().responses().get(0).playerName()).isEqualTo("홈선수1"),
-                () -> assertThat(result.awayLineups().responses()).hasSize(2),
-                () -> assertThat(result.awayLineups().responses())
-                        .extracting("playerName")
-                        .containsExactlyInAnyOrder("원정선수1", "원정선수2")
-        );
-    }
-
-    @Test
-    void 라인업_데이터가_없는_경우에도_정적_데이터를_조회한다() {
-        // when
-        MatchDetailResponse result = matchDetailFacadeService.getMatchStaticData(match.getId());
-
-        // then
-        assertAll(
-                () -> assertThat(result.season()).isEqualTo("2026 K리그1"),
-                () -> assertThat(result.homeTeam()).isEqualTo("홈팀"),
-                () -> assertThat(result.awayTeam()).isEqualTo("원정팀"),
-                () -> assertThat(result.homeLineups().responses()).isEmpty(),
-                () -> assertThat(result.awayLineups().responses()).isEmpty(),
-                () -> assertThat(result.highlights().mom()).isNull(),
-                () -> assertThat(result.highlights().top3()).isEmpty()
+                () -> assertThat(result.homeLineups().responses().get(0).playerName()).isEqualTo("테스트선수"),
+                () -> assertThat(result.awayLineups().responses()).isEmpty()
         );
     }
 
@@ -223,7 +203,7 @@ class MatchDetailFacadeServiceTest {
     }
 
     @Test
-    void 경기의_정적_데이터_조회_시_MOM과_Top3_선수가_정렬_조건에_맞게_반환된다() {
+    void 경기의_통계_데이터_조회_시_MOM과_Top3_선수가_정렬_조건에_맞게_반환된다() {
         // given
         Player player1 = playerRepository.save(new Player(homeTeam.getId(), "선수1", "p1"));
         Player player2 = playerRepository.save(new Player(homeTeam.getId(), "선수2", "p2"));
@@ -236,7 +216,7 @@ class MatchDetailFacadeServiceTest {
         matchLineupRepository.save(new MatchLineup(match.getId(), player4.getId(), 4, ParticipationStatus.STARTER));
 
         PlayerStatistics stat1 = new PlayerStatistics(player1.getId(), match.getId());
-        stat1.addNewReview(9); // 평점 = 4.5, 투표 = 1
+        stat1.addNewReview(9); // 평점 = 4.5
         playerStatisticsRepository.save(stat1);
 
         PlayerStatistics stat2 = new PlayerStatistics(player2.getId(), match.getId());
@@ -245,7 +225,7 @@ class MatchDetailFacadeServiceTest {
         playerStatisticsRepository.save(stat2);
 
         PlayerStatistics stat3 = new PlayerStatistics(player3.getId(), match.getId());
-        stat3.addNewReview(8); // 평점 = 4.0, 투표 = 1
+        stat3.addNewReview(8); // 평점 = 4.0
         playerStatisticsRepository.save(stat3);
 
         PlayerStatistics stat4 = new PlayerStatistics(player4.getId(), match.getId());
@@ -254,7 +234,7 @@ class MatchDetailFacadeServiceTest {
         playerStatisticsRepository.save(stat4);
 
         // when
-        MatchDetailResponse result = matchDetailFacadeService.getMatchStaticData(match.getId());
+        MatchDetailStatsResponse result = matchDetailFacadeService.getMatchStatsData(match.getId());
 
         // then
         assertThat(result.highlights().mom().playerId()).isEqualTo(player4.getId());
@@ -268,7 +248,7 @@ class MatchDetailFacadeServiceTest {
     }
 
     @Test
-    void 경기의_정적_데이터_조회_시_평균평점들과_평점분포도가_올바르게_계산된다() {
+    void 경기의_통계_데이터_조회_시_평균평점들과_평점분포도가_올바르게_계산된다() {
         // given
         MatchStatistics matchStats = new MatchStatistics(match.getId());
         matchStats.addNewReview(9, FanType.HOME);
@@ -284,17 +264,105 @@ class MatchDetailFacadeServiceTest {
         matchReviewRepository.save(new MatchReview(match.getId(), user.getId(), 5, "그저그럼", FanType.AWAY));
 
         // when
-        MatchDetailResponse result = matchDetailFacadeService.getMatchStaticData(match.getId());
+        MatchDetailStatsResponse result = matchDetailFacadeService.getMatchStatsData(match.getId());
 
         // then
-        assertThat(result.matchAverageRating()).isEqualTo(4.0);
-        assertThat(result.homeFanAverageRating()).isEqualTo(4.5);
-        assertThat(result.awayFanAverageRating()).isEqualTo(4.0);
+        assertThat(result.totalAverage()).isEqualTo(4.0);
+        assertThat(result.homeAverage()).isEqualTo(4.5);
+        assertThat(result.awayAverage()).isEqualTo(4.0);
 
-        Map<Integer, Long> distribution = result.ratingDistribution();
+        Map<Integer, Long> distribution = result.distributionMap();
         assertThat(distribution.get(8)).isEqualTo(2L);
         assertThat(distribution.get(5)).isEqualTo(1L);
-        assertThat(distribution.get(1)).isEqualTo(0L);
-        assertThat(distribution.get(10)).isEqualTo(0L);
     }
+
+    @Test
+    void 비회원_경기_개인_데이터_조회시_빈_응답을_반환한다() {
+        // when
+        MatchDetailPersonalResponse response = matchDetailFacadeService.getMatchPersonalData(match.getId(), null);
+
+        // then
+        assertAll(
+                () -> assertThat(response.isEvaluated()).isFalse(),
+                () -> assertThat(response.myMatchReview()).isNull(),
+                () -> assertThat(response.myPlayerReviews()).isEmpty()
+        );
+    }
+
+    @Test
+    void 로그인_사용자_경기_개인_데이터_조회시_리뷰와_플레이어_리뷰가_포함된다() {
+        // given
+        User user = userRepository.save(new User("테스터", "test@test.com", "pass"));
+        MatchReview myMatchReview = new MatchReview(match.getId(), user.getId(), 8, "좋은 경기", FanType.HOME);
+        matchReviewRepository.save(myMatchReview);
+
+        Player player = playerRepository.save(new Player(homeTeam.getId(), "선수A", "pA"));
+        PlayerStatistics stats = new PlayerStatistics(player.getId(), match.getId());
+        playerStatisticsRepository.save(stats);
+        PlayerReview playerReview = new PlayerReview(match.getId(), user.getId(), player.getId(), 9, "멋진 플레이",
+                FanType.HOME);
+        playerReviewRepository.save(playerReview);
+
+        // when
+        MatchDetailPersonalResponse response = matchDetailFacadeService.getMatchPersonalData(match.getId(),
+                user.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(response.isEvaluated()).isTrue(),
+                () -> assertThat(response.myMatchReview()).isNotNull(),
+                () -> assertThat(response.myMatchReview().reviewId()).isEqualTo(myMatchReview.getId()),
+                () -> assertThat(response.myPlayerReviews()).hasSize(1),
+                () -> assertThat(response.myPlayerReviews().get(0).playerId()).isEqualTo(player.getId())
+        );
+    }
+
+    @Test
+    void 리뷰_페이징과_정렬_및_좋아요_상태_조회가_정확하다() {
+        // given
+        User user = userRepository.save(new User("유저", "u@test.com", "pass"));
+        // create 5 reviews with varying like counts
+        for (int i = 1; i <= 5; i++) {
+            MatchReview review = new MatchReview(match.getId(), user.getId(), i * 2, "리뷰" + i, FanType.HOME);
+            review.addOneLikeCount(); // each review gets 1 like
+            for (int j = 1; j < i; j++) {
+                review.addOneLikeCount(); // additional likes
+            }
+            matchReviewRepository.save(review);
+        }
+        // like status: another user liked first three reviews
+        User other = userRepository.save(new User("다른유저", "other@test.com", "pass"));
+        List<MatchReview> allReviews = matchReviewRepository.findAllByMatchId(match.getId());
+        for (int i = 0; i < 3; i++) {
+            matchReviewLikeRepository.save(new MatchReviewLike(allReviews.get(i).getId(), other.getId()));
+        }
+
+        // when: request first page size 2 sorted by LIKE
+        MatchReviewSliceResponse slice1 = matchDetailFacadeService.getMatchReviews(
+                match.getId(), null, null, ReviewSortType.LIKE, 2, other.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(slice1.reviews()).hasSize(2),
+                () -> assertThat(slice1.hasNext()).isTrue(),
+                () -> assertThat(slice1.reviews().get(0).likeCount()).isGreaterThanOrEqualTo(
+                        slice1.reviews().get(1).likeCount()),
+                () -> assertThat(slice1.reviews().get(0).isLiked()).isFalse(),
+                () -> assertThat(slice1.reviews().get(1).isLiked()).isFalse()
+        );
+
+        // when: request second page using cursor
+        MatchReviewSliceResponse slice2 = matchDetailFacadeService.getMatchReviews(
+                match.getId(), slice1.nextCursorId(), slice1.nextCursorLikeCount(), ReviewSortType.LIKE, 2,
+                other.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(slice2.reviews()).hasSize(2),
+                () -> assertThat(slice2.hasNext()).isTrue(),
+                () -> assertThat(slice2.reviews().get(0).isLiked()).isTrue(),
+                () -> assertThat(slice2.reviews().get(1).isLiked()).isTrue()
+        );
+    }
+
 }

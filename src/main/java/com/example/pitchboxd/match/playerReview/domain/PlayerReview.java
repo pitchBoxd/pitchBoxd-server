@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 
 
 @Entity
@@ -53,9 +54,10 @@ public class PlayerReview extends BaseEntity {
 
     private Long likeCount;
 
-    private LocalDateTime updatedAt;
+    private FanType fanType;
+private LocalDateTime updatedAt;
 
-    public PlayerReview(Long matchId, Long playerId, Long userId, Integer point, String content) {
+    public PlayerReview(Long matchId, Long playerId, Long userId, Integer point, String content, FanType fanType) {
         validate(content, point);
         this.matchId = matchId;
         this.playerId = playerId;
@@ -63,6 +65,11 @@ public class PlayerReview extends BaseEntity {
         this.point = point;
         this.likeCount = 0L;
         this.content = content;
+        this.fanType = fanType;
+    }
+
+    public PlayerReview(Long matchId, Long playerId, Long userId, Integer point, String content) {
+        this(matchId, playerId, userId, point, content, null);
     }
 
     public void update(String content, Integer point) {

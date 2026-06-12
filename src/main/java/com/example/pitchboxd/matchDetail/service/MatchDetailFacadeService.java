@@ -8,7 +8,8 @@ import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSumma
 import com.example.pitchboxd.match.matchReview.service.domain.MatchReviewLikeService;
 import com.example.pitchboxd.match.matchReview.service.domain.MatchReviewQueryService;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
-import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResultResponse;
+import com.example.pitchboxd.matchDetail.dto.response.MatchDetailStatsResponse;
 import com.example.pitchboxd.matchDetail.dto.response.LineupResponse;
 import com.example.pitchboxd.matchDetail.dto.response.LineupResponses;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
@@ -23,6 +24,7 @@ import com.example.pitchboxd.matchDetail.dto.response.MyPlayerReviewResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewDetailResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
+import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewQueryRepository;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
@@ -52,7 +54,7 @@ public class MatchDetailFacadeService {
     private final MatchReviewQueryRepository matchReviewQueryRepository;
     private final UserRepository userRepository;
 
-    public MatchDetailResponse getMatchStaticData(Long matchId) {
+    public MatchDetailResultResponse getMatchResultData(Long matchId) {
         MatchDetailStaticModel matchDetail = matchQueryService.findMatchStaticDetailById(matchId);
         List<LineupPlayerModel> lineups = matchLineupQueryService.findLineupAndPlayedPlayers(matchId);
 
@@ -74,6 +76,24 @@ public class MatchDetailFacadeService {
                 .map(l -> LineupResponse.of(l, playerRatingsMap.getOrDefault(l.playerId(), 0.0)))
                 .toList();
 
+        return new MatchDetailResultResponse(
+                matchDetail.seasonName(),
+                matchDetail.round(),
+                matchDetail.startTime(),
+                matchDetail.location(),
+                matchDetail.homeTeamName(),
+                matchDetail.awayTeamName(),
+                matchDetail.homeScore(),
+                matchDetail.awayScore(),
+                new LineupResponses(homeLineupResponses),
+                new LineupResponses(awayLineupResponses)
+        );
+    }
+
+    public MatchDetailStatsResponse getMatchStatsData(Long matchId) {
+        List<LineupPlayerModel> lineups = matchLineupQueryService.findLineupAndPlayedPlayers(matchId);
+        List<PlayerStatistics> playerStats = playerStatisticsRepository.findAllByMatchId(matchId);
+
         MatchStatistics matchStats = matchStatisticsRepository.findByMatchId(matchId)
                 .orElse(new MatchStatistics(matchId));
 
@@ -85,7 +105,7 @@ public class MatchDetailFacadeService {
         for (Object[] row : rawDistribution) {
             Integer point = (Integer) row[0];
             Long count = (Long) row[1];
-            if (point >= 0 && point <= 10) {
+            if (point != null && count != null && point >= 0 && point <= 10) {
                 distributionMap.put(point, count);
             }
         }
@@ -104,38 +124,28 @@ public class MatchDetailFacadeService {
                         (existing, replacement) -> existing
                 ));
 
-        MatchDetailResponse.HighlightPlayerResponse mom = null;
+        MatchDetailStatsResponse.HighlightPlayerResponse mom = null;
         if (!sortedStats.isEmpty()) {
             PlayerStatistics momStat = sortedStats.get(0);
             String momName = playerNamesMap.getOrDefault(momStat.getPlayerId(), "Unknown Player");
-            mom = new MatchDetailResponse.HighlightPlayerResponse(momStat.getPlayerId(), momName, momStat.getAverageRating());
+            mom = new MatchDetailStatsResponse.HighlightPlayerResponse(momStat.getPlayerId(), momName, momStat.getAverageRating());
         }
 
-        List<MatchDetailResponse.HighlightPlayerResponse> top3 = sortedStats.stream()
+        List<MatchDetailStatsResponse.HighlightPlayerResponse> top3 = sortedStats.stream()
                 .limit(3)
-                .map(ps -> new MatchDetailResponse.HighlightPlayerResponse(
+                .map(ps -> new MatchDetailStatsResponse.HighlightPlayerResponse(
                         ps.getPlayerId(),
                         playerNamesMap.getOrDefault(ps.getPlayerId(), "Unknown Player"),
                         ps.getAverageRating()
                 ))
                 .toList();
 
-        return new MatchDetailResponse(
-                matchDetail.seasonName(),
-                matchDetail.round(),
-                matchDetail.startTime(),
-                matchDetail.location(),
-                matchDetail.homeTeamName(),
-                matchDetail.awayTeamName(),
-                matchDetail.homeScore(),
-                matchDetail.awayScore(),
-                new LineupResponses(homeLineupResponses),
-                new LineupResponses(awayLineupResponses),
+        return new MatchDetailStatsResponse(
                 matchStats.getTotalAverage(),
                 matchStats.getHomeAverage(),
                 matchStats.getAwayAverage(),
                 distributionMap,
-                new MatchDetailResponse.MatchHighlightsResponse(mom, top3)
+                new MatchDetailStatsResponse.MatchHighlightsResponse(mom, top3)
         );
     }
 
@@ -180,28 +190,25 @@ public class MatchDetailFacadeService {
         return new MatchDetailPersonalResponse(isEvaluated, myMatchReview, myPlayerReviews);
     }
 
-    public MatchReviewSliceResponse getMatchReviews(Long matchId, Long cursorId, Long cursorLikeCount, String sort, int size, Long userId) {
+    public MatchReviewSliceResponse getMatchReviews(Long matchId, Long cursorId, Long cursorLikeCount, ReviewSortType sort, int size, Long userId) {
         if (size <= 0) {
             throw new IllegalArgumentException("페이지 크기는 1 이상이어야 합니다.");
         }
-        if ("LIKE".equalsIgnoreCase(sort)) {
+        if (ReviewSortType.LIKE == sort) {
             if ((cursorId == null && cursorLikeCount != null) || (cursorId != null && cursorLikeCount == null)) {
                 throw new IllegalArgumentException("추천순 정렬 페이징 시 cursorId와 cursorLikeCount는 모두 null이거나 모두 null이 아니어야 합니다.");
             }
         }
 
-        // 1. QueryDSL로 size+1개 데이터 조회
         List<MatchReview> reviews = matchReviewQueryRepository.findReviewsByCursor(matchId, cursorId, cursorLikeCount, sort, size);
 
         boolean hasNext = reviews.size() > size;
         List<MatchReview> content = hasNext ? reviews.subList(0, size) : reviews;
 
-        // 2. 유저 정보 매핑을 위한 userId 조회 (한 번에 조회하여 매핑 성능 확보)
         List<Long> authorIds = content.stream().map(MatchReview::getUserId).distinct().toList();
         List<User> authors = userRepository.findAllById(authorIds);
         Map<Long, User> authorMap = authors.stream().collect(Collectors.toMap(User::getId, Function.identity(), (existing, replacement) -> existing));
 
-        // 3. 좋아요 상태값 조회
         List<Long> reviewIds = content.stream().map(MatchReview::getId).toList();
         Map<Long, Boolean> likedStatus = matchReviewLikeService.checkLikedStatusForReviews(reviewIds, userId);
 
@@ -228,13 +235,12 @@ public class MatchDetailFacadeService {
                 })
                 .toList();
 
-        // 4. 다음 페이지 커서 정보 빌드
         Long nextCursorId = null;
         Long nextCursorLikeCount = null;
-        if (hasNext && !content.isEmpty()) {
-            MatchReview lastReview = content.get(content.size() - 1);
-            nextCursorId = lastReview.getId();
-            nextCursorLikeCount = lastReview.getLikeCount();
+        if (hasNext && !reviewResponses.isEmpty()) {
+            MatchReviewDetailResponse last = reviewResponses.get(reviewResponses.size() - 1);
+            nextCursorId = last.reviewId();
+            nextCursorLikeCount = last.likeCount();
         }
 
         return new MatchReviewSliceResponse(reviewResponses, nextCursorId, nextCursorLikeCount, hasNext);

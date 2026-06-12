@@ -2,6 +2,7 @@ package com.example.pitchboxd.match.matchReview.infrastructure;
 
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.QMatchReview;
+import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
 import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSummary;
 import com.example.pitchboxd.user.domain.QUser;
 import com.querydsl.core.types.Projections;
@@ -66,7 +67,8 @@ public class MatchReviewQueryRepository {
                 .fetch();
     }
 
-    public List<MatchReview> findReviewsByCursor(Long matchId, Long cursorId, Long cursorLikeCount, String sort, int size) {
+    public List<MatchReview> findReviewsByCursor(Long matchId, Long cursorId, Long cursorLikeCount, ReviewSortType sort,
+                                                 int size) {
         QMatchReview matchReview = QMatchReview.matchReview;
 
         var query = queryFactory
@@ -74,20 +76,21 @@ public class MatchReviewQueryRepository {
                 .where(
                         matchReview.matchId.eq(matchId),
                         buildCursorCondition(cursorId, cursorLikeCount, sort)
-                )
-                .limit(size + 1);
+                );
 
-        if ("LIKE".equalsIgnoreCase(sort)) {
-            query.orderBy(matchReview.likeCount.desc(), matchReview.id.desc());
+        if (ReviewSortType.LIKE == sort) {
+            query = query.orderBy(matchReview.likeCount.desc(), matchReview.id.desc());
         } else {
-            query.orderBy(matchReview.id.desc());
+            query = query.orderBy(matchReview.id.desc());
         }
+
+        query = query.limit(size + 1);
 
         return query.fetch();
     }
 
-    private BooleanExpression buildCursorCondition(Long cursorId, Long cursorLikeCount, String sort) {
-        if ("LIKE".equalsIgnoreCase(sort)) {
+    private BooleanExpression buildCursorCondition(Long cursorId, Long cursorLikeCount, ReviewSortType sort) {
+        if (ReviewSortType.LIKE == sort) {
             return lessThanCursorLike(cursorLikeCount, cursorId);
         }
         return lessThanCursorId(cursorId);
