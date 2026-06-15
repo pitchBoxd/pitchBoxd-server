@@ -5,15 +5,22 @@ import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.match.core.domain.Match;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MatchReviewSubmitPolicy {
 
-    private static final Duration REVIEW_SUBMIT_LIMIT = Duration.ofHours(48);
+    private final Duration reviewSubmitLimit;
+
+    public MatchReviewSubmitPolicy(
+            @Value("${app.policy.match-review-limit:48h}") Duration reviewSubmitLimit
+    ) {
+        this.reviewSubmitLimit = reviewSubmitLimit;
+    }
 
     public void validateMatchStatus(Match match, LocalDateTime now) {
-        if (!match.isEnd(now) || match.isPassed(now, REVIEW_SUBMIT_LIMIT)) {
+        if (!match.isEnd(now) || match.isPassed(now, reviewSubmitLimit)) {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_INVALID_REVIEW_TIME);
         }
     }
@@ -23,8 +30,8 @@ public class MatchReviewSubmitPolicy {
             throw new BusinessException(ErrorCode.MATCH_REVIEW_ALREADY_REVIEWED);
         }
     }
-    
+
     public LocalDateTime getReviewableThreshold(LocalDateTime now) {
-        return now.minus(REVIEW_SUBMIT_LIMIT);
+        return now.minus(reviewSubmitLimit);
     }
 }

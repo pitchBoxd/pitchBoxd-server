@@ -44,3 +44,7 @@ expiration:
   access-token-time: 3600000
   refresh-token-time: 86400000
   signup-token-time: 900000
+
+app:
+  policy:
+    match-review-limit: 48h

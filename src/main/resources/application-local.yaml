@@ -66,3 +66,7 @@ decorator:
       enable-logging: true
       multiline: true
       logging: slf4j
+
+app:
+  policy:
+    match-review-limit: 30d
