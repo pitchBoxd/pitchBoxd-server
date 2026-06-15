@@ -1,0 +1,26 @@
+src/main/resources/application-prod.yaml
+  s_dbc65becfc91b3::t_93281ad82bd2fe 3-4,10-21
+src/main/java/com/example/pitchboxd/match/matchReview/domain/MatchReviewSubmitPolicy.java
+  h_09d9451df330ee 8,12,15,18,28,30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "ff9fe2376275dba4c5d19b457d4ad3fbdfa74d16",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_dbc65becfc91b3": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "4ee53cac-cdda-4a86-be27-ec0a6b3a66cf",
+        "model": "gemini-3-flash-preview"
+      },
+      "human_author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
