@@ -2,8 +2,11 @@ package com.example.pitchboxd.match.playerReview.domain;
 
 
 import com.example.pitchboxd.global.domain.BaseEntity;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,7 +19,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 
 
 @Entity
@@ -54,8 +56,10 @@ public class PlayerReview extends BaseEntity {
 
     private Long likeCount;
 
+    @Enumerated(EnumType.STRING)
     private FanType fanType;
-private LocalDateTime updatedAt;
+
+    private LocalDateTime updatedAt;
 
     public PlayerReview(Long matchId, Long playerId, Long userId, Integer point, String content, FanType fanType) {
         validate(content, point);
