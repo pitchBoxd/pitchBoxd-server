@@ -105,6 +105,24 @@ class UserServiceTest {
     void 유저_정보를_정상적으로_조회한다() {
         // given
         String nickname = "테스트유저";
+        Long favoriteTeamId = 1L;
+        User user = userRepository.save(new User(nickname, "test@example.com", "password123!", favoriteTeamId));
+
+        // when
+        UserResponse response = userService.getUserInfo(user.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(user.getId()).isEqualTo(response.id()),
+                () -> assertThat(response.nickname()).isEqualTo(nickname),
+                () -> assertThat(response.favoriteTeamId()).isEqualTo(favoriteTeamId)
+        );
+    }
+
+    @Test
+    void 유저_정보를_정상적으로_조회한다_응원팀이_없는_경우() {
+        // given
+        String nickname = "테스트유저";
         User user = userRepository.save(new User(nickname, "test@example.com", "password123!"));
 
         // when
@@ -113,7 +131,8 @@ class UserServiceTest {
         // then
         assertAll(
                 () -> assertThat(user.getId()).isEqualTo(response.id()),
-                () -> assertThat(response.nickname()).isEqualTo(nickname)
+                () -> assertThat(response.nickname()).isEqualTo(nickname),
+                () -> assertThat(response.favoriteTeamId()).isNull()
         );
     }
 
