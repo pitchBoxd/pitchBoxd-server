@@ -1,15 +1,17 @@
 package com.example.pitchboxd.user.presentation;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.example.pitchboxd.auth.application.TokenManager;
 import com.example.pitchboxd.support.DatabaseCleaner;
 import com.example.pitchboxd.user.application.UserService;
+import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.dto.request.UserCreateRequest;
 import com.example.pitchboxd.user.dto.response.NicknameAvailabilityResponse;
 import com.example.pitchboxd.user.dto.response.UserCreateResponse;
 import com.example.pitchboxd.user.dto.response.UserResponse;
+import com.example.pitchboxd.user.infrastructure.UserRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.AfterEach;
@@ -36,7 +38,10 @@ class UserControllerTest {
     private TokenManager tokenManager;
 
     @Autowired
-    private UserService userService; // Add UserService to directly create a user for token generation
+    private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
@@ -103,10 +108,10 @@ class UserControllerTest {
         String username = "loggedInUser";
         String email = "loggedin@example.com";
         String password = "securepassword";
-        UserCreateRequest userCreateRequest = new UserCreateRequest(username, email, password);
-        UserCreateResponse createdUser = userService.addUser(userCreateRequest); // Directly create user for simplicity
+        Long favoriteTeamId = 1L;
+        User user = userRepository.save(new User(username, email, password, favoriteTeamId));
 
-        String accessToken = tokenManager.createAccessToken(createdUser.id(), email);
+        String accessToken = tokenManager.createAccessToken(user.getId(), email);
 
         // when
         UserResponse response = RestAssured.given().log().all()
@@ -121,8 +126,38 @@ class UserControllerTest {
 
         // then
         assertAll(
-                () -> assertThat(response.id()).isEqualTo(createdUser.id()),
-                () -> assertThat(response.nickname()).isEqualTo(username)
+                () -> assertThat(response.id()).isEqualTo(user.getId()),
+                () -> assertThat(response.nickname()).isEqualTo(username),
+                () -> assertThat(response.favoriteTeamId()).isEqualTo(favoriteTeamId)
+        );
+    }
+
+    @Test
+    void 내_정보를_조회한다_응원팀이_없는_경우() {
+        // given
+        String username = "loggedInUser";
+        String email = "loggedin@example.com";
+        String password = "securepassword";
+        User user = userRepository.save(new User(username, email, password));
+
+        String accessToken = tokenManager.createAccessToken(user.getId(), email);
+
+        // when
+        UserResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when().get("/api/v1/users/me")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", UserResponse.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.id()).isEqualTo(user.getId()),
+                () -> assertThat(response.nickname()).isEqualTo(username),
+                () -> assertThat(response.favoriteTeamId()).isNull()
         );
     }
 
