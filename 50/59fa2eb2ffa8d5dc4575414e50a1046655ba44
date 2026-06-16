@@ -1,0 +1,14 @@
+src/main/java/com/example/pitchboxd/match/playerReview/domain/PlayerReview.java
+  h_09d9451df330ee 5,8-9,59,61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "5059fa2eb2ffa8d5dc4575414e50a1046655ba44",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
