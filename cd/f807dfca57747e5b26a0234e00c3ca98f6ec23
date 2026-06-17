@@ -1,0 +1,20 @@
+src/main/resources/application-prod.yaml
+  h_09d9451df330ee 26
+src/main/resources/application-local.yaml
+  h_09d9451df330ee 72-73
+src/test/resources/application-test.yaml
+  h_09d9451df330ee 51
+src/main/java/com/example/pitchboxd/match/playerReview/domain/PlayerReviewSubmitPolicy.java
+  h_09d9451df330ee 11,19-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "cdf807dfca57747e5b26a0234e00c3ca98f6ec23",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
