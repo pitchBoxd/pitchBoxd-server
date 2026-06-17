@@ -13,4 +13,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     List<Match> findByStatusAndStartTimeBetween(MatchStatus status, LocalDateTime timeLimit,
                                                 LocalDateTime now);
+
+    List<Match> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
 }

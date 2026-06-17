@@ -58,6 +58,17 @@ public class AdminController {
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
     }
 
+    @Operation(summary = "일정 기간 내 경기 자동 종료 및 업데이트 처리", description = "DB에 등록된 모든 상태(상태 무관)의 경기 중, 외부 API 상 종료된 경기를 자동 종료 및 최신 정보(스코어, 라인업 등)로 업데이트 처리합니다.")
+    @PostMapping("/sync-tasks/matches/auto-finish")
+    public ResponseEntity<SuccessResponse<Void>> autoFinishMatches(
+            @RequestBody CreateMatchRequest request
+    ) {
+        adminFacadeService.autoFinishMatchesAndUpdateLineup(request);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
+    }
+
     @Operation(summary = "경기 업데이트", description = "경기 정보를 업데이트합니다.")
     @PatchMapping("/matches/{matchId}")
     public ResponseEntity<SuccessResponse<Void>> updateMatch(

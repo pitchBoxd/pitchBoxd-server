@@ -7,6 +7,8 @@ import com.example.pitchboxd.admin.dto.request.UpdatePlayerRequest;
 import com.example.pitchboxd.admin.service.sync.MatchLineupSyncService;
 import com.example.pitchboxd.admin.service.sync.MatchSyncService;
 import com.example.pitchboxd.admin.service.sync.PlayerSyncService;
+import com.example.pitchboxd.global.infrastructure.naver.NaverSportsClient;
+import com.example.pitchboxd.global.infrastructure.naver.dto.NaverMatchDetailResponse;
 import com.example.pitchboxd.match.core.domain.Match;
 import com.example.pitchboxd.match.core.domain.MatchResult;
 import com.example.pitchboxd.match.core.service.domain.MatchService;
@@ -15,9 +17,12 @@ import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.service.PlayerService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -29,6 +34,28 @@ public class AdminFacadeService {
     private final PlayerSyncService playerSyncService;
     private final PlayerService playerService;
     private final MatchService matchService;
+    private final NaverSportsClient naverSportsClient;
+    private final ObjectProvider<AdminFacadeService> selfProvider;
+
+    public void autoFinishMatchesAndUpdateLineup(CreateMatchRequest request) {
+        List<Match> matches = matchSyncService.findMatchesInPeriod(request.from(), request.to());
+        log.info("Found {} matches in period to check and sync finished details.", matches.size());
+        
+        AdminFacadeService self = selfProvider.getObject();
+        for (Match match : matches) {
+            try {
+                NaverMatchDetailResponse detail = naverSportsClient.getMatchDetail(match.getNaverId());
+                if (detail.isFinished()) {
+                    self.finishMatchAndUpdateLineup(match.getNaverId());
+                    log.info("Successfully finished/updated and synced lineup for match: {}", match.getNaverId());
+                } else {
+                    log.info("Match is not finished yet: {}", match.getNaverId());
+                }
+            } catch (Exception e) {
+                log.error("Failed to auto-finish/update match (naverId: {}): {}", match.getNaverId(), e.getMessage(), e);
+            }
+        }
+    }
 
     @Transactional
     public void finishMatchAndUpdateLineup(String naverGameId) {

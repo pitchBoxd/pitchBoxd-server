@@ -7,6 +7,10 @@ import java.util.List;
 public record NaverLineupResponse(ResultNode result) {
     // 1. 홈팀 선발 명단 추출 (2D 배열을 1D 배열로 평탄화)
     public List<NaverPlayerNode> getHomeStarters() {
+        if (result == null || result.lineUpData() == null || result.lineUpData().lineup() == null ||
+            result.lineUpData().lineup().home() == null || result.lineUpData().lineup().home().players() == null) {
+            return List.of();
+        }
         return result.lineUpData().lineup().home().players().stream()
                 .flatMap(List::stream)
                 .toList();
@@ -14,17 +18,29 @@ public record NaverLineupResponse(ResultNode result) {
 
     // 2. 홈팀 교체/벤치 명단 추출
     public List<NaverPlayerNode> getHomeSubstitutions() {
+        if (result == null || result.lineUpData() == null || result.lineUpData().substitution() == null ||
+            result.lineUpData().substitution().home() == null) {
+            return List.of();
+        }
         return result.lineUpData().substitution().home();
     }
 
     public List<NaverPlayerNode> getAwayStarters() {
+        if (result == null || result.lineUpData() == null || result.lineUpData().lineup() == null ||
+            result.lineUpData().lineup().away() == null || result.lineUpData().lineup().away().players() == null) {
+            return List.of();
+        }
         return result.lineUpData().lineup().away().players().stream()
                 .flatMap(List::stream)
                 .toList();
     }
 
-    // 2. 홈팀 교체/벤치 명단 추출
+    // 4. 어웨이팀 교체/벤치 명단 추출
     public List<NaverPlayerNode> getAwaySubstitutions() {
+        if (result == null || result.lineUpData() == null || result.lineUpData().substitution() == null ||
+            result.lineUpData().substitution().away() == null) {
+            return List.of();
+        }
         return result.lineUpData().substitution().away();
     }
 

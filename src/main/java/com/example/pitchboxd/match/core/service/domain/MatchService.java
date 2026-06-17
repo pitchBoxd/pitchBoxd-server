@@ -40,6 +40,10 @@ public class MatchService {
                                                      LocalDateTime now) {
         return matchRepository.findByStatusAndStartTimeBetween(matchStatus, timeLimit, now);
     }
+
+    public List<Match> findByStartTimeBetween(LocalDateTime start, LocalDateTime end) {
+        return matchRepository.findByStartTimeBetween(start, end);
+    }
     @Transactional
     public void updateMatchResult(Long matchId, MatchResult result, LocalDateTime now) {
         Match match = matchRepository.findById(matchId)
