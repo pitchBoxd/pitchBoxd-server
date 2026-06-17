@@ -8,12 +8,17 @@ import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.user.domain.User;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PlayerReviewSubmitPolicy {
 
-    private static final Duration REVIEW_SUBMIT_LIMIT = Duration.ofHours(24);
+    private final Duration REVIEW_SUBMIT_LIMIT;
+
+    public PlayerReviewSubmitPolicy(@Value("${app.policy.player-review-limit}") Duration reviewSubmitLimit) {
+        this.REVIEW_SUBMIT_LIMIT = reviewSubmitLimit;
+    }
 
     public void validateMatchStatus(Match match, LocalDateTime now) {
         if (!match.isEnd(now) || match.isPassed(now, REVIEW_SUBMIT_LIMIT)) {

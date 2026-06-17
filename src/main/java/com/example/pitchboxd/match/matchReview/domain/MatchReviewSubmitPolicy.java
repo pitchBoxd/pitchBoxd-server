@@ -13,8 +13,7 @@ public class MatchReviewSubmitPolicy {
 
     private final Duration reviewSubmitLimit;
 
-    public MatchReviewSubmitPolicy(
-            @Value("${app.policy.match-review-limit}") Duration reviewSubmitLimit
+    public MatchReviewSubmitPolicy(@Value("${app.policy.match-review-limit}") Duration reviewSubmitLimit
     ) {
         this.reviewSubmitLimit = reviewSubmitLimit;
     }

@@ -69,4 +69,5 @@ decorator:
 
 app:
   policy:
-    match-review-limit: 365d
+    match-review-limit: 90d
+    player_review-limit: 90d
