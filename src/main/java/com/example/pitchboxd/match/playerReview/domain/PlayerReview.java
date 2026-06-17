@@ -113,4 +113,8 @@ public class PlayerReview extends BaseEntity {
     public boolean isOwner(Long userId) {
         return this.userId.equals(userId);
     }
+
+    public boolean isUpdated() {
+        return updatedAt != null;
+    }
 }

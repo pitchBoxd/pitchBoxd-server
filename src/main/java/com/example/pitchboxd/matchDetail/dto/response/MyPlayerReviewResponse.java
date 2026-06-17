@@ -4,5 +4,6 @@ public record MyPlayerReviewResponse(
         Long playerReviewId,
         Long playerId,
         Integer rating,
-        String comment
+        String comment,
+        boolean isModified
 ) {}

@@ -11,7 +11,8 @@ public record MatchDetailMatchReviewResponse(
         Integer point,
         String content,
         Long likeCount,
-        boolean isLiked
+        boolean isLiked,
+        boolean isModified
 ) {
     public static MatchDetailMatchReviewResponse of(HotReviewSummary hotReview, Boolean isLiked) {
         return new MatchDetailMatchReviewResponse(
@@ -22,7 +23,8 @@ public record MatchDetailMatchReviewResponse(
                 hotReview.point(),
                 hotReview.content(),
                 hotReview.likeCount(),
-                isLiked
+                isLiked,
+                hotReview.isModified()
         );
     }
 }

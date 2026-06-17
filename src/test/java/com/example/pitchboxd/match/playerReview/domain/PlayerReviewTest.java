@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -165,5 +166,20 @@ class PlayerReviewTest {
         // when & then
         assertThatThrownBy(() -> playerReview.update("zz", wrongPoint))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void isUpdated_ShouldReturnTrue_WhenUpdatedAtIsNotNull() {
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 8, "Great match!", FanType.HOME);
+        playerReview.update("Awesome match!", 9);
+        
+        assertThat(playerReview.isUpdated()).isTrue();
+    }
+
+    @Test
+    void isUpdated_ShouldReturnFalse_WhenUpdatedAtIsNull() {
+        PlayerReview playerReview = new PlayerReview(1L, 1L, 1L, 8, "Great match!", FanType.HOME);
+        
+        assertThat(playerReview.isUpdated()).isFalse();
     }
 }

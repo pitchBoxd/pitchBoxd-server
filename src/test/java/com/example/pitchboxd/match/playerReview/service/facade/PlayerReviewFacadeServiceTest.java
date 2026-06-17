@@ -180,8 +180,8 @@ class PlayerReviewFacadeServiceTest {
         User user = userRepository.save(new User("유저", "user @gmail.com", "password", homeTeam.getId()));
         PlayerReviewCreateRequest request = new PlayerReviewCreateRequest(homeTeamPlayer.getId(), "최고의 활약이었습니다.", 5);
 
-        // 24시간이 지난 후로 설정
-        clockHolder.plusHours(25);
+        // 48시간이 지난 후로 설정
+        clockHolder.plusHours(49);
 
         // when & then
         assertThatThrownBy(() -> playerReviewFacadeService.submitReview(request, match.getId(), user.getId()))

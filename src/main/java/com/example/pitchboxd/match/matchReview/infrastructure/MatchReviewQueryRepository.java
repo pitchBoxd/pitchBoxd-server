@@ -31,7 +31,8 @@ public class MatchReviewQueryRepository {
                         matchReview.fanType,
                         matchReview.point,
                         matchReview.content,
-                        matchReview.likeCount
+                        matchReview.likeCount,
+                        matchReview.updatedAt.isNotNull()
                 ))
                 .from(matchReview)
                 .join(user).on(matchReview.userId.eq(user.id))
@@ -58,7 +59,8 @@ public class MatchReviewQueryRepository {
                         matchReview.fanType,
                         matchReview.point,
                         matchReview.content,
-                        matchReview.likeCount
+                        matchReview.likeCount,
+                        matchReview.updatedAt.isNotNull()
                 ))
                 .from(matchReview)
                 .join(user).on(matchReview.userId.eq(user.id))

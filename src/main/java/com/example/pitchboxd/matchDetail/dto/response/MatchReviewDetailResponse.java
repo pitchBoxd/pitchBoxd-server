@@ -14,5 +14,6 @@ public record MatchReviewDetailResponse(
         Long likeCount,
         boolean isLiked,
         boolean isOwner,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean isModified
 ) {}

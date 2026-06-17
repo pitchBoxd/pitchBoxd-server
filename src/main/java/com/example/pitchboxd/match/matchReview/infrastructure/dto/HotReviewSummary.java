@@ -10,6 +10,7 @@ public record HotReviewSummary(
         FanType fanType,
         Integer point,
         String content,
-        Long likeCount
+        Long likeCount,
+        boolean isModified
 ) {
 }

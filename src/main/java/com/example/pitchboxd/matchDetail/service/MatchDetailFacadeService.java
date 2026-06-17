@@ -172,7 +172,8 @@ public class MatchDetailFacadeService {
                 .map(matchReview -> new MyMatchReviewResponse(
                         matchReview.getId(),
                         matchReview.getPoint(),
-                        matchReview.getContent()
+                        matchReview.getContent(),
+                        matchReview.isUpdated()
                 ))
                 .orElse(null);
 
@@ -182,7 +183,8 @@ public class MatchDetailFacadeService {
                         playerReview.getId(),
                         playerReview.getPlayerId(),
                         playerReview.getPoint(),
-                        playerReview.getContent()
+                        playerReview.getContent(),
+                        playerReview.isUpdated()
                 ))
                 .toList();
 
@@ -230,7 +232,8 @@ public class MatchDetailFacadeService {
                             r.getLikeCount(),
                             isLiked,
                             isOwner,
-                            r.getCreatedAt()
+                            r.getCreatedAt(),
+                            r.isUpdated()
                     );
                 })
                 .toList();
