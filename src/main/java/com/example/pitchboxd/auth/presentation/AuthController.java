@@ -9,6 +9,7 @@ import com.example.pitchboxd.auth.dto.response.TokenResponse;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import com.example.pitchboxd.global.exception.BusinessException;
 import com.example.pitchboxd.global.exception.ErrorCode;
+import com.example.pitchboxd.global.logging.LoggingExclude;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
+@LoggingExclude
 public class AuthController {
 
     private static final long COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 일주일
