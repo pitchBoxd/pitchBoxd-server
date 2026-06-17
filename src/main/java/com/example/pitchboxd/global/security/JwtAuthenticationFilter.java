@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.MDC;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -38,6 +39,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                if (userDetails instanceof UserAdaptor userAdaptor) {
+                    MDC.put("userId", String.valueOf(userAdaptor.getUserId()));
+                }
             }
         } catch (ExpiredJwtException e) {
             request.setAttribute("exception", ErrorCode.TOKEN_EXPIRED);

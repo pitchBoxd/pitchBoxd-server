@@ -8,6 +8,7 @@ import com.example.pitchboxd.user.dto.response.EmailAvailabilityResponse;
 import com.example.pitchboxd.user.dto.response.NicknameAvailabilityResponse;
 import com.example.pitchboxd.user.dto.response.UserCreateResponse;
 import com.example.pitchboxd.user.dto.response.UserResponse;
+import com.example.pitchboxd.global.logging.LoggingExclude;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -59,6 +60,7 @@ public class UserController {
     }
 
     @Operation(summary = "유저 생성", description = "유저를 생성합니다.")
+    @LoggingExclude
     @PostMapping
     public ResponseEntity<SuccessResponse<UserCreateResponse>> createUser(
             @Valid @RequestBody UserCreateRequest request) {

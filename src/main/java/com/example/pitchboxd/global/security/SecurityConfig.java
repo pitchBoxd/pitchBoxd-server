@@ -1,6 +1,7 @@
 package com.example.pitchboxd.global.security;
 
 import com.example.pitchboxd.auth.application.TokenManager;
+import com.example.pitchboxd.global.logging.MdcLoggingFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +92,8 @@ public class SecurityConfig {
                         .frameOptions(frame -> frame.sameOrigin())
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(tokenManager, userDetailsService),
-                        UsernamePasswordAuthenticationFilter.class);
+                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new MdcLoggingFilter(), JwtAuthenticationFilter.class);
 
         return http.build();
     }

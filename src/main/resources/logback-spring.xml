@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 로그 디렉토리 및 패턴 설정 -->
+    <property name="LOG_DIR" value="logs" />
+    <!-- 시스템 로그: traceId 등이 필요 없음 -->
+    <property name="CONSOLE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+    <!-- 커스텀 로그: traceId, IP, userId 표시 -->
+    <property name="CUSTOM_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [TraceId: %X{traceId:-N/A}] [IP: %X{ip:-N/A}] [UserId: %X{userId:-N/A}] - %msg%n" />
+    
+    <!-- 1. Console Appenders -->
+    <appender name="CONSOLE_SYSTEM" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="CONSOLE_CUSTOM" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CUSTOM_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 2. File Appenders -->
+    <!-- 시스템 로그 파일 -->
+    <appender name="FILE_SYSTEM" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/system.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/system-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 커스텀 로그 파일 (애플리케이션 로그 + SQL) -->
+    <appender name="FILE_CUSTOM" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/custom.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/custom-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${CUSTOM_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 3. Local Environment Profile -->
+    <springProfile name="local">
+        <!-- 커스텀 패키지: Console + File 저장 (DEBUG 레벨) -->
+        <logger name="com.example.pitchboxd" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE_CUSTOM" />
+            <appender-ref ref="FILE_CUSTOM" />
+        </logger>
+        <!-- p6spy SQL 로그: Console + File 저장 -->
+        <logger name="p6spy" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE_CUSTOM" />
+            <appender-ref ref="FILE_CUSTOM" />
+        </logger>
+
+        <!-- 시스템 프레임워크 로그: INFO 레벨 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_SYSTEM" />
+            <appender-ref ref="FILE_SYSTEM" />
+        </root>
+    </springProfile>
+
+    <!-- 4. Production Environment Profile -->
+    <springProfile name="prod">
+        <!-- 커스텀 패키지: Console + File 저장 (운영은 INFO 레벨) -->
+        <logger name="com.example.pitchboxd" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE_CUSTOM" />
+            <appender-ref ref="FILE_CUSTOM" />
+        </logger>
+        <!-- p6spy SQL 로그: Console + File 저장 -->
+        <logger name="p6spy" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE_CUSTOM" />
+            <appender-ref ref="FILE_CUSTOM" />
+        </logger>
+
+        <!-- 운영 환경에서는 시스템 프레임워크 로그는 최소화 (WARN 레벨) -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE_SYSTEM" />
+            <appender-ref ref="FILE_SYSTEM" />
+        </root>
+    </springProfile>
+
+</configuration>
