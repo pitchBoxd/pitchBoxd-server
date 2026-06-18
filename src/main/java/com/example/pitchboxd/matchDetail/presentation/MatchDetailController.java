@@ -7,6 +7,7 @@ import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalRespons
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResultResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailStatsResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewSliceResponse;
 import com.example.pitchboxd.matchDetail.service.MatchDetailFacadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -84,6 +85,24 @@ public class MatchDetailController {
     ) {
         MatchReviewSliceResponse response = matchDetailFacadeService.getMatchReviews(matchId, cursorId, cursorLikeCount,
                 sort, size, userId);
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @Operation(summary = "경기 페이지 특정 선수 리뷰 조회 (무한 스크롤 페이징)", description = "선수 카드 클릭 시 최신순(LATEST) 및 추천순(LIKE)으로 플레이어 리뷰를 페이징 조회합니다.")
+    @GetMapping("{matchId}/players/{playerId}/player-reviews")
+    public ResponseEntity<SuccessResponse<PlayerReviewSliceResponse>> getPlayerReviews(
+            @PathVariable Long matchId,
+            @PathVariable Long playerId,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) Long cursorLikeCount,
+            @RequestParam(defaultValue = "LATEST") ReviewSortType sort,
+            @RequestParam(defaultValue = "10") int size,
+            @LoginUserId(required = false) Long userId
+    ) {
+        PlayerReviewSliceResponse response = matchDetailFacadeService.getPlayerReviews(matchId, playerId, cursorId,
+                cursorLikeCount, sort, size, userId);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));

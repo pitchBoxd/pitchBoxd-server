@@ -32,6 +32,10 @@ import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.time.LocalDateTime;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewSliceResponse;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewDetailResponse;
+import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -345,5 +349,54 @@ class PlayerReviewFacadeServiceTest {
         assertThatThrownBy(() -> playerReviewFacadeService.deleteReview(playerReview.getId(), other.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
+    }
+
+    @Test
+    void getPlayerReviews_success() {
+        // given
+        User user1 = userRepository.save(new User("유저1", "user1@gmail.com", "password", homeTeam.getId()));
+        User user2 = userRepository.save(new User("유저2", "user2@gmail.com", "password", null));
+        User loginUser = userRepository.save(new User("로그인유저", "login@gmail.com", "password", homeTeam.getId()));
+
+        PlayerReview review1 = new PlayerReview(match.getId(), homeTeamPlayer.getId(), user1.getId(), 8, "리뷰1", FanType.HOME);
+        review1.addOneLikeCount();
+        review1.addOneLikeCount();
+        playerReviewRepository.save(review1);
+
+        PlayerReview review2 = new PlayerReview(match.getId(), homeTeamPlayer.getId(), user2.getId(), 6, "리뷰2", FanType.NEUTRAL);
+        review2.addOneLikeCount();
+        playerReviewRepository.save(review2);
+
+        playerReviewLikeRepository.save(new PlayerReviewLike(review1.getId(), loginUser.getId()));
+
+        // when
+        PlayerReviewSliceResponse response = playerReviewFacadeService.getPlayerReviews(
+                match.getId(),
+                homeTeamPlayer.getId(),
+                null,
+                null,
+                ReviewSortType.LIKE,
+                2,
+                loginUser.getId()
+        );
+
+        // then
+        assertAll(
+                () -> assertThat(response.reviews()).hasSize(2),
+                () -> assertThat(response.hasNext()).isFalse(),
+                () -> assertThat(response.reviews().get(0).id()).isEqualTo(review1.getId()),
+                () -> assertThat(response.reviews().get(0).nickname()).isEqualTo("유저1"),
+                () -> assertThat(response.reviews().get(0).favoriteTeamName()).isEqualTo("FC서울"),
+                () -> assertThat(response.reviews().get(0).likeCount()).isEqualTo(2),
+                () -> assertThat(response.reviews().get(0).isLiked()).isTrue(),
+                () -> assertThat(response.reviews().get(0).fanType()).isEqualTo("HOME"),
+
+                () -> assertThat(response.reviews().get(1).id()).isEqualTo(review2.getId()),
+                () -> assertThat(response.reviews().get(1).nickname()).isEqualTo("유저2"),
+                () -> assertThat(response.reviews().get(1).favoriteTeamName()).isNull(),
+                () -> assertThat(response.reviews().get(1).likeCount()).isEqualTo(1),
+                () -> assertThat(response.reviews().get(1).isLiked()).isFalse(),
+                () -> assertThat(response.reviews().get(1).fanType()).isEqualTo("NEUTRAL")
+        );
     }
 }

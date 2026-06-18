@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AdminFacadeService {
 
     private final MatchSyncService matchSyncService;
@@ -36,11 +35,11 @@ public class AdminFacadeService {
     private final MatchService matchService;
     private final NaverSportsClient naverSportsClient;
     private final ObjectProvider<AdminFacadeService> selfProvider;
-
+    
     public void autoFinishMatchesAndUpdateLineup(CreateMatchRequest request) {
         List<Match> matches = matchSyncService.findMatchesInPeriod(request.from(), request.to());
         log.info("Found {} matches in period to check and sync finished details.", matches.size());
-        
+
         AdminFacadeService self = selfProvider.getObject();
         for (Match match : matches) {
             try {
@@ -52,7 +51,8 @@ public class AdminFacadeService {
                     log.info("Match is not finished yet: {}", match.getNaverId());
                 }
             } catch (Exception e) {
-                log.error("Failed to auto-finish/update match (naverId: {}): {}", match.getNaverId(), e.getMessage(), e);
+                log.error("Failed to auto-finish/update match (naverId: {}): {}", match.getNaverId(), e.getMessage(),
+                        e);
             }
         }
     }

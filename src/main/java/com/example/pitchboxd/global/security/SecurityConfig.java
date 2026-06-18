@@ -63,6 +63,7 @@ public class SecurityConfig {
                                         "/api/v1/matches/*/detail/personal",
                                         "/api/v1/matches/*/match-reviews/hot",
                                         "/api/v1/matches/*/match-reviews",
+                                        "/api/v1/matches/*/players/*/player-reviews",
                                         "/login/oauth2/code/google",
                                         "/favicon.ico",
                                         "/error"

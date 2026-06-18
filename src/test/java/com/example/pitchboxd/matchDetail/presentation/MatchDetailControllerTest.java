@@ -24,6 +24,8 @@ import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResultResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailStatsResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchReviewDetailResponse;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewSliceResponse;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewDetailResponse;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.season.domain.Season;
@@ -493,6 +495,64 @@ class MatchDetailControllerTest {
         assertThat(second.reviewId()).isEqualTo(myReview.getId());
         assertThat(second.isLiked()).isFalse();
         assertThat(second.isOwner()).isTrue();
+    }
+
+    @Test
+    void 선수_리뷰를_최신순으로_커서_페이징_조회한다() {
+        // given
+        Player homePlayer = playerRepository.findAll().get(0);
+        User author1 = userRepository.save(new User("작성자1", "author1@test.com", "pass"));
+        User author2 = userRepository.save(new User("작성자2", "author2@test.com", "pass"));
+
+        PlayerReview review1 = playerReviewRepository.save(new PlayerReview(match.getId(), homePlayer.getId(), author1.getId(), 5, "선수 리뷰1"));
+        PlayerReview review2 = playerReviewRepository.save(new PlayerReview(match.getId(), homePlayer.getId(), author2.getId(), 6, "선수 리뷰2"));
+        PlayerReview review3 = playerReviewRepository.save(new PlayerReview(match.getId(), homePlayer.getId(), author1.getId(), 7, "선수 리뷰3"));
+
+        // when - 첫 번째 페이지 조회
+        PlayerReviewSliceResponse response1 = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("sort", "LATEST")
+                .queryParam("size", 2)
+                .when()
+                .get("/api/v1/matches/{matchId}/players/{playerId}/player-reviews", match.getId(), homePlayer.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", PlayerReviewSliceResponse.class);
+
+        // then - 첫 번째 페이지
+        assertAll(
+                () -> assertThat(response1.reviews()).hasSize(2),
+                () -> assertThat(response1.reviews().get(0).id()).isEqualTo(review3.getId()),
+                () -> assertThat(response1.reviews().get(1).id()).isEqualTo(review2.getId()),
+                () -> assertThat(response1.hasNext()).isTrue(),
+                () -> assertThat(response1.nextCursorId()).isEqualTo(review2.getId()),
+                () -> assertThat(response1.nextCursorLikeCount()).isEqualTo(0L)
+        );
+
+        // when - 두 번째 페이지 조회
+        PlayerReviewSliceResponse response2 = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("sort", "LATEST")
+                .queryParam("size", 2)
+                .queryParam("cursorId", response1.nextCursorId())
+                .when()
+                .get("/api/v1/matches/{matchId}/players/{playerId}/player-reviews", match.getId(), homePlayer.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", PlayerReviewSliceResponse.class);
+
+        // then - 두 번째 페이지
+        assertAll(
+                () -> assertThat(response2.reviews()).hasSize(1),
+                () -> assertThat(response2.reviews().get(0).id()).isEqualTo(review1.getId()),
+                () -> assertThat(response2.hasNext()).isFalse(),
+                () -> assertThat(response2.nextCursorId()).isNull(),
+                () -> assertThat(response2.nextCursorLikeCount()).isNull()
+        );
     }
 }
 

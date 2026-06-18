@@ -58,12 +58,12 @@ public class MatchSyncService {
 
         // 경기 종료 시점은 경기 시작 2시간 뒤로 설정합니다.
         LocalDateTime finishedAt = match.getStartTime().plusHours(2);
-        
+
         // 기존의 decideMatchResult는 결과가 이미 존재하면 예외를 발생시키므로,
         // 이미 종료된 경기의 데이터 덮어쓰기(재동기화)를 정상 지원하기 위해 안전한 update 메소드를 사용합니다.
         match.update(null, null, null, finishedAt, MatchStatus.FINISHED, null, matchResult, null);
     }
-
+    
     public List<Match> findMatchesInPeriod(java.time.LocalDate from, java.time.LocalDate to) {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(java.time.LocalTime.MAX);

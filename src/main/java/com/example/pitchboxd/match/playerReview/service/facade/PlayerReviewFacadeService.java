@@ -22,6 +22,19 @@ import com.example.pitchboxd.player.service.PlayerService;
 import com.example.pitchboxd.user.application.UserService;
 import com.example.pitchboxd.user.domain.User;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.function.Function;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewSliceResponse;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewDetailResponse;
+import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
+import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewQueryRepository;
+import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewLikeRepository;
+import com.example.pitchboxd.user.infrastructure.UserRepository;
+import com.example.pitchboxd.team.infrastructure.TeamRepository;
+import com.example.pitchboxd.team.domain.Team;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +52,10 @@ public class PlayerReviewFacadeService {
     private final PlayerStatisticsService playerStatisticsService;
     private final PlayerReviewLikeService playerReviewLikeService;
     private final PlayerReviewSubmitPolicy playerReviewSubmitPolicy;
+    private final PlayerReviewQueryRepository playerReviewQueryRepository;
+    private final PlayerReviewLikeRepository playerReviewLikeRepository;
+    private final UserRepository userRepository;
+    private final TeamRepository teamRepository;
 
     private final ClockHolder clockHolder;
 
@@ -135,5 +152,83 @@ public class PlayerReviewFacadeService {
         // TODO: 다른 트랜잭션으로 분리 필요. 나중에 이벤트 리스너로 분리 ㄱㄱ
         playerStatisticsService.removeReview(playerReview.getMatchId(), playerReview.getPlayerId(),
                 playerReview.getPoint());
+    }
+
+    public PlayerReviewSliceResponse getPlayerReviews(Long matchId, Long playerId, Long cursorId, Long cursorLikeCount, ReviewSortType sort, int size, Long loginUserId) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("페이지 크기는 1 이상이어야 합니다.");
+        }
+        if (ReviewSortType.LIKE == sort) {
+            if ((cursorId == null && cursorLikeCount != null) || (cursorId != null && cursorLikeCount == null)) {
+                throw new IllegalArgumentException("추천순 정렬 페이징 시 cursorId와 cursorLikeCount는 모두 null이거나 모두 null이 아니어야 합니다.");
+            }
+        }
+
+        List<PlayerReview> reviews = playerReviewQueryRepository.findReviewsByCursor(matchId, playerId, cursorId, cursorLikeCount, sort, size);
+
+        boolean hasNext = reviews.size() > size;
+        List<PlayerReview> content = hasNext ? reviews.subList(0, size) : reviews;
+
+        List<Long> authorIds = content.stream()
+                .map(PlayerReview::getUserId)
+                .distinct()
+                .toList();
+
+        Map<Long, User> authorMap = userRepository.findAllById(authorIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity(), (existing, replacement) -> existing));
+
+        List<Long> teamIds = authorMap.values().stream()
+                .map(User::getFavoriteTeamId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, String> teamMap = teamIds.isEmpty() ? Map.of() : teamRepository.findAllById(teamIds).stream()
+                .collect(Collectors.toMap(Team::getId, Team::getName, (existing, replacement) -> existing));
+
+        List<Long> reviewIds = content.stream()
+                .map(PlayerReview::getId)
+                .toList();
+
+        java.util.Set<Long> likedReviewIds = (loginUserId != null && !reviewIds.isEmpty())
+                ? new java.util.HashSet<>(playerReviewLikeRepository.findLikedReviewIdsIn(reviewIds, loginUserId))
+                : java.util.Collections.emptySet();
+
+        List<PlayerReviewDetailResponse> reviewResponses = content.stream()
+                .map(r -> {
+                    User author = authorMap.get(r.getUserId());
+                    String nickname = author != null ? author.getNickname() : "Unknown";
+
+                    String favoriteTeamName = null;
+                    if (author != null && author.getFavoriteTeamId() != null) {
+                        favoriteTeamName = teamMap.get(author.getFavoriteTeamId());
+                    }
+
+                    boolean isLiked = likedReviewIds.contains(r.getId());
+                    String fanTypeStr = r.getFanType() != null ? r.getFanType().name() : null;
+
+                    return new PlayerReviewDetailResponse(
+                            r.getId(),
+                            nickname,
+                            favoriteTeamName,
+                            r.getPoint(),
+                            r.getContent(),
+                            fanTypeStr,
+                            r.getLikeCount(),
+                            isLiked,
+                            r.getCreatedAt()
+                    );
+                })
+                .toList();
+
+        Long nextCursorId = null;
+        Long nextCursorLikeCount = null;
+        if (hasNext && !reviewResponses.isEmpty()) {
+            PlayerReviewDetailResponse last = reviewResponses.get(reviewResponses.size() - 1);
+            nextCursorId = last.id();
+            nextCursorLikeCount = last.likeCount();
+        }
+
+        return new PlayerReviewSliceResponse(reviewResponses, nextCursorId, nextCursorLikeCount, hasNext);
     }
 }

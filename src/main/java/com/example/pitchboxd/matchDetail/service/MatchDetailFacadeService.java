@@ -26,6 +26,8 @@ import com.example.pitchboxd.matchDetail.dto.response.MatchReviewSliceResponse;
 import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewQueryRepository;
+import com.example.pitchboxd.match.playerReview.service.facade.PlayerReviewFacadeService;
+import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewSliceResponse;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import java.util.List;
@@ -53,6 +55,7 @@ public class MatchDetailFacadeService {
     private final PlayerReviewRepository playerReviewRepository;
     private final MatchReviewQueryRepository matchReviewQueryRepository;
     private final UserRepository userRepository;
+    private final PlayerReviewFacadeService playerReviewFacadeService;
 
     public MatchDetailResultResponse getMatchResultData(Long matchId) {
         MatchDetailStaticModel matchDetail = matchQueryService.findMatchStaticDetailById(matchId);
@@ -247,5 +250,9 @@ public class MatchDetailFacadeService {
         }
 
         return new MatchReviewSliceResponse(reviewResponses, nextCursorId, nextCursorLikeCount, hasNext);
+    }
+
+    public PlayerReviewSliceResponse getPlayerReviews(Long matchId, Long playerId, Long cursorId, Long cursorLikeCount, ReviewSortType sort, int size, Long userId) {
+        return playerReviewFacadeService.getPlayerReviews(matchId, playerId, cursorId, cursorLikeCount, sort, size, userId);
     }
 }
