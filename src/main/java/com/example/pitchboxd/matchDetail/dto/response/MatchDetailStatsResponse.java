@@ -8,7 +8,12 @@ public record MatchDetailStatsResponse(
         Double homeAverage,
         Double awayAverage,
         Map<Integer, Long> distributionMap,
-        MatchHighlightsResponse highlights
+        MatchHighlightsResponse highlights,
+        Double homePlayerAverage,
+        Double awayPlayerAverage,
+        Long homeCount,
+        Long awayCount,
+        Long neutralCount
 ) {
     public record HighlightPlayerResponse(
             Long playerId,

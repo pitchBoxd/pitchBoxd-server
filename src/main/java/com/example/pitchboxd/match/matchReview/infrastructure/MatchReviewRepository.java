@@ -26,4 +26,7 @@ public interface MatchReviewRepository extends JpaRepository<MatchReview, Long> 
     
     @Query("select r.point as point, count(r) as count from MatchReview r where r.matchId = :matchId group by r.point")
     List<Object[]> countPointDistributionByMatchId(@Param("matchId") Long matchId);
+
+    @Query("select r.fanType as fanType, count(r) as count from MatchReview r where r.matchId = :matchId group by r.fanType")
+    java.util.List<Object[]> countFanTypeDistributionByMatchId(@Param("matchId") Long matchId);
 }

@@ -18,6 +18,8 @@ import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewReposit
 import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
+import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
+import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatisticsRepository;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResultResponse;
@@ -90,6 +92,9 @@ class MatchDetailControllerTest {
 
     @Autowired
     private PlayerReviewRepository playerReviewRepository;
+
+    @Autowired
+    private PlayerStatisticsRepository playerStatisticsRepository;
 
     private String accessToken;
     private User loginUser;
@@ -253,11 +258,13 @@ class MatchDetailControllerTest {
                 () -> assertThat(response.myMatchReview().reviewId()).isEqualTo(myMatchReview.getId()),
                 () -> assertThat(response.myMatchReview().rating()).isEqualTo(8),
                 () -> assertThat(response.myMatchReview().comment()).isEqualTo("좋은 경기였습니다."),
+                () -> assertThat(response.myMatchReview().likeCount()).isEqualTo(0L),
                 () -> assertThat(response.myPlayerReviews()).hasSize(1),
                 () -> assertThat(response.myPlayerReviews().get(0).playerReviewId()).isEqualTo(myPlayerReview.getId()),
                 () -> assertThat(response.myPlayerReviews().get(0).playerId()).isEqualTo(homePlayer.getId()),
                 () -> assertThat(response.myPlayerReviews().get(0).rating()).isEqualTo(9),
-                () -> assertThat(response.myPlayerReviews().get(0).comment()).isEqualTo("오늘 활약이 대단했습니다.")
+                () -> assertThat(response.myPlayerReviews().get(0).comment()).isEqualTo("오늘 활약이 대단했습니다."),
+                () -> assertThat(response.myPlayerReviews().get(0).likeCount()).isEqualTo(0L)
         );
     }
 
@@ -552,6 +559,39 @@ class MatchDetailControllerTest {
                 () -> assertThat(response2.hasNext()).isFalse(),
                 () -> assertThat(response2.nextCursorId()).isNull(),
                 () -> assertThat(response2.nextCursorLikeCount()).isNull()
+        );
+    }
+
+    @Test
+    void 경기_상세_통계_데이터를_조회할_때_선수평점과_팬분포를_포함한다() {
+        // given
+        Player homePlayer = playerRepository.findAll().get(0);
+        PlayerStatistics homeStat = new PlayerStatistics(homePlayer.getId(), match.getId());
+        homeStat.addNewReview(8); // 평점 = 4.0
+        playerStatisticsRepository.save(homeStat);
+
+        User author = userRepository.save(new User("팬작성자", "fan@test.com", "pass"));
+        matchReviewRepository.save(new MatchReview(match.getId(), author.getId(), 9, "경기 후기", FanType.HOME));
+
+        // when
+        MatchDetailStatsResponse statsResponse = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/stats", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailStatsResponse.class);
+
+        // then
+        assertAll(
+                () -> assertThat(statsResponse.homePlayerAverage()).isEqualTo(4.0),
+                () -> assertThat(statsResponse.awayPlayerAverage()).isEqualTo(0.0),
+                () -> assertThat(statsResponse.homeCount()).isEqualTo(1L),
+                () -> assertThat(statsResponse.awayCount()).isEqualTo(0L),
+                () -> assertThat(statsResponse.neutralCount()).isEqualTo(0L)
         );
     }
 }

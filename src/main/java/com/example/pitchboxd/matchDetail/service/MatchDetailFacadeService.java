@@ -15,6 +15,7 @@ import com.example.pitchboxd.matchDetail.dto.response.LineupResponses;
 import com.example.pitchboxd.match.playerStatistics.domain.PlayerStatistics;
 import com.example.pitchboxd.match.playerStatistics.infrastructure.PlayerStatisticsRepository;
 import com.example.pitchboxd.match.matchStatistics.domain.MatchStatistics;
+import com.example.pitchboxd.match.matchStatistics.domain.FanType;
 import com.example.pitchboxd.match.matchStatistics.infrastructure.MatchStatisticsRepository;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewRepository;
 import com.example.pitchboxd.match.playerReview.infrastructure.PlayerReviewRepository;
@@ -94,6 +95,7 @@ public class MatchDetailFacadeService {
     }
 
     public MatchDetailStatsResponse getMatchStatsData(Long matchId) {
+        MatchDetailStaticModel matchDetail = matchQueryService.findMatchStaticDetailById(matchId);
         List<LineupPlayerModel> lineups = matchLineupQueryService.findLineupAndPlayedPlayers(matchId);
         List<PlayerStatistics> playerStats = playerStatisticsRepository.findAllByMatchId(matchId);
 
@@ -143,12 +145,57 @@ public class MatchDetailFacadeService {
                 ))
                 .toList();
 
+        Map<Long, Double> playerRatingsMap = playerStats.stream()
+                .filter(ps -> ps.getReviewCount() > 0)
+                .collect(Collectors.toMap(
+                        PlayerStatistics::getPlayerId,
+                        PlayerStatistics::getAverageRating,
+                        (existing, replacement) -> existing
+                ));
+
+        double homePlayerAverage = lineups.stream()
+                .filter(l -> l.teamId().equals(matchDetail.homeTeamId()))
+                .mapToDouble(l -> playerRatingsMap.getOrDefault(l.playerId(), 0.0))
+                .filter(rating -> rating > 0.0)
+                .average()
+                .orElse(0.0);
+
+        double awayPlayerAverage = lineups.stream()
+                .filter(l -> l.teamId().equals(matchDetail.awayTeamId()))
+                .mapToDouble(l -> playerRatingsMap.getOrDefault(l.playerId(), 0.0))
+                .filter(rating -> rating > 0.0)
+                .average()
+                .orElse(0.0);
+
+        List<Object[]> fanDistribution = matchReviewRepository.countFanTypeDistributionByMatchId(matchId);
+        long homeCount = 0L;
+        long awayCount = 0L;
+        long neutralCount = 0L;
+        for (Object[] row : fanDistribution) {
+            FanType fanType = (FanType) row[0];
+            Long count = (Long) row[1];
+            if (fanType != null && count != null) {
+                if (fanType == FanType.HOME) {
+                    homeCount = count;
+                } else if (fanType == FanType.AWAY) {
+                    awayCount = count;
+                } else if (fanType == FanType.NEUTRAL) {
+                    neutralCount = count;
+                }
+            }
+        }
+
         return new MatchDetailStatsResponse(
                 matchStats.getTotalAverage(),
                 matchStats.getHomeAverage(),
                 matchStats.getAwayAverage(),
                 distributionMap,
-                new MatchDetailStatsResponse.MatchHighlightsResponse(mom, top3)
+                new MatchDetailStatsResponse.MatchHighlightsResponse(mom, top3),
+                homePlayerAverage,
+                awayPlayerAverage,
+                homeCount,
+                awayCount,
+                neutralCount
         );
     }
 
@@ -176,7 +223,8 @@ public class MatchDetailFacadeService {
                         matchReview.getId(),
                         matchReview.getPoint(),
                         matchReview.getContent(),
-                        matchReview.isUpdated()
+                        matchReview.isUpdated(),
+                        matchReview.getLikeCount()
                 ))
                 .orElse(null);
 
@@ -187,7 +235,8 @@ public class MatchDetailFacadeService {
                         playerReview.getPlayerId(),
                         playerReview.getPoint(),
                         playerReview.getContent(),
-                        playerReview.isUpdated()
+                        playerReview.isUpdated(),
+                        playerReview.getLikeCount()
                 ))
                 .toList();
 

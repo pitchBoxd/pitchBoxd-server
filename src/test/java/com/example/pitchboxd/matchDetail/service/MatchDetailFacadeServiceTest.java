@@ -312,8 +312,10 @@ class MatchDetailFacadeServiceTest {
                 () -> assertThat(response.isEvaluated()).isTrue(),
                 () -> assertThat(response.myMatchReview()).isNotNull(),
                 () -> assertThat(response.myMatchReview().reviewId()).isEqualTo(myMatchReview.getId()),
+                () -> assertThat(response.myMatchReview().likeCount()).isEqualTo(0L),
                 () -> assertThat(response.myPlayerReviews()).hasSize(1),
-                () -> assertThat(response.myPlayerReviews().get(0).playerId()).isEqualTo(player.getId())
+                () -> assertThat(response.myPlayerReviews().get(0).playerId()).isEqualTo(player.getId()),
+                () -> assertThat(response.myPlayerReviews().get(0).likeCount()).isEqualTo(0L)
         );
     }
 
@@ -365,4 +367,45 @@ class MatchDetailFacadeServiceTest {
         );
     }
 
+    @Test
+    void 경기의_상세_통계_조회_시_라인업_선수_평점_평균과_팬_분포가_정확히_반환된다() {
+        // given
+        Player homePlayer = playerRepository.save(new Player(homeTeam.getId(), "홈선수", "p1"));
+        Player awayPlayer = playerRepository.save(new Player(awayTeam.getId(), "원정선수", "p2"));
+
+        matchLineupRepository.save(new MatchLineup(match.getId(), homePlayer.getId(), 7, ParticipationStatus.STARTER));
+        matchLineupRepository.save(new MatchLineup(match.getId(), awayPlayer.getId(), 9, ParticipationStatus.STARTER));
+
+        // 선수 평점 통계 정보 셋팅
+        PlayerStatistics homeStat = new PlayerStatistics(homePlayer.getId(), match.getId());
+        homeStat.addNewReview(8); // 평점 = 4.0
+        playerStatisticsRepository.save(homeStat);
+
+        PlayerStatistics awayStat = new PlayerStatistics(awayPlayer.getId(), match.getId());
+        awayStat.addNewReview(10); // 평점 = 5.0
+        playerStatisticsRepository.save(awayStat);
+
+        // 경기 리뷰 생성 (팬 분포 확인용)
+        User user1 = userRepository.save(new User("유저1", "u1@test.com", "pass"));
+        User user2 = userRepository.save(new User("유저2", "u2@test.com", "pass"));
+        User user3 = userRepository.save(new User("유저3", "u3@test.com", "pass"));
+
+        matchReviewRepository.save(new MatchReview(match.getId(), user1.getId(), 8, "좋음", FanType.HOME));
+        matchReviewRepository.save(new MatchReview(match.getId(), user2.getId(), 7, "보통", FanType.AWAY));
+        matchReviewRepository.save(new MatchReview(match.getId(), user3.getId(), 9, "훌륭", FanType.NEUTRAL));
+
+        // when
+        MatchDetailStatsResponse result = matchDetailFacadeService.getMatchStatsData(match.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(result.homePlayerAverage()).isEqualTo(4.0),
+                () -> assertThat(result.awayPlayerAverage()).isEqualTo(5.0),
+                () -> assertThat(result.homeCount()).isEqualTo(1L),
+                () -> assertThat(result.awayCount()).isEqualTo(1L),
+                () -> assertThat(result.neutralCount()).isEqualTo(1L)
+        );
+    }
+
 }
+
