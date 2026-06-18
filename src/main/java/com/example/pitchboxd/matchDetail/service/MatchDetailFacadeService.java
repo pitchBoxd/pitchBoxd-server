@@ -28,6 +28,8 @@ import com.example.pitchboxd.match.matchReview.domain.MatchReview;
 import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
 import com.example.pitchboxd.match.matchReview.infrastructure.MatchReviewQueryRepository;
 import com.example.pitchboxd.match.playerReview.service.facade.PlayerReviewFacadeService;
+import com.example.pitchboxd.match.playerReview.service.domain.PlayerReviewLikeService;
+import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewSliceResponse;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
@@ -57,6 +59,7 @@ public class MatchDetailFacadeService {
     private final MatchReviewQueryRepository matchReviewQueryRepository;
     private final UserRepository userRepository;
     private final PlayerReviewFacadeService playerReviewFacadeService;
+    private final PlayerReviewLikeService playerReviewLikeService;
 
     public MatchDetailResultResponse getMatchResultData(Long matchId) {
         MatchDetailStaticModel matchDetail = matchQueryService.findMatchStaticDetailById(matchId);
@@ -224,19 +227,25 @@ public class MatchDetailFacadeService {
                         matchReview.getPoint(),
                         matchReview.getContent(),
                         matchReview.isUpdated(),
-                        matchReview.getLikeCount()
+                        matchReview.getLikeCount(),
+                        matchReviewLikeService.isLiked(matchReview.getId(), userId)
                 ))
                 .orElse(null);
 
-        List<MyPlayerReviewResponse> myPlayerReviews = playerReviewRepository.findAllByMatchIdAndUserId(matchId, userId)
-                .stream()
+        List<PlayerReview> fetchedPlayerReviews =
+                playerReviewRepository.findAllByMatchIdAndUserId(matchId, userId);
+        List<Long> playerReviewIds = fetchedPlayerReviews.stream().map(pr -> pr.getId()).toList();
+        Map<Long, Boolean> playerReviewLikedStatus = playerReviewLikeService.checkLikedStatusForReviews(playerReviewIds, userId);
+
+        List<MyPlayerReviewResponse> myPlayerReviews = fetchedPlayerReviews.stream()
                 .map(playerReview -> new MyPlayerReviewResponse(
                         playerReview.getId(),
                         playerReview.getPlayerId(),
                         playerReview.getPoint(),
                         playerReview.getContent(),
                         playerReview.isUpdated(),
-                        playerReview.getLikeCount()
+                        playerReview.getLikeCount(),
+                        playerReviewLikedStatus.getOrDefault(playerReview.getId(), false)
                 ))
                 .toList();
 

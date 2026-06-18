@@ -6,5 +6,6 @@ public record MyPlayerReviewResponse(
         Integer rating,
         String comment,
         boolean isModified,
-        Long likeCount
+        Long likeCount,
+        boolean isLiked
 ) {}
