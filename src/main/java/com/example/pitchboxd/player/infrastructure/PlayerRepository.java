@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 public interface PlayerRepository extends JpaRepository<Player, Long> {
     Optional<Player> findByNaverId(String naverPlayerId);
 
+    Optional<Player> findByTeamIdAndName(Long teamId, String name);
+
     @Query("SELECT p.naverId FROM Player p WHERE p.naverId IN :naverIds")
     List<String> findNaverIdsByNaverIdIn(@Param("naverIds") Collection<String> naverIds);
 }

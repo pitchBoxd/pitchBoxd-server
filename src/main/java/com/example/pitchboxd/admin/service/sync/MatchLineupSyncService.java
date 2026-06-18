@@ -11,6 +11,7 @@ import com.example.pitchboxd.match.lineup.service.MatchLineupService;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.infrastructure.PlayerRepository;
 import com.example.pitchboxd.player.service.PlayerService;
+import com.example.pitchboxd.match.playerStatistics.service.PlayerStatisticsService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class MatchLineupSyncService {
     private final PlayerRepository playerRepository;
     private final MatchLineupService matchLineupService;
     private final NaverSportsClient naverSportsClient;
+    private final PlayerStatisticsService playerStatisticsService;
 
     @Transactional
     public void syncLineup(String naverGameId) {
@@ -41,36 +43,45 @@ public class MatchLineupSyncService {
 
         List<MatchLineup> lineups = new ArrayList<>();
 
-        addStaterLineup(lineups, response.getHomeStarters(), match);
-        addSubstitutionLineup(lineups, response.getHomeSubstitutions(), match);
+        addStaterLineup(lineups, response.getHomeStarters(), match, match.getHomeTeamId());
+        addSubstitutionLineup(lineups, response.getHomeSubstitutions(), match, match.getHomeTeamId());
 
-        addStaterLineup(lineups, response.getAwayStarters(), match);
-        addSubstitutionLineup(lineups, response.getAwaySubstitutions(), match);
+        addStaterLineup(lineups, response.getAwayStarters(), match, match.getAwayTeamId());
+        addSubstitutionLineup(lineups, response.getAwaySubstitutions(), match, match.getAwayTeamId());
 
         matchLineupService.createAllMatchLineup(lineups);
+
+        List<Long> playerIds = lineups.stream()
+                .map(MatchLineup::getPlayerId)
+                .toList();
+        playerStatisticsService.createAllPlayerStatistics(match.getId(), playerIds);
     }
 
-    private void addStaterLineup(List<MatchLineup> lineups, List<NaverPlayerNode> nodes, Match match) {
+    private void addStaterLineup(List<MatchLineup> lineups, List<NaverPlayerNode> nodes, Match match, Long teamId) {
         for (NaverPlayerNode node : nodes) {
-            playerRepository.findByNaverId(node.playerId()).ifPresentOrElse(
-                player -> lineups.add(createLineup(match.getId(), player.getId(), node, ParticipationStatus.STARTER)),
-                () -> log.warn("선발 라인업 동기화 제외 - DB에 존재하지 않는 선수입니다. (선수 ID: {}, 이름: {})", node.playerId(), node.name())
-            );
+            playerRepository.findByNaverId(node.playerId())
+                .or(() -> playerRepository.findByTeamIdAndName(teamId, node.name()))
+                .ifPresentOrElse(
+                    player -> lineups.add(createLineup(match.getId(), player.getId(), node, ParticipationStatus.STARTER)),
+                    () -> log.warn("선발 라인업 동기화 제외 - DB에 존재하지 않는 선수입니다. (선수 ID: {}, 이름: {})", node.playerId(), node.name())
+                );
         }
     }
 
-    private void addSubstitutionLineup(List<MatchLineup> lineups, List<NaverPlayerNode> nodes, Match match) {
+    private void addSubstitutionLineup(List<MatchLineup> lineups, List<NaverPlayerNode> nodes, Match match, Long teamId) {
         for (NaverPlayerNode node : nodes) {
-            playerRepository.findByNaverId(node.playerId()).ifPresentOrElse(
-                player -> {
-                    ParticipationStatus status =
-                            node.changed() ? ParticipationStatus.SUBSTITUTED_IN : ParticipationStatus.BENCH;
+            playerRepository.findByNaverId(node.playerId())
+                .or(() -> playerRepository.findByTeamIdAndName(teamId, node.name()))
+                .ifPresentOrElse(
+                    player -> {
+                        ParticipationStatus status =
+                                node.changed() ? ParticipationStatus.SUBSTITUTED_IN : ParticipationStatus.BENCH;
 
-                    MatchLineup matchLineup = createLineup(match.getId(), player.getId(), node, status);
-                    lineups.add(matchLineup);
-                },
-                () -> log.warn("교체 라인업 동기화 제외 - DB에 존재하지 않는 선수입니다. (선수 ID: {}, 이름: {})", node.playerId(), node.name())
-            );
+                        MatchLineup matchLineup = createLineup(match.getId(), player.getId(), node, status);
+                        lineups.add(matchLineup);
+                    },
+                    () -> log.warn("교체 라인업 동기화 제외 - DB에 존재하지 않는 선수입니다. (선수 ID: {}, 이름: {})", node.playerId(), node.name())
+                );
         }
     }
 

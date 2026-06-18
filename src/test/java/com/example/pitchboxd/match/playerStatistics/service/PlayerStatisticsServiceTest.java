@@ -180,4 +180,38 @@ class PlayerStatisticsServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PLAYER_STATISTICS_NOT_FOUND.getMessage());
     }
+    @Test
+    void 여러_선수들의_통계_엔티티를_생성하고_저장한다() {
+        // given
+        Long matchId = 1L;
+        java.util.List<Long> playerIds = java.util.List.of(10L, 20L, 30L);
+
+        // when
+        playerStatisticsService.createAllPlayerStatistics(matchId, playerIds);
+
+        // then
+        java.util.List<PlayerStatistics> stats = playerStatisticsRepository.findAllByMatchId(matchId);
+        assertThat(stats).hasSize(3);
+        assertThat(stats).extracting(PlayerStatistics::getPlayerId)
+                .containsExactlyInAnyOrder(10L, 20L, 30L);
+    }
+
+    @Test
+    void 이미_생성된_선수_통계는_덮어쓰지_않고_없는_선수들의_통계만_추가_생성한다() {
+        // given
+        Long matchId = 1L;
+        playerStatisticsRepository.save(new PlayerStatistics(10L, matchId)); // 이미 10번 선수 통계 존재
+        
+        java.util.List<Long> playerIds = java.util.List.of(10L, 20L, 30L);
+
+        // when
+        playerStatisticsService.createAllPlayerStatistics(matchId, playerIds);
+
+        // then
+        java.util.List<PlayerStatistics> stats = playerStatisticsRepository.findAllByMatchId(matchId);
+        assertThat(stats).hasSize(3); // 추가로 20, 30만 생성되어 총 3개여야 함
+        assertThat(stats).extracting(PlayerStatistics::getPlayerId)
+                .containsExactlyInAnyOrder(10L, 20L, 30L);
+    }
 }
+

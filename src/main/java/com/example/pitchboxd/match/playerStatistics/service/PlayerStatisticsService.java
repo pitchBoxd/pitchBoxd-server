@@ -16,6 +16,22 @@ public class PlayerStatisticsService {
     private final PlayerStatisticsRepository playerStatisticsRepository;
 
     @Transactional
+    public void createAllPlayerStatistics(Long matchId, java.util.List<Long> playerIds) {
+        java.util.List<PlayerStatistics> existingStats = playerStatisticsRepository.findAllByMatchId(matchId);
+        java.util.Set<Long> existingPlayerIds = existingStats.stream()
+                .map(PlayerStatistics::getPlayerId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        java.util.List<PlayerStatistics> newStats = playerIds.stream()
+                .filter(playerId -> !existingPlayerIds.contains(playerId))
+                .map(playerId -> new PlayerStatistics(playerId, matchId))
+                .toList();
+
+        playerStatisticsRepository.saveAll(newStats);
+    }
+
+
+    @Transactional
     public void updateReview(Long matchId, Long playerId, int point) {
         PlayerStatistics playerStatistics = playerStatisticsRepository
                 .findByMatchIdAndPlayerIdForUpdate(matchId, playerId)

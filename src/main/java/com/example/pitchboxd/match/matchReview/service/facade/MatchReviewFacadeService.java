@@ -76,8 +76,6 @@ public class MatchReviewFacadeService {
 
         int beforePoint = matchReview.getPoint();
 
-        // TODO: 수정에 대한 어떤 정책이 필요할지? (수정하면 Review 자체에 수정됨 낙인을 찍는게 나을듯)
-
         matchReview.update(request.content(), request.point());
 
         int afterPoint = request.point();
