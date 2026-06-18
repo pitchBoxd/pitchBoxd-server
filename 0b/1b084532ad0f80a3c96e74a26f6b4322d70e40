@@ -1,0 +1,14 @@
+src/main/java/com/example/pitchboxd/admin/service/sync/MatchSyncService.java
+  h_09d9451df330ee 61,66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "0b1b084532ad0f80a3c96e74a26f6b4322d70e40",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
