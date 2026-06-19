@@ -1,0 +1,14 @@
+src/main/resources/data.sql
+  h_09d9451df330ee 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "fb0515efeae84b3b8f1975d8e39424f8a79ccb95",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
