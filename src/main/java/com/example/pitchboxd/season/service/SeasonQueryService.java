@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -18,5 +20,9 @@ public class SeasonQueryService {
     public Season findById(Long id) {
         return seasonRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SEASON_NOT_FOUND));
+    }
+
+    public List<Season> findAll() {
+        return seasonRepository.findAll();
     }
 }
