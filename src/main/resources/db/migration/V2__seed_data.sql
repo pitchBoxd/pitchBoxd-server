@@ -1,22 +1,8 @@
--- 외래키 체크를 잠시 끄기 (다른 테이블과 연관관계가 있을 때 에러 방지)
-SET FOREIGN_KEY_CHECKS = 0;
+-- 시즌 및 팀 초기 데이터
 
--- 1. 데이터 삭제
-DELETE FROM seasons;
-DELETE FROM teams;
-
--- 2. ID 카운터 1로 초기화
-ALTER TABLE seasons AUTO_INCREMENT = 1;
-ALTER TABLE teams AUTO_INCREMENT = 1;
-
--- 외래키 체크 다시 켜기
-SET FOREIGN_KEY_CHECKS = 1;
-
--- Season
 INSERT INTO seasons (name, created_at) VALUES ('K리그1 2026', NOW());
 INSERT INTO seasons (name, created_at) VALUES ('코리아컵 2026', NOW());
 
--- Teams
 INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('seoul', '09', '서울월드컵경기장', NOW());
 INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('ulsan', '01', '울산문수축구경기장', NOW());
 INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('jeonbuk', '05', '전주월드컵경기장', NOW());

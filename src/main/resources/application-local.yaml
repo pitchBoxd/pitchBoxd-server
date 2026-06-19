@@ -9,19 +9,19 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
-  sql:
-    init:
-      mode: always
-      data-locations: classpath:data.sql
+  flyway:
+    enabled: true
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    user: ${FLYWAY_USER}
+    password: ${FLYWAY_PASSWORD}
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
         highlight_sql: true
-    defer-datasource-initialization: true
     open-in-view: false
   security:
     oauth2:
