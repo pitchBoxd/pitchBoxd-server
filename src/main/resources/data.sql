@@ -1,35 +1,47 @@
+-- 외래키 체크를 잠시 끄기 (다른 테이블과 연관관계가 있을 때 에러 방지)
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 1. 데이터 삭제
+DELETE FROM seasons;
+DELETE FROM teams;
+
+-- 2. ID 카운터 1로 초기화
+ALTER TABLE seasons AUTO_INCREMENT = 1;
+ALTER TABLE teams AUTO_INCREMENT = 1;
+
+-- 외래키 체크 다시 켜기
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- Season
 INSERT INTO seasons (name, created_at) VALUES ('K리그1 2026', NOW());
-INSERT INTO seasons (name, created_at) VALUES ('K리그1 2025', NOW());
-INSERT INTO seasons (name, created_at) VALUES ('K리그1 2024', NOW());
 
 -- Teams
-INSERT INTO teams (name, naver_id, created_at) VALUES ('seoul', '09', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('ulsan', '01', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('jeonbuk', '05', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('daejeon', '10', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('bucheon', '26', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('gwangju', '22', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('pohang', '03', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('anyang', '27', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('kimcheon', '35', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('incheon', '18', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('gangwon', '21',NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('jeju', '04', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('suwon', '02', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('seoul_eland', '31', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('seongnam', '08', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('jeonnam', '07', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('kimpo', '36', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('busan', '06', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('chungnam_asan', '34', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('hwasung', '39', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('gyeongnam', '20', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('chungbuk_cheongju', '37', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('cheonan', '38', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('ansan', '32', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('kimhae', '41', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('daegu', '17', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('suwonfc', '29', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('yongin', '42', NOW());
-INSERT INTO teams (name, naver_id, created_at) VALUES ('paju', '40', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('seoul', '09', '서울월드컵경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('ulsan', '01', '울산문수축구경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('jeonbuk', '05', '전주월드컵경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('daejeon', '10', '대전월드컵경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('bucheon', '26', '부천종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('gwangju', '22', '광주축구전용구장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('pohang', '03', '포항스틸야드', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('anyang', '27', '안양종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('kimcheon', '35', '김천종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('incheon', '18', '인천축구전용경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('gangwon', '21', '강릉종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('jeju', '04', '제주월드컵경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('suwon', '02', '수원월드컵경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('seoul_eland', '31', '목동종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('seongnam', '08', '탄천종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('jeonnam', '07', '광양축구전용구장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('kimpo', '36', '김포솔터축구장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('busan', '06', '부산아시아드주경기장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('chungnam_asan', '34', '이순신종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('hwasung', '39', '화성종합경기타운', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('gyeongnam', '20', '창원축구센터', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('chungbuk_cheongju', '37', '청주종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('cheonan', '38', '천안종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('ansan', '32', '안산와~스타디움', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('kimhae', '41', '김해운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('daegu', '17', 'DGB대구은행파크', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('suwonfc', '29', '수원종합운동장', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('yongin', '42', '용인미르스타디움', NOW());
+INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('paju', '40', '파주스타디움', NOW());

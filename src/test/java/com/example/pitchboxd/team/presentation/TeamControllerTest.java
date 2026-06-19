@@ -132,4 +132,53 @@ class TeamControllerTest {
                 }
         );
     }
+
+    @Test
+    void 종합_팀_정보를_조회한다() {
+        // given
+        Team teamSeoul = teamRepository.save(new Team("FC서울", "naverSeoul", "서울월드컵경기장"));
+        Team teamJeju = teamRepository.save(new Team("제주SK", "naverJeju", "제주월드컵경기장"));
+
+        // User 1, 2 support Seoul
+        userRepository.save(new User("fan1", "fan1@gmail.com", "1234!", teamSeoul.getId()));
+        userRepository.save(new User("fan2", "fan2@gmail.com", "1234!", teamSeoul.getId()));
+        // User 3 supports Jeju
+        userRepository.save(new User("fan3", "fan3@gmail.com", "1234!", teamJeju.getId()));
+
+        // when
+        com.example.pitchboxd.team.dto.response.TeamDetailResponses response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/teams/details")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", com.example.pitchboxd.team.dto.response.TeamDetailResponses.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.teamDetailResponses()).hasSize(2),
+                () -> assertThat(response.teamDetailResponses())
+                        .extracting("name")
+                        .containsExactlyInAnyOrder("FC서울", "제주SK"),
+                () -> {
+                    com.example.pitchboxd.team.dto.response.TeamDetailResponse seoulResult = response.teamDetailResponses().stream()
+                            .filter(t -> t.name().equals("FC서울"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(seoulResult.stadium()).isEqualTo("서울월드컵경기장");
+                    assertThat(seoulResult.followerCount()).isEqualTo(2);
+                },
+                () -> {
+                    com.example.pitchboxd.team.dto.response.TeamDetailResponse jejuResult = response.teamDetailResponses().stream()
+                            .filter(t -> t.name().equals("제주SK"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(jejuResult.stadium()).isEqualTo("제주월드컵경기장");
+                    assertThat(jejuResult.followerCount()).isEqualTo(1);
+                }
+        );
+    }
 }

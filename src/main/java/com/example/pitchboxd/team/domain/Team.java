@@ -33,8 +33,17 @@ public class Team extends BaseEntity {
     @Column(nullable = false)
     private String naverId;
 
+    private String stadium;
+
     public Team(String name, String naverId) {
         this.name = name;
         this.naverId = naverId;
+        this.stadium = "알 수 없음";
+    }
+
+    public Team(String name, String naverId, String stadium) {
+        this.name = name;
+        this.naverId = naverId;
+        this.stadium = stadium;
     }
 }

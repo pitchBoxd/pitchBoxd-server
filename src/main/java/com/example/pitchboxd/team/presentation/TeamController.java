@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.pitchboxd.team.dto.response.TeamFollowerCountResponses;
 
+import com.example.pitchboxd.team.dto.response.TeamDetailResponses;
+
 @Tag(name = "Team API", description = "Team API 명세")
 @RestController
 @RequestMapping("/api/v1/teams")
@@ -35,6 +37,15 @@ public class TeamController {
     @GetMapping("/followers")
     public ResponseEntity<SuccessResponse<TeamFollowerCountResponses>> getTeamFollowerCounts() {
         TeamFollowerCountResponses responses = new TeamFollowerCountResponses(teamQueryService.findTeamFollowerCounts());
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));
+    }
+
+    @Operation(summary = "종합 팀 정보 조회", description = "팀 명, 팀 id, 홈 경기장, 팔로워 숫자를 포함한 종합 팀 정보를 조회합니다.")
+    @GetMapping("/details")
+    public ResponseEntity<SuccessResponse<TeamDetailResponses>> getTeamDetails() {
+        TeamDetailResponses responses = TeamDetailResponses.of(teamQueryService.findTeamDetails());
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, responses));

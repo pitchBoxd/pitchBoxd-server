@@ -5,6 +5,7 @@ import com.example.pitchboxd.global.exception.ErrorCode;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import com.example.pitchboxd.team.dto.response.TeamFollowerCountResponse;
+import com.example.pitchboxd.team.dto.response.TeamDetailResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,5 +34,9 @@ public class TeamQueryService {
 
     public List<TeamFollowerCountResponse> findTeamFollowerCounts() {
         return teamRepository.findTeamFollowerCounts();
+    }
+
+    public List<TeamDetailResponse> findTeamDetails() {
+        return teamRepository.findTeamDetails();
     }
 }
