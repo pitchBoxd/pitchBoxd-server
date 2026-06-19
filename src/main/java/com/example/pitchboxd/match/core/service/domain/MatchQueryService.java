@@ -35,4 +35,8 @@ public class MatchQueryService {
     public List<MatchSummary> findMatches(Long seasonId, MatchFilter state, LocalDateTime reviewableThreshold) {
         return matchQueryRepository.findMatches(seasonId, state, reviewableThreshold);
     }
+
+    public List<MatchSummary> findMatchesWithFilters(Long teamId, Long seasonId, LocalDateTime now) {
+        return matchQueryRepository.findMatchesWithFilters(teamId, seasonId, now);
+    }
 }

@@ -64,8 +64,9 @@ decorator:
   datasource:
     p6spy:
       enable-logging: true
-      multiline: true
+      multiline: false
       logging: slf4j
+      log-format: "#%(connectionId) | took %(executionTime)ms | %(category) | url %(url)\n%(sql)"
 
 app:
   policy:

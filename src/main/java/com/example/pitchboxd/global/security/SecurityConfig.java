@@ -59,6 +59,7 @@ public class SecurityConfig {
                                         "/webjars/**",
                                         "/h2-console/**",
                                         "/api/v1/auth/oauth/signup",
+                                        "/api/v1/matches",
                                         "/api/v1/matches/*/detail/static",
                                         "/api/v1/matches/*/detail/personal",
                                         "/api/v1/matches/*/match-reviews/hot",

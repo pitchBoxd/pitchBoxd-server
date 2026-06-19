@@ -120,6 +120,40 @@ public class MatchQueryRepository {
                 .fetch();
     }
 
+    public List<MatchSummary> findMatchesWithFilters(Long teamId, Long seasonId, LocalDateTime now) {
+        QTeam homeTeam = new QTeam("homeTeam");
+        QTeam awayTeam = new QTeam("awayTeam");
+
+        return queryFactory
+                .select(new QMatchSummary(
+                        match.id,
+                        match.round,
+                        match.startTime,
+                        match.location,
+                        homeTeam.name,
+                        match.matchResult.homeScore,
+                        awayTeam.name,
+                        match.matchResult.awayScore,
+                        matchStatistics.totalReviewCount,
+                        numberTemplate(Double.class,
+                                "COALESCE({0} * 1.0 / NULLIF({1}, 0) / 2.0, 0.0)",
+                                matchStatistics.totalRatingSum,
+                                matchStatistics.totalReviewCount)
+                ))
+                .from(match)
+                .innerJoin(homeTeam).on(match.homeTeamId.eq(homeTeam.id))
+                .innerJoin(awayTeam).on(match.awayTeamId.eq(awayTeam.id))
+                .leftJoin(matchStatistics).on(match.id.eq(matchStatistics.matchId))
+                .where(
+                        eqTeamId(teamId),
+                        eqSeasonId(seasonId),
+                        match.startTime.loe(now)
+                )
+                .orderBy(match.startTime.desc())
+                .fetch();
+    }
+
+
     private BooleanExpression eqSeasonId(Long seasonId) {
         return seasonId != null ? match.seasonId.eq(seasonId) : null;
     }
