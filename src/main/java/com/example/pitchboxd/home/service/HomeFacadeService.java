@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.pitchboxd.match.matchReview.domain.MatchReviewSubmitPolicy;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,6 +25,7 @@ public class HomeFacadeService {
 
     private final MatchQueryService matchQueryService;
     private final MatchReviewQueryService matchReviewQueryService;
+    private final MatchReviewSubmitPolicy matchReviewSubmitPolicy;
 
     public HomeResponses getHomeData(MatchFilter state, Long seasonId) {
         LocalDateTime threshold = matchReviewQueryService.getReviewableThreshold();
@@ -40,7 +43,7 @@ public class HomeFacadeService {
                     .map(HotReviewResponse::of)
                     .toList();
 
-            homeMatchResponses.add(HomeMatchResponse.of(MatchResponse.of(matchSummary), hotReviewResponses));
+            homeMatchResponses.add(HomeMatchResponse.of(MatchResponse.of(matchSummary, matchReviewSubmitPolicy), hotReviewResponses));
         }
 
         return HomeResponses.of(homeMatchResponses);

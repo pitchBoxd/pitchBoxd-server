@@ -12,5 +12,6 @@ public record MatchDetailResultResponse(
         Integer homeScore,
         Integer awayScore,
         LineupResponses homeLineups,
-        LineupResponses awayLineups
+        LineupResponses awayLineups,
+        LocalDateTime reviewEndTime
 ) {}

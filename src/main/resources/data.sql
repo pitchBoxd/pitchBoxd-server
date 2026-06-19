@@ -14,6 +14,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- Season
 INSERT INTO seasons (name, created_at) VALUES ('K리그1 2026', NOW());
+INSERT INTO seasons (name, created_at) VALUES ('코리아컵 2026', NOW());
 
 -- Teams
 INSERT INTO teams (name, naver_id, stadium, created_at) VALUES ('seoul', '09', '서울월드컵경기장', NOW());

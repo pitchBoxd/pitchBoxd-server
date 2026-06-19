@@ -73,7 +73,8 @@ public class MatchQueryRepository {
                         numberTemplate(Double.class,
                                 "COALESCE({0} * 1.0 / NULLIF({1}, 0) / 2.0, 0.0)",
                                 matchStatistics.totalRatingSum,
-                                matchStatistics.totalReviewCount)
+                                matchStatistics.totalReviewCount),
+                        match.finishedAt
                 ))
                 .from(match)
                 .innerJoin(new QTeam("homeTeam")).on(match.homeTeamId.eq(new QTeam("homeTeam").id))
@@ -106,7 +107,8 @@ public class MatchQueryRepository {
                         numberTemplate(Double.class,
                                 "COALESCE({0} * 1.0 / NULLIF({1}, 0) / 2.0, 0.0)",
                                 matchStatistics.totalRatingSum,
-                                matchStatistics.totalReviewCount)
+                                matchStatistics.totalReviewCount),
+                        match.finishedAt
                 ))
                 .from(match)
                 .innerJoin(homeTeam).on(match.homeTeamId.eq(homeTeam.id))
@@ -138,7 +140,8 @@ public class MatchQueryRepository {
                         numberTemplate(Double.class,
                                 "COALESCE({0} * 1.0 / NULLIF({1}, 0) / 2.0, 0.0)",
                                 matchStatistics.totalRatingSum,
-                                matchStatistics.totalReviewCount)
+                                matchStatistics.totalReviewCount),
+                        match.finishedAt
                 ))
                 .from(match)
                 .innerJoin(homeTeam).on(match.homeTeamId.eq(homeTeam.id))

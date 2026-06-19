@@ -13,7 +13,8 @@ public record MatchSummary(
         String awayTeam,
         int awayTeamScore,
         int reviewCount,
-        double matchRating
+        double matchRating,
+        LocalDateTime finishedAt
 ) {
 
     @QueryProjection

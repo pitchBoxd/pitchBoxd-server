@@ -135,5 +135,9 @@ class HomeControllerTest {
         assertThat(response.responses()).hasSize(2);
         assertThat(response.responses().get(0).hotReviews()).hasSize(3);
         assertThat(response.responses().get(1).hotReviews()).hasSize(3);
+        assertThat(response.responses().get(0).matchResponse().reviewEndTime()).isEqualTo(now.minusHours(4).plusDays(2));
+        assertThat(response.responses().get(1).matchResponse().reviewEndTime()).isEqualTo(now.minusHours(3).plusDays(2));
     }
 }
+
+

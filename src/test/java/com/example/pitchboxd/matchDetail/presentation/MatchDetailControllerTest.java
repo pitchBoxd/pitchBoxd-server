@@ -594,5 +594,50 @@ class MatchDetailControllerTest {
                 () -> assertThat(statsResponse.neutralCount()).isEqualTo(0L)
         );
     }
+
+    @Test
+    void 경기_상세_결과_조회시_리뷰_종료시간을_함께_반환한다() {
+        // given
+        LocalDateTime finishedAt = LocalDateTime.of(2026, 4, 28, 21, 0);
+        match.finish(finishedAt);
+        matchRepository.save(match);
+
+        // when
+        MatchDetailResultResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/result", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailResultResponse.class);
+
+        // then
+        assertThat(response.reviewEndTime()).isEqualTo(finishedAt.plusDays(2)); // 48h limit
+    }
+
+    @Test
+    void 경기_상세_결과_조회시_종료시간이_없으면_리뷰_종료시간은_null이다() {
+        // given
+        // match from setUp has finishedAt = null
+
+        // when
+        MatchDetailResultResponse response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/result", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchDetailResultResponse.class);
+
+        // then
+        assertThat(response.reviewEndTime()).isNull();
+    }
 }
+
 

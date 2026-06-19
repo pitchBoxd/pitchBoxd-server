@@ -33,4 +33,11 @@ public class MatchReviewSubmitPolicy {
     public LocalDateTime getReviewableThreshold(LocalDateTime now) {
         return now.minus(reviewSubmitLimit);
     }
+
+    public LocalDateTime getReviewEndTime(LocalDateTime finishedAt) {
+        if (finishedAt == null) {
+            return null;
+        }
+        return finishedAt.plus(reviewSubmitLimit);
+    }
 }

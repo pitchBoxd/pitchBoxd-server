@@ -3,6 +3,8 @@ package com.example.pitchboxd.match.core.dto.response;
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchSummary;
 import java.time.LocalDateTime;
 
+import com.example.pitchboxd.match.matchReview.domain.MatchReviewSubmitPolicy;
+
 public record MatchResponse(
         Long id,
         String round,
@@ -13,9 +15,10 @@ public record MatchResponse(
         String awayTeam,
         int awayTeamScore,
         int reviewCount,
-        double matchRating
+        double matchRating,
+        LocalDateTime reviewEndTime
 ) {
-    public static MatchResponse of(MatchSummary matchSummary) {
+    public static MatchResponse of(MatchSummary matchSummary, MatchReviewSubmitPolicy policy) {
         return new MatchResponse(
                 matchSummary.id(),
                 matchSummary.round(),
@@ -26,7 +29,8 @@ public record MatchResponse(
                 matchSummary.awayTeam(),
                 matchSummary.awayTeamScore(),
                 matchSummary.reviewCount(),
-                matchSummary.matchRating()
+                matchSummary.matchRating(),
+                policy.getReviewEndTime(matchSummary.finishedAt())
         );
     }
 }

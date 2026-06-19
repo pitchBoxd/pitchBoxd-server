@@ -2,6 +2,9 @@ package com.example.pitchboxd.matchDetail.service;
 
 import com.example.pitchboxd.match.core.infrastructure.dto.MatchDetailStaticModel;
 import com.example.pitchboxd.match.core.service.domain.MatchQueryService;
+import com.example.pitchboxd.match.core.service.domain.MatchService;
+import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.matchReview.domain.MatchReviewSubmitPolicy;
 import com.example.pitchboxd.match.lineup.infrastructure.dto.LineupPlayerModel;
 import com.example.pitchboxd.match.lineup.service.MatchLineupQueryService;
 import com.example.pitchboxd.match.matchReview.infrastructure.dto.HotReviewSummary;
@@ -33,6 +36,7 @@ import com.example.pitchboxd.match.playerReview.domain.PlayerReview;
 import com.example.pitchboxd.matchDetail.dto.response.PlayerReviewSliceResponse;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -60,6 +64,8 @@ public class MatchDetailFacadeService {
     private final UserRepository userRepository;
     private final PlayerReviewFacadeService playerReviewFacadeService;
     private final PlayerReviewLikeService playerReviewLikeService;
+    private final MatchService matchService;
+    private final MatchReviewSubmitPolicy matchReviewSubmitPolicy;
 
     public MatchDetailResultResponse getMatchResultData(Long matchId) {
         MatchDetailStaticModel matchDetail = matchQueryService.findMatchStaticDetailById(matchId);
@@ -83,6 +89,9 @@ public class MatchDetailFacadeService {
                 .map(l -> LineupResponse.of(l, playerRatingsMap.getOrDefault(l.playerId(), 0.0)))
                 .toList();
 
+        Match match = matchService.findById(matchId);
+        LocalDateTime reviewEndTime = matchReviewSubmitPolicy.getReviewEndTime(match.getFinishedAt());
+
         return new MatchDetailResultResponse(
                 matchDetail.seasonName(),
                 matchDetail.round(),
@@ -93,7 +102,8 @@ public class MatchDetailFacadeService {
                 matchDetail.homeScore(),
                 matchDetail.awayScore(),
                 new LineupResponses(homeLineupResponses),
-                new LineupResponses(awayLineupResponses)
+                new LineupResponses(awayLineupResponses),
+                reviewEndTime
         );
     }
 

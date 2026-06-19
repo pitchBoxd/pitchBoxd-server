@@ -163,4 +163,44 @@ class MatchControllerTest {
                 () -> assertThat(response.matchResponses().get(0).homeTeam()).isEqualTo("Team A")
         );
     }
+
+    @Test
+    void 경기의_리뷰_종료시간을_함께_조회한다() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime finishedAt = now.minusHours(5);
+
+        // Match 1: finished, finishedAt is set
+        Match match1 = new Match(1L, "1", teamA.getId(), teamB.getId(), now.minusDays(2),
+                MatchStatus.FINISHED, "Stadium 1", "naver1");
+        match1.finish(finishedAt);
+        matchRepository.save(match1);
+
+        // Match 2: finishedAt is null
+        Match match2 = new Match(1L, "1", teamB.getId(), teamC.getId(), now.minusDays(1),
+                MatchStatus.FINISHED, "Stadium 2", "naver2");
+        matchRepository.save(match2);
+
+        // when
+        MatchResponses response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/matches")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", MatchResponses.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.matchResponses()).hasSize(2),
+                () -> assertThat(response.matchResponses().get(0).homeTeam()).isEqualTo("Team B"),
+                () -> assertThat(response.matchResponses().get(0).reviewEndTime()).isNull(),
+                () -> assertThat(response.matchResponses().get(1).homeTeam()).isEqualTo("Team A"),
+                () -> assertThat(response.matchResponses().get(1).reviewEndTime()).isEqualTo(finishedAt.plusDays(2))
+        );
+    }
 }
+
