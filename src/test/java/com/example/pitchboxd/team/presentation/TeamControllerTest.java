@@ -85,4 +85,51 @@ class TeamControllerTest {
                         .containsExactlyInAnyOrder(teamNameSeoul, teamNameJeju)
         );
     }
+
+    @Test
+    void 팀별_팔로워_수를_조회한다() {
+        // given
+        Team teamSeoul = teamRepository.save(new Team("FC서울", "naverSeoul"));
+        Team teamJeju = teamRepository.save(new Team("제주SK", "naverJeju"));
+
+        // User 1, 2 support Seoul
+        userRepository.save(new User("fan1", "fan1@gmail.com", "1234!", teamSeoul.getId()));
+        userRepository.save(new User("fan2", "fan2@gmail.com", "1234!", teamSeoul.getId()));
+        // User 3 supports Jeju
+        userRepository.save(new User("fan3", "fan3@gmail.com", "1234!", teamJeju.getId()));
+
+        // when
+        com.example.pitchboxd.team.dto.response.TeamFollowerCountResponses response = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/api/v1/teams/followers")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+                .getObject("data", com.example.pitchboxd.team.dto.response.TeamFollowerCountResponses.class);
+
+        // then
+        assertAll(
+                () -> assertThat(response.teamFollowerCountResponses()).hasSize(2),
+                () -> assertThat(response.teamFollowerCountResponses())
+                        .extracting("teamName")
+                        .containsExactlyInAnyOrder("FC서울", "제주SK"),
+                () -> {
+                    com.example.pitchboxd.team.dto.response.TeamFollowerCountResponse seoulResult = response.teamFollowerCountResponses().stream()
+                            .filter(t -> t.teamName().equals("FC서울"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(seoulResult.followerCount()).isEqualTo(2);
+                },
+                () -> {
+                    com.example.pitchboxd.team.dto.response.TeamFollowerCountResponse jejuResult = response.teamFollowerCountResponses().stream()
+                            .filter(t -> t.teamName().equals("제주SK"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(jejuResult.followerCount()).isEqualTo(1);
+                }
+        );
+    }
 }

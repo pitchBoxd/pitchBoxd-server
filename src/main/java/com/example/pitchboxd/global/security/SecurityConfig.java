@@ -61,6 +61,7 @@ public class SecurityConfig {
                                         "/api/v1/auth/oauth/signup",
                                         "/api/v1/matches",
                                         "/api/v1/seasons",
+                                        "/api/v1/teams/followers",
                                         "/api/v1/matches/*/detail/static",
                                         "/api/v1/matches/*/detail/personal",
                                         "/api/v1/matches/*/match-reviews/hot",
