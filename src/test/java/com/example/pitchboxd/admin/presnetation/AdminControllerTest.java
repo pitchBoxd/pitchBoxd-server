@@ -18,6 +18,7 @@ import com.example.pitchboxd.support.TestClockHolder;
 import com.example.pitchboxd.team.domain.Team;
 import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import com.example.pitchboxd.user.domain.User;
+import com.example.pitchboxd.user.domain.UserRole;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -54,15 +55,21 @@ class AdminControllerTest {
     @Autowired
     private PlayerRepository playerRepository;
 
-    private String accessToken;
+    private String adminToken;
+    private String userToken;
 
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
         databaseCleaner.clean();
 
-        User user = userRepository.save(new User("테스트유저", "test@example.com", "password123!"));
-        accessToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
+        User admin = new User("관리자", "admin@example.com", "password123!");
+        admin.assignRole(UserRole.ADMIN);
+        admin = userRepository.save(admin);
+        adminToken = tokenManager.createAccessToken(admin.getId(), admin.getEmail());
+
+        User user = userRepository.save(new User("일반유저", "user@example.com", "password123!"));
+        userToken = tokenManager.createAccessToken(user.getId(), user.getEmail());
     }
 
     @AfterEach
@@ -94,7 +101,7 @@ class AdminControllerTest {
         // when & then
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .header("Authorization", "Bearer " + accessToken)
+                .header("Authorization", "Bearer " + adminToken)
                 .body(request)
                 .when()
                 .patch("/api/v1/admin/matches/{matchId}", match.getId())
@@ -123,7 +130,7 @@ class AdminControllerTest {
         // when & then
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .header("Authorization", "Bearer " + accessToken)
+                .header("Authorization", "Bearer " + adminToken)
                 .body(request)
                 .when()
                 .patch("/api/v1/admin/players/{playerId}", player.getId())
@@ -136,5 +143,17 @@ class AdminControllerTest {
                 () -> assertThat(updatedPlayer.getName()).isEqualTo(newName),
                 () -> assertThat(updatedPlayer.getNaverId()).isEqualTo(newNaverId)
         );
+    }
+
+    @Test
+    void 일반_유저는_관리자_API에_접근할_수_없다() {
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + userToken)
+                .body("{}")
+                .when()
+                .post("/api/v1/admin/sync-tasks/matches")
+                .then().log().all()
+                .statusCode(HttpStatus.FORBIDDEN.value());
     }
 }

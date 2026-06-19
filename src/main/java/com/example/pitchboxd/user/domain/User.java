@@ -43,6 +43,10 @@ public class User extends BaseEntity {
 
     private String providerKey;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role = UserRole.USER;
+
     public User(String nickname, String email, String password) {
         validateNickname(nickname);
         this.nickname = nickname;
@@ -93,5 +97,9 @@ public class User extends BaseEntity {
 
     public boolean isFanOf(Long teamId) {
         return this.favoriteTeamId.equals(teamId);
+    }
+
+    public void assignRole(UserRole role) {
+        this.role = role;
     }
 }
