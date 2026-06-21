@@ -1,11 +1,19 @@
 package com.example.pitchboxd.admin.presentation;
 
 import com.example.pitchboxd.auth.application.TokenManager;
+import com.example.pitchboxd.match.core.domain.Match;
+import com.example.pitchboxd.match.core.domain.MatchStatus;
+import com.example.pitchboxd.match.core.infrastructure.MatchRepository;
+import com.example.pitchboxd.season.domain.Season;
+import com.example.pitchboxd.season.infrastructure.SeasonRepository;
 import com.example.pitchboxd.support.DatabaseCleaner;
+import com.example.pitchboxd.team.domain.Team;
+import com.example.pitchboxd.team.infrastructure.TeamRepository;
 import com.example.pitchboxd.user.domain.User;
 import com.example.pitchboxd.user.domain.UserRole;
 import com.example.pitchboxd.user.infrastructure.UserRepository;
 import jakarta.servlet.http.Cookie;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.hamcrest.Matchers.containsString;
 
 @ActiveProfiles("test")
@@ -37,6 +46,15 @@ class AdminViewControllerTest {
 
     @Autowired
     private DatabaseCleaner databaseCleaner;
+
+    @Autowired
+    private SeasonRepository seasonRepository;
+
+    @Autowired
+    private MatchRepository matchRepository;
+
+    @Autowired
+    private TeamRepository teamRepository;
 
     private String adminToken;
     private String userToken;
@@ -89,4 +107,63 @@ class AdminViewControllerTest {
                 .andExpect(content().string(containsString("id=\"sync-tab\"")))
                 .andExpect(content().string(containsString("id=\"users-tab\"")));
     }
+
+    @Test
+    void 시즌_파라미터가_있으면_해당_시즌의_경기를_모델에_담아_대시보드를_반환한다() throws Exception {
+        // given
+        Season season = seasonRepository.save(new Season("2026"));
+        Team home = teamRepository.save(new Team("울산", "n1"));
+        Team away = teamRepository.save(new Team("전북", "n2"));
+        matchRepository.save(new Match(season.getId(), "1", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.SCHEDULED, "울산 문수", "naver-m1"));
+
+        // when & then
+        mockMvc.perform(get("/admin")
+                        .param("seasonId", season.getId().toString())
+                        .cookie(new Cookie("access_token", adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("selectedSeasonId", season.getId()))
+                .andExpect(model().attributeExists("seasons"))
+                .andExpect(model().attributeExists("matches"));
+    }
+
+    @Test
+    void 시즌_파라미터가_없으면_최근_시즌의_경기를_모델에_담아_대시보드를_반환한다() throws Exception {
+        // given
+        Season season1 = seasonRepository.save(new Season("2025"));
+        Season season2 = seasonRepository.save(new Season("2026"));
+        Team home = teamRepository.save(new Team("울산", "n1"));
+        Team away = teamRepository.save(new Team("전북", "n2"));
+        
+        matchRepository.save(new Match(season2.getId(), "1", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.SCHEDULED, "울산 문수", "naver-m1"));
+        
+        // when & then
+        mockMvc.perform(get("/admin")
+                        .cookie(new Cookie("access_token", adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("selectedSeasonId", season2.getId()))
+                .andExpect(model().attributeExists("seasons"))
+                .andExpect(model().attributeExists("matches"));
+    }
+
+    @Test
+    void 시즌_파라미터가_있으면_해당_시즌의_경기를_HTML에_렌더링하여_반환한다() throws Exception {
+        // given
+        Season season = seasonRepository.save(new Season("2026"));
+        Team home = teamRepository.save(new Team("울산", "n1"));
+        Team away = teamRepository.save(new Team("전북", "n2"));
+        matchRepository.save(new Match(season.getId(), "1", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.SCHEDULED, "울산 문수", "naver-m1"));
+
+        // when & then
+        mockMvc.perform(get("/admin")
+                        .param("seasonId", season.getId().toString())
+                        .cookie(new Cookie("access_token", adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(content().string(containsString("id=\"matches-tab\"")))
+                .andExpect(content().string(containsString("울산")))
+                .andExpect(content().string(containsString("전북")));
+    }
 }
+

@@ -58,6 +58,9 @@ class AdminFacadeServiceTest {
     private com.example.pitchboxd.user.infrastructure.UserRepository userRepository;
 
     @Autowired
+    private com.example.pitchboxd.team.infrastructure.TeamRepository teamRepository;
+
+    @Autowired
     private DatabaseCleaner databaseCleaner;
 
     @BeforeEach
@@ -149,5 +152,25 @@ class AdminFacadeServiceTest {
 
         // then
         assertThat(users).hasSize(2);
+    }
+
+    @DisplayName("특정 시즌의 모든 경기를 DTO 목록으로 변환하여 조회한다.")
+    @Test
+    void getMatchesBySeason_success() {
+        // given
+        com.example.pitchboxd.team.domain.Team home = teamRepository.save(new com.example.pitchboxd.team.domain.Team("울산", "n1"));
+        com.example.pitchboxd.team.domain.Team away = teamRepository.save(new com.example.pitchboxd.team.domain.Team("전북", "n2"));
+        
+        matchRepository.save(new Match(10L, "1", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.SCHEDULED, "울산 문수", "naver-m1"));
+        matchRepository.save(new Match(10L, "2", home.getId(), away.getId(), LocalDateTime.now().plusHours(1), MatchStatus.SCHEDULED, "울산 문수", "naver-m2"));
+        matchRepository.save(new Match(20L, "1", home.getId(), away.getId(), LocalDateTime.now(), MatchStatus.SCHEDULED, "울산 문수", "naver-m3"));
+
+        // when
+        List<com.example.pitchboxd.admin.dto.response.AdminMatchResponse> results = adminFacadeService.getMatchesBySeason(10L);
+
+        // then
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).homeTeamName()).isEqualTo("울산");
+        assertThat(results.get(0).awayTeamName()).isEqualTo("전북");
     }
 }
