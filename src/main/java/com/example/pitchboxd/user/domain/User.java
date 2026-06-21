@@ -52,6 +52,7 @@ public class User extends BaseEntity {
         this.nickname = nickname;
         this.email = email;
         this.password = password;
+        this.role = UserRole.USER;
     }
 
     public User(String nickname, String email, String password, Long favoriteTeamId) {
@@ -60,6 +61,7 @@ public class User extends BaseEntity {
         this.email = email;
         this.password = password;
         this.favoriteTeamId = favoriteTeamId;
+        this.role = UserRole.USER;
     }
 
     public User(String nickname, String email, String password, Long favoriteTeamId, Provider provider) {
@@ -69,6 +71,7 @@ public class User extends BaseEntity {
         this.password = password;
         this.favoriteTeamId = favoriteTeamId;
         this.provider = provider;
+        this.role = UserRole.USER;
     }
 
     public User(String nickname, String email, String password, Long favoriteTeamId, Provider provider,
@@ -79,6 +82,7 @@ public class User extends BaseEntity {
         this.favoriteTeamId = favoriteTeamId;
         this.provider = provider;
         this.providerKey = providerKey;
+        this.role = UserRole.USER;
     }
 
     private void validateNickname(String nickname) {

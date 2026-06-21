@@ -23,4 +23,19 @@ class UserTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    void 유저_생성_시_기본_역할은_USER로_할당된다() {
+        User user1 = new User("닉네임1", "email1@example.com", "password!");
+        User user2 = new User("닉네임2", "email2@example.com", "password!", 1L);
+        User user3 = new User("닉네임3", "email3@example.com", "password!", 1L, Provider.GOOGLE);
+        User user4 = new User("닉네임4", "email4@example.com", "password!", 1L, Provider.GOOGLE, "providerKey");
+
+        org.junit.jupiter.api.Assertions.assertAll(
+            () -> org.assertj.core.api.Assertions.assertThat(user1.getRole()).isEqualTo(UserRole.USER),
+            () -> org.assertj.core.api.Assertions.assertThat(user2.getRole()).isEqualTo(UserRole.USER),
+            () -> org.assertj.core.api.Assertions.assertThat(user3.getRole()).isEqualTo(UserRole.USER),
+            () -> org.assertj.core.api.Assertions.assertThat(user4.getRole()).isEqualTo(UserRole.USER)
+        );
+    }
+
 }
