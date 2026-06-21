@@ -67,4 +67,20 @@ class MatchServiceTest {
         assertThatThrownBy(() -> matchService.findById(nonExistMatchId))
                 .isInstanceOf(BusinessException.class);
     }
+
+    @Test
+    void 특정_시즌의_매치들을_정상적으로_조회한다() {
+        // given
+        LocalDateTime startTime = LocalDateTime.now();
+        matchRepository.save(new Match(1L, "1", 1L, 2L, startTime, MatchStatus.SCHEDULED, "상암", "n1"));
+        matchRepository.save(new Match(1L, "2", 2L, 3L, startTime.plusHours(1), MatchStatus.SCHEDULED, "상암", "n2"));
+        matchRepository.save(new Match(2L, "1", 1L, 3L, startTime.plusHours(2), MatchStatus.SCHEDULED, "상암", "n3"));
+
+        // when
+        java.util.List<Match> results = matchService.findMatchesBySeasonId(1L);
+
+        // then
+        assertThat(results).hasSize(2);
+    }
 }
+

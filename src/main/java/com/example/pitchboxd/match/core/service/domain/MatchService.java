@@ -44,6 +44,11 @@ public class MatchService {
     public List<Match> findByStartTimeBetween(LocalDateTime start, LocalDateTime end) {
         return matchRepository.findByStartTimeBetween(start, end);
     }
+
+    public List<Match> findMatchesBySeasonId(Long seasonId) {
+        return matchRepository.findBySeasonIdOrderByStartTimeAsc(seasonId);
+    }
+
     @Transactional
     public void updateMatchResult(Long matchId, MatchResult result, LocalDateTime now) {
         Match match = matchRepository.findById(matchId)

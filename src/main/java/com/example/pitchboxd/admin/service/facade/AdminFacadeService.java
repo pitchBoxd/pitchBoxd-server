@@ -38,6 +38,7 @@ public class AdminFacadeService {
     private final NaverSportsClient naverSportsClient;
     private final ObjectProvider<AdminFacadeService> selfProvider;
     private final UserService userService;
+    private final com.example.pitchboxd.team.service.TeamQueryService teamQueryService;
     
     public void autoFinishMatchesAndUpdateLineup(CreateMatchRequest request) {
         List<Match> matches = matchSyncService.findMatchesInPeriod(request.from(), request.to());
@@ -101,6 +102,20 @@ public class AdminFacadeService {
     public List<AdminUserResponse> getAllUsers() {
         return userService.findAllUsers().stream()
                 .map(AdminUserResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.example.pitchboxd.admin.dto.response.AdminMatchResponse> getMatchesBySeason(Long seasonId) {
+        List<Match> matches = matchService.findMatchesBySeasonId(seasonId);
+        java.util.Map<Long, String> teamNameMap = teamQueryService.findAllTeam().stream()
+                .collect(java.util.stream.Collectors.toMap(com.example.pitchboxd.team.domain.Team::getId, com.example.pitchboxd.team.domain.Team::getName));
+        return matches.stream()
+                .map(match -> com.example.pitchboxd.admin.dto.response.AdminMatchResponse.of(
+                        match,
+                        teamNameMap.getOrDefault(match.getHomeTeamId(), "알 수 없음"),
+                        teamNameMap.getOrDefault(match.getAwayTeamId(), "알 수 없음")
+                ))
                 .toList();
     }
 }

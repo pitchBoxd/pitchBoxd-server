@@ -15,4 +15,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
                                                 LocalDateTime now);
 
     List<Match> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
+
+    List<Match> findBySeasonIdOrderByStartTimeAsc(Long seasonId);
 }

@@ -236,4 +236,24 @@ class MatchQueryRepositoryTest {
                 }
         );
     }
+
+    @Test
+    void 특정_시즌의_모든_경기를_시작시간_오름차순으로_조회한다() {
+        // given
+        LocalDateTime time1 = LocalDateTime.of(2026, 6, 21, 14, 0);
+        LocalDateTime time2 = LocalDateTime.of(2026, 6, 21, 16, 0);
+        LocalDateTime time3 = LocalDateTime.of(2026, 6, 21, 18, 0);
+
+        Match match1 = matchRepository.save(new Match(1L, "1라운드", 1L, 2L, time2, MatchStatus.SCHEDULED, "상암", "naver-1"));
+        Match match2 = matchRepository.save(new Match(1L, "2라운드", 2L, 3L, time1, MatchStatus.SCHEDULED, "상암", "naver-2"));
+        Match match3 = matchRepository.save(new Match(2L, "1라운드", 1L, 3L, time3, MatchStatus.SCHEDULED, "상암", "naver-3"));
+
+        // when
+        List<Match> results = matchRepository.findBySeasonIdOrderByStartTimeAsc(1L);
+
+        // then
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).getId()).isEqualTo(match2.getId()); // time1
+        assertThat(results.get(1).getId()).isEqualTo(match1.getId()); // time2
+    }
 }

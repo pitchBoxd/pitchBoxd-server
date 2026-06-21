@@ -262,6 +262,46 @@
             border: 1px solid rgba(0, 230, 118, 0.2);
         }
 
+        .badge-scheduled {
+            background-color: rgba(156, 163, 175, 0.1);
+            color: var(--text-muted);
+            border: 1px solid rgba(156, 163, 175, 0.2);
+        }
+
+        .badge-playing {
+            background-color: rgba(0, 240, 255, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .badge-finished {
+            background-color: rgba(0, 230, 118, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(0, 230, 118, 0.2);
+        }
+
+        .badge-canceled {
+            background-color: rgba(255, 23, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 23, 68, 0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff1744, #d50000);
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+        }
+
         /* Toast notifications */
         #toast-container {
             position: fixed;
@@ -302,6 +342,7 @@
             <li class="menu-item active" onclick="switchTab('dashboard-tab', this)">📊 Dashboard</li>
             <li class="menu-item" onclick="switchTab('sync-tab', this)">🔄 Database Sync</li>
             <li class="menu-item" onclick="switchTab('users-tab', this)">👥 User Management</li>
+            <li class="menu-item" onclick="switchTab('matches-tab', this)">⚽ Match Management</li>
         </ul>
     </aside>
 
@@ -471,6 +512,76 @@
                 </div>
             </div>
         </div>
+
+        <!-- Matches View -->
+        <div id="matches-tab" class="tab-panel">
+            <div class="card">
+                <h3 class="card-title">⚽ 경기 목록 및 종료 처리</h3>
+                
+                <div class="form-group" style="max-width: 240px; margin-bottom: 2rem;">
+                    <label for="season-select">시즌 필터링</label>
+                    <select id="season-select" class="form-control" onchange="handleSeasonChange(this)">
+                        <option th:each="season : ${seasons}"
+                                th:value="${season.id}"
+                                th:text="${season.name}"
+                                th:selected="${season.id == selectedSeasonId}">2026</option>
+                    </select>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>라운드</th>
+                                <th>일시</th>
+                                <th>홈 팀</th>
+                                <th>스코어</th>
+                                <th>어웨이 팀</th>
+                                <th>장소</th>
+                                <th>상태</th>
+                                <th>네이버 ID</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="match : ${matches}">
+                                <td th:text="${match.id}">1</td>
+                                <td th:text="${match.round}">1라운드</td>
+                                <td th:text="${#temporals.format(match.startTime, 'yyyy-MM-dd HH:mm')}">2026-06-21 14:00</td>
+                                <td th:text="${match.homeTeamName}" style="font-weight: 600;">홈팀</td>
+                                <td>
+                                    <span th:if="${match.status.name() == 'FINISHED'}" 
+                                          th:text="${match.homeScore + ' : ' + match.awayScore}" style="font-weight: bold; color: var(--secondary);">2 : 1</span>
+                                    <span th:if="${match.status.name() != 'FINISHED'}">- : -</span>
+                                </td>
+                                <td th:text="${match.awayTeamName}" style="font-weight: 600;">어웨이팀</td>
+                                <td th:text="${match.location}">경기장</td>
+                                <td>
+                                    <span th:if="${match.status.name() == 'SCHEDULED'}" class="badge badge-scheduled">대기 중</span>
+                                    <span th:if="${match.status.name() == 'PLAYING'}" class="badge badge-playing">진행 중</span>
+                                    <span th:if="${match.status.name() == 'FINISHED'}" class="badge badge-finished">종료됨</span>
+                                    <span th:if="${match.status.name() == 'CANCELED'}" class="badge badge-canceled">취소됨</span>
+                                </td>
+                                <td th:text="${match.naverId}">naverId</td>
+                                <td>
+                                    <button th:if="${match.status.name() != 'FINISHED'}" 
+                                            class="btn btn-sm btn-danger" 
+                                            th:data-naver-id="${match.naverId}"
+                                            onclick="finishMatch(this.getAttribute('data-naver-id'))">
+                                        종료
+                                    </button>
+                                    <span th:if="${match.status.name() == 'FINISHED'}" style="color: var(--text-muted); font-size: 0.9rem;">-</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(matches)}">
+                                <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">조회된 경기가 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <div id="toast-container"></div>
@@ -486,7 +597,53 @@
             let title = "Admin Dashboard";
             if (tabId === 'sync-tab') title = "Database Sync Tasks";
             if (tabId === 'users-tab') title = "User Management";
+            if (tabId === 'matches-tab') title = "Match Management";
             document.getElementById('page-title').innerText = title;
+        }
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab === 'matches') {
+                const matchesMenuItem = document.querySelector('[onclick*="matches-tab"]');
+                if (matchesMenuItem) {
+                    switchTab('matches-tab', matchesMenuItem);
+                }
+            } else if (tab === 'users') {
+                const usersMenuItem = document.querySelector('[onclick*="users-tab"]');
+                if (usersMenuItem) {
+                    switchTab('users-tab', usersMenuItem);
+                }
+            } else if (tab === 'sync') {
+                const syncMenuItem = document.querySelector('[onclick*="sync-tab"]');
+                if (syncMenuItem) {
+                    switchTab('sync-tab', syncMenuItem);
+                }
+            }
+        };
+
+        function handleSeasonChange(select) {
+            const seasonId = select.value;
+            window.location.href = `/admin?seasonId=${seasonId}&tab=matches`;
+        }
+
+        function finishMatch(naverId) {
+            if (!confirm('해당 경기를 종료 처리하고 라인업을 동기화하시겠습니까?')) {
+                return;
+            }
+
+            fetch('/api/v1/admin/matches/' + naverId + ':finish', {
+                method: 'PATCH'
+            })
+            .then(res => {
+                if (res.ok) {
+                    showToast('경기가 성공적으로 종료되었습니다.');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('경기 종료 처리에 실패했습니다.', true);
+                }
+            })
+            .catch(() => showToast('서버와의 통신이 원활하지 않습니다.', true));
         }
 
         function showToast(message, isError = false) {
