@@ -9,6 +9,11 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
+  flyway:
+    enabled: true
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    user: ${FLYWAY_USER}
+    password: ${FLYWAY_PASSWORD}
   jpa:
     show-sql: false
     hibernate:

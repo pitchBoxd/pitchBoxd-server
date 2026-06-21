@@ -2,6 +2,7 @@ package com.example.pitchboxd.matchDetail.presentation;
 
 import com.example.pitchboxd.auth.presentation.LoginUserId;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
+import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailMatchReviewResponses;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailPersonalResponse;
 import com.example.pitchboxd.matchDetail.dto.response.MatchDetailResultResponse;
@@ -17,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import com.example.pitchboxd.match.matchReview.domain.ReviewSortType;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -107,4 +107,6 @@ public class MatchDetailController {
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
+
+    // TODO: 특정 경기의 모든 선수 리뷰를 조회하는 기능 추가? 할까말까~~
 }

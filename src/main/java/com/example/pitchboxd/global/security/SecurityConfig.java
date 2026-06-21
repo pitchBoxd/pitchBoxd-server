@@ -5,9 +5,6 @@ import com.example.pitchboxd.global.logging.MdcLoggingFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -16,10 +13,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Slf4j
 @Configuration
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final Environment env;
+
     private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
@@ -45,42 +47,38 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> {
-                    if (Arrays.asList(env.getActiveProfiles()).contains("local")) {
-                        auth.requestMatchers("/api/v1/**", "/**").permitAll();
-                    } else {
-                        auth.requestMatchers(
-                                        "/api/v1/auth/login",
-                                        "/api/v1/auth/logout",
-                                        "/api/v1/users",
-                                        "/api/v1/users/email/exists",
-                                        "/api/v1/users/nickname/exist",
-                                        "/swagger-ui/**",
-                                        "/v3/api-docs",
-                                        "/v3/api-docs/**",
-                                        "/swagger-resources/**",
-                                        "/webjars/**",
-                                        "/h2-console/**",
-                                        "/api/v1/auth/oauth/signup",
-                                        "/api/v1/matches",
-                                        "/api/v1/seasons",
-                                        "/api/v1/teams/followers",
-                                        "/api/v1/teams/details",
-                                        "/api/v1/matches/*/detail/static",
-                                        "/api/v1/matches/*/detail/personal",
-                                        "/api/v1/matches/*/match-reviews/hot",
-                                        "/api/v1/matches/*/match-reviews",
-                                        "/api/v1/matches/*/players/*/player-reviews",
-                                        "/login/oauth2/code/google",
-                                        "/favicon.ico",
-                                        "/error"
-                                ).permitAll()
-                                .requestMatchers("/api/v1/admin/**", "/admin/**").hasRole("ADMIN")
-                                .anyRequest().authenticated();
-                    }
-                })
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/logout",
+                                "/api/v1/users",
+                                "/api/v1/users/email/exists",
+                                "/api/v1/users/nickname/exist",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/h2-console/**",
+                                "/api/v1/auth/oauth/signup",
+                                "/api/v1/matches",
+                                "/api/v1/seasons",
+                                "/api/v1/teams/followers",
+                                "/api/v1/teams/details",
+                                "/api/v1/matches/*/detail/static",
+                                "/api/v1/matches/*/detail/personal",
+                                "/api/v1/matches/*/match-reviews/hot",
+                                "/api/v1/matches/*/match-reviews",
+                                "/api/v1/matches/*/players/*/player-reviews",
+                                "/login/oauth2/code/google",
+                                "/favicon.ico",
+                                "/error"
+                        ).permitAll()
+                        .requestMatchers("/api/v1/admin/**", "/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)
@@ -112,7 +110,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://pitchboxd.site"));
+
+        if (Arrays.asList(env.getActiveProfiles()).contains("local")) {
+            configuration.setAllowedOrigins(List.of("https://front-dev.pitchboxd.site"));
+        }
+
+        if (Arrays.asList(env.getActiveProfiles()).contains("prod")) {
+            configuration.setAllowedOrigins(List.of("https://pitchboxd.site"));
+        }
+
         configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
