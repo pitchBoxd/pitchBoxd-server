@@ -1,0 +1,16 @@
+docker-compose.yml
+  h_09d9451df330ee 7-8,13-16,18,20-23,25-27,29
+.github/workflows/local-server-ci.yml
+  h_09d9451df330ee 43,61-62,72-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "7d6579517e3d8621d7fefa37a0035444b3860799",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
