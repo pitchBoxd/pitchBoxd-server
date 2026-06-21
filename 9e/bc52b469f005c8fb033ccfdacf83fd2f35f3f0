@@ -1,0 +1,16 @@
+.github/workflows/local-server-ci.yml
+  h_09d9451df330ee 70
+.github/workflows/prod-server-ci.yml
+  h_09d9451df330ee 1-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "9ebc52b469f005c8fb033ccfdacf83fd2f35f3f0",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
