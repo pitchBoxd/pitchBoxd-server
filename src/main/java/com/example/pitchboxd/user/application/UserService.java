@@ -69,4 +69,8 @@ public class UserService {
     public NicknameAvailabilityResponse isNicknameDuplicated(String nickname) {
         return new NicknameAvailabilityResponse(userRepository.existsByNickname(nickname));
     }
+
+    public java.util.List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
 }

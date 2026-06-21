@@ -35,6 +35,7 @@ public class AdminFacadeService {
     private final MatchService matchService;
     private final NaverSportsClient naverSportsClient;
     private final ObjectProvider<AdminFacadeService> selfProvider;
+    private final com.example.pitchboxd.user.application.UserService userService;
     
     public void autoFinishMatchesAndUpdateLineup(CreateMatchRequest request) {
         List<Match> matches = matchSyncService.findMatchesInPeriod(request.from(), request.to());
@@ -92,5 +93,12 @@ public class AdminFacadeService {
         Player player = playerService.findPlayer(playerId);
 
         player.update(request.teamId(), request.name(), request.naverId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.example.pitchboxd.admin.dto.response.AdminUserResponse> getAllUsers() {
+        return userService.findAllUsers().stream()
+                .map(com.example.pitchboxd.admin.dto.response.AdminUserResponse::from)
+                .toList();
     }
 }

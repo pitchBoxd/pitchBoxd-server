@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.example.pitchboxd.user.domain.User;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -52,6 +53,9 @@ class AdminFacadeServiceTest {
 
     @MockitoBean
     private NaverSportsClient naverSportsClient;
+
+    @Autowired
+    private com.example.pitchboxd.user.infrastructure.UserRepository userRepository;
 
     @Autowired
     private DatabaseCleaner databaseCleaner;
@@ -131,5 +135,19 @@ class AdminFacadeServiceTest {
         
         List<MatchLineup> lineups = matchLineupRepository.findAll();
         assertThat(lineups).hasSize(1);
+    }
+
+    @DisplayName("모든 유저 정보를 조회하여 DTO 리스트로 반환한다.")
+    @Test
+    void getAllUsers_success() {
+        // given
+        userRepository.save(new User("테스트1", "test1@example.com", "password123!"));
+        userRepository.save(new User("테스트2", "test2@example.com", "password123!"));
+
+        // when
+        List<com.example.pitchboxd.admin.dto.response.AdminUserResponse> users = adminFacadeService.getAllUsers();
+
+        // then
+        assertThat(users).hasSize(2);
     }
 }

@@ -221,4 +221,17 @@ class UserServiceTest {
         // then
         assertThat(response.isDuplicated()).isFalse();
     }
+
+    @Test
+    void 모든_유저를_조회한다() {
+        // given
+        userRepository.save(new User("유저1", "user1@example.com", "password123!"));
+        userRepository.save(new User("유저2", "user2@example.com", "password123!"));
+
+        // when
+        java.util.List<User> users = userService.findAllUsers();
+
+        // then
+        assertThat(users).hasSize(2);
+    }
 }

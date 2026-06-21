@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+
 @Tag(name = "Admin API", description = "Admin API 명세")
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class AdminController {
     @PostMapping("/sync-tasks/matches")
     public ResponseEntity<SuccessResponse<Void>> syncLeagueMatches(
             @RequestBody CreateMatchRequest request
-    ) {
+     ) {
         adminFacadeService.syncMatchesAndStatistics(request);
         HttpStatus status = HttpStatus.CREATED;
 
@@ -93,5 +96,14 @@ public class AdminController {
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, null));
+    }
+
+    @Operation(summary = "모든 유저 조회", description = "시스템에 등록된 모든 유저를 조회합니다.")
+    @GetMapping("/users")
+    public ResponseEntity<SuccessResponse<List<com.example.pitchboxd.admin.dto.response.AdminUserResponse>>> getAllUsers() {
+        List<com.example.pitchboxd.admin.dto.response.AdminUserResponse> response = adminFacadeService.getAllUsers();
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
     }
 }

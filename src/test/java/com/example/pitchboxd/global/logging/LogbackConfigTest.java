@@ -20,7 +20,8 @@ public class LogbackConfigTest {
     @EnableAutoConfiguration(exclude = {
         DataSourceAutoConfiguration.class, 
         HibernateJpaAutoConfiguration.class,
-        RedisAutoConfiguration.class
+        RedisAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration.class
     })
     public static class EmptyTestConfig {}
 

@@ -156,4 +156,17 @@ class AdminControllerTest {
                 .then().log().all()
                 .statusCode(HttpStatus.FORBIDDEN.value());
     }
+
+    @Test
+    void 모든_유저를_조회한다() {
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/api/v1/admin/users")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("data", org.hamcrest.Matchers.hasSize(2));
+    }
 }
