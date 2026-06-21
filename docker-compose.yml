@@ -1,58 +1,32 @@
 services:
-  db:
-    image: mysql:8.0
-    container_name: local-pitch-mysql
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-    restart: always
-    env_file:
-      - .env
-    environment:
-      MYSQL_DATABASE: db
-      MYSQL_ROOT_PASSWORD: root_password
-      TZ: Asia/Seoul
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-    healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   app:
     build: .
     container_name: pitchboxd-server
     ports:
       - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
     env_file:
       - .env
     restart: always
-    depends_on:
-      db:
-        condition: service_healthy
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
+    # 2. Grafana Alloy (수집기)
+  alloy:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy
     ports:
-      - "9090:9090"
+      - "12345:12345"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      # [설정 파일 주입] 호스트에 작성한 config.alloy를 컨테이너 안으로 넣어줌
+      - ./config.alloy:/etc/alloy/config.alloy
+      # [로그 읽기 권한] Spring Boot가 호스트 ./logs에 쓴 파일을 Alloy가 읽을 수 있게 마운트 (ro = 읽기 전용)
+      - ./logs:/var/log/myapp:ro
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3001:3000"
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy
     depends_on:
-      - prometheus
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - app
 
 networks:
   default:

@@ -40,6 +40,7 @@ jobs:
   build-and-push:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    environment: dev # 환경 명시
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,8 +58,8 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }} # 변수명 일반화
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push image
         uses: docker/build-push-action@v5
@@ -68,7 +69,7 @@ jobs:
           push: true
           platforms: linux/arm64
           tags: |
-            ${{ secrets.DOCKERHUB_DEV_USERNAME }}/pitchboxd:latest
-            ${{ secrets.DOCKERHUB_DEV_USERNAME }}/pitchboxd:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_PROD_USERNAME }}/pitchboxd:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_PROD_USERNAME }}/pitchboxd:buildcache,mode=max
+            ${{ secrets.DOCKERHUB_USERNAME }}/pitchboxd_dev:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/pitchboxd_dev:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pitchboxd_dev:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pitchboxd_dev:buildcache,mode=max
