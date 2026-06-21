@@ -67,7 +67,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/arm64
+          platforms: linux/amd64
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/pitchboxd_dev:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/pitchboxd_dev:${{ github.sha }}
