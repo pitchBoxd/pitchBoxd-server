@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PITCHBOXD ADMIN DASHBOARD</title>
+    <!-- Outfit & Inter Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0e1118;
+            --sidebar-bg: #161b26;
+            --card-bg: rgba(31, 38, 53, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --primary: #00f0ff;
+            --secondary: #00e676;
+            --danger: #ff1744;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        aside {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f0ff, #00e676);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .menu-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .menu-item {
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: 1px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            color: var(--text-main);
+            background-color: rgba(0, 240, 255, 0.08);
+            border-color: rgba(0, 240, 255, 0.2);
+            transform: translateX(4px);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 3rem;
+            max-width: 1200px;
+            width: calc(100% - 280px);
+        }
+
+        header {
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Tab Content Panel */
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glassmorphism Cards */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+        }
+
+        /* Grid System */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Forms Elements */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: rgba(14, 17, 24, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            font-size: 0.95rem;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f0ff, #00b8d4);
+            color: #0e1118;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.4);
+        }
+
+        /* Tables & Lists */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.95rem;
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-admin {
+            background-color: rgba(255, 23, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 23, 68, 0.2);
+        }
+
+        .badge-user {
+            background-color: rgba(0, 230, 118, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(0, 230, 118, 0.2);
+        }
+
+        /* Toast notifications */
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .toast {
+            background: #1f2635;
+            border-left: 4px solid var(--primary);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="logo">
+            <span>⚡</span> PITCHBOXD ADMIN
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="switchTab('dashboard-tab', this)">📊 Dashboard</li>
+            <li class="menu-item" onclick="switchTab('sync-tab', this)">🔄 Database Sync</li>
+            <li class="menu-item" onclick="switchTab('users-tab', this)">👥 User Management</li>
+        </ul>
+    </aside>
+
+    <main>
+        <header>
+            <h1 id="page-title">Admin Dashboard</h1>
+            <p>Pitchboxd 시스템 및 데이터베이스 관리 플랫폼</p>
+        </header>
+
+        <!-- Dashboard View -->
+        <div id="dashboard-tab" class="tab-panel active">
+            <div class="card">
+                <h2 class="card-title">🚀 Welcome back, Admin</h2>
+                <p style="color: var(--text-muted); line-height: 1.6;">
+                    Pitchboxd 어드민 콘솔에 접속했습니다. 사이드바의 탭을 선택하여 K리그 전 경기/선수 데이터를 동기화하고 가입된 사용자의 명단을 조회할 수 있습니다.
+                </p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">👥 Total Users</h3>
+                    <div style="font-size: 2.5rem; font-weight: 700; font-family: 'Outfit'; color: var(--secondary);" 
+                         th:text="${users.size()}">0</div>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">시스템에 가입된 총 사용자 수</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">🛠️ API Gateway Status</h3>
+                    <div style="font-size: 1.25rem; font-weight: 600; color: var(--primary);">ACTIVE / ONLINE</div>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">어드민 비동기 API 엔드포인트 연결 상태</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sync View -->
+        <div id="sync-tab" class="tab-panel">
+            <div class="grid-2">
+                <!-- Sync Matches -->
+                <div class="card">
+                    <h3 class="card-title">⚽ K리그 경기 동기화</h3>
+                    <form id="form-sync-matches" onsubmit="handleApiPost(event, '/api/v1/admin/sync-tasks/matches', this)">
+                        <div class="form-group">
+                            <label>시작일 (from)</label>
+                            <input type="date" class="form-control" name="from" required>
+                        </div>
+                        <div class="form-group">
+                            <label>종료일 (to)</label>
+                            <input type="date" class="form-control" name="to" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">동기화 실행</button>
+                    </form>
+                </div>
+
+                <!-- Sync Players -->
+                <div class="card">
+                    <h3 class="card-title">🏃 K리그 선수 동기화</h3>
+                    <form id="form-sync-players" onsubmit="handleApiPost(event, '/api/v1/admin/sync-tasks/players', this)">
+                        <div class="form-group">
+                            <label>시즌 연도 (season)</label>
+                            <input type="number" class="form-control" name="season" value="2026" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">동기화 실행</button>
+                    </form>
+                </div>
+
+                <!-- Auto Finish -->
+                <div class="card">
+                    <h3 class="card-title">⏱️ 경기 자동 종료 처리</h3>
+                    <form id="form-auto-finish" onsubmit="handleApiPost(event, '/api/v1/admin/sync-tasks/matches/auto-finish', this)">
+                        <div class="form-group">
+                            <label>시작일 (from)</label>
+                            <input type="date" class="form-control" name="from" required>
+                        </div>
+                        <div class="form-group">
+                            <label>종료일 (to)</label>
+                            <input type="date" class="form-control" name="to" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">자동 종료 실행</button>
+                    </form>
+                </div>
+
+                <!-- Manual Finish -->
+                <div class="card">
+                    <h3 class="card-title">🚩 경기 수동 종료 (Naver ID)</h3>
+                    <form id="form-finish-match" onsubmit="handleApiPatch(event, '/api/v1/admin/matches/', this, 'naverId')">
+                        <div class="form-group">
+                            <label>네이버 게임 ID (naverId)</label>
+                            <input type="text" class="form-control" name="naverId" placeholder="예: 20260315K101" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">수동 종료 실행</button>
+                    </form>
+                </div>
+
+                <!-- Update Match -->
+                <div class="card">
+                    <h3 class="card-title">📝 경기 정보 업데이트</h3>
+                    <form id="form-update-match" onsubmit="handleApiPatch(event, '/api/v1/admin/matches/', this, 'matchId', true)">
+                        <div class="form-group">
+                            <label>경기 고유 ID (matchId)</label>
+                            <input type="number" class="form-control" name="matchId" required>
+                        </div>
+                        <div class="form-group">
+                            <label>장소 (location)</label>
+                            <input type="text" class="form-control" name="location" placeholder="경기장 명칭">
+                        </div>
+                        <div class="form-group">
+                            <label>네이버 ID (naverId)</label>
+                            <input type="text" class="form-control" name="naverId" placeholder="네이버 경기 식별자">
+                        </div>
+                        <button type="submit" class="btn btn-primary">경기 업데이트</button>
+                    </form>
+                </div>
+
+                <!-- Update Player -->
+                <div class="card">
+                    <h3 class="card-title">👤 선수 정보 업데이트</h3>
+                    <form id="form-update-player" onsubmit="handleApiPatch(event, '/api/v1/admin/players/', this, 'playerId', true)">
+                        <div class="form-group">
+                            <label>선수 고유 ID (playerId)</label>
+                            <input type="number" class="form-control" name="playerId" required>
+                        </div>
+                        <div class="form-group">
+                            <label>이름 (name)</label>
+                            <input type="text" class="form-control" name="name">
+                        </div>
+                        <div class="form-group">
+                            <label>네이버 ID (naverId)</label>
+                            <input type="text" class="form-control" name="naverId">
+                        </div>
+                        <button type="submit" class="btn btn-primary">선수 업데이트</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users View -->
+        <div id="users-tab" class="tab-panel">
+            <div class="card">
+                <h3 class="card-title">👥 가입된 전체 사용자 목록</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>닉네임</th>
+                                <th>이메일</th>
+                                <th>응원팀 ID</th>
+                                <th>소셜 가입</th>
+                                <th>권한</th>
+                                <th>가입일시</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}">
+                                <td th:text="${user.id}">1</td>
+                                <td th:text="${user.nickname}" style="font-weight: 600;">유저닉네임</td>
+                                <td th:text="${user.email}">user@example.com</td>
+                                <td th:text="${user.favoriteTeamId != null ? user.favoriteTeamId : '-'}">-</td>
+                                <td th:text="${user.provider != null ? user.provider : 'LOCAL'}">LOCAL</td>
+                                <td>
+                                    <span th:if="${user.role == 'ADMIN'}" class="badge badge-admin">ADMIN</span>
+                                    <span th:if="${user.role != 'ADMIN'}" class="badge badge-user">USER</span>
+                                </td>
+                                <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-06-21</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <script>
+        function switchTab(tabId, menuItem) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            menuItem.classList.add('active');
+            
+            let title = "Admin Dashboard";
+            if (tabId === 'sync-tab') title = "Database Sync Tasks";
+            if (tabId === 'users-tab') title = "User Management";
+            document.getElementById('page-title').innerText = title;
+        }
+
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (isError) toast.style.borderLeftColor = 'var(--danger)';
+            toast.innerText = message;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        function handleApiPost(event, url, form) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => data[key] = value);
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                if (res.ok) {
+                    showToast('요청 처리가 성공적으로 실행되었습니다.');
+                    form.reset();
+                } else {
+                    showToast('요청 처리 중 문제가 발생했습니다.', true);
+                }
+            })
+            .catch(() => showToast('서버와의 통신이 원활하지 않습니다.', true));
+        }
+
+        function handleApiPatch(event, baseUrl, form, idParamName, isJsonBody = false) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const idVal = formData.get(idParamName);
+            let url = baseUrl + idVal;
+            
+            if (form.id === 'form-finish-match') {
+                url += ':finish';
+            }
+
+            const fetchOptions = { method: 'PATCH' };
+
+            if (isJsonBody) {
+                const data = {};
+                formData.forEach((value, key) => {
+                    if (key !== idParamName && value !== '') {
+                        data[key] = isNaN(value) ? value : Number(value);
+                    }
+                });
+                fetchOptions.headers = { 'Content-Type': 'application/json' };
+                fetchOptions.body = JSON.stringify(data);
+            }
+
+            fetch(url, fetchOptions)
+            .then(res => {
+                if (res.ok) {
+                    showToast('업데이트 처리가 완료되었습니다.');
+                    form.reset();
+                } else {
+                    showToast('업데이트에 실패했습니다.', true);
+                }
+            })
+            .catch(() => showToast('서버와의 통신이 원활하지 않습니다.', true));
+        }
+    </script>
+</body>
+</html>

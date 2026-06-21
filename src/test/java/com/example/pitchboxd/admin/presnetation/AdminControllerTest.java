@@ -169,4 +169,17 @@ class AdminControllerTest {
                 .statusCode(HttpStatus.OK.value())
                 .body("data", org.hamcrest.Matchers.hasSize(2));
     }
+
+    @Test
+    void 어드민_쿠키_인증을_통해_모든_유저를_조회한다() {
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .cookie("access_token", adminToken)
+                .when()
+                .get("/api/v1/admin/users")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("data", org.hamcrest.Matchers.hasSize(2));
+    }
 }

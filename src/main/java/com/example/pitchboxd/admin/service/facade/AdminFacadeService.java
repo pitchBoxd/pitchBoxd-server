@@ -4,6 +4,7 @@ import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
 import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.UpdatePlayerRequest;
+import com.example.pitchboxd.admin.dto.response.AdminUserResponse;
 import com.example.pitchboxd.admin.service.sync.MatchLineupSyncService;
 import com.example.pitchboxd.admin.service.sync.MatchSyncService;
 import com.example.pitchboxd.admin.service.sync.PlayerSyncService;
@@ -15,6 +16,7 @@ import com.example.pitchboxd.match.core.service.domain.MatchService;
 import com.example.pitchboxd.match.matchStatistics.service.domain.MatchStatisticsService;
 import com.example.pitchboxd.player.domain.Player;
 import com.example.pitchboxd.player.service.PlayerService;
+import com.example.pitchboxd.user.application.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +37,7 @@ public class AdminFacadeService {
     private final MatchService matchService;
     private final NaverSportsClient naverSportsClient;
     private final ObjectProvider<AdminFacadeService> selfProvider;
-    private final com.example.pitchboxd.user.application.UserService userService;
+    private final UserService userService;
     
     public void autoFinishMatchesAndUpdateLineup(CreateMatchRequest request) {
         List<Match> matches = matchSyncService.findMatchesInPeriod(request.from(), request.to());
@@ -96,9 +98,9 @@ public class AdminFacadeService {
     }
 
     @Transactional(readOnly = true)
-    public List<com.example.pitchboxd.admin.dto.response.AdminUserResponse> getAllUsers() {
+    public List<AdminUserResponse> getAllUsers() {
         return userService.findAllUsers().stream()
-                .map(com.example.pitchboxd.admin.dto.response.AdminUserResponse::from)
+                .map(AdminUserResponse::from)
                 .toList();
     }
 }

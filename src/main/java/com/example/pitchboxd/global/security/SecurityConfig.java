@@ -77,7 +77,7 @@ public class SecurityConfig {
                                         "/favicon.ico",
                                         "/error"
                                 ).permitAll()
-                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/admin/**", "/admin/**").hasRole("ADMIN")
                                 .anyRequest().authenticated();
                     }
                 })

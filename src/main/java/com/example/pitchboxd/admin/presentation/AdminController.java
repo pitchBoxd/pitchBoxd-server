@@ -4,6 +4,7 @@ import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
 import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.UpdatePlayerRequest;
+import com.example.pitchboxd.admin.dto.response.AdminUserResponse;
 import com.example.pitchboxd.admin.service.facade.AdminFacadeService;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -100,8 +101,8 @@ public class AdminController {
 
     @Operation(summary = "모든 유저 조회", description = "시스템에 등록된 모든 유저를 조회합니다.")
     @GetMapping("/users")
-    public ResponseEntity<SuccessResponse<List<com.example.pitchboxd.admin.dto.response.AdminUserResponse>>> getAllUsers() {
-        List<com.example.pitchboxd.admin.dto.response.AdminUserResponse> response = adminFacadeService.getAllUsers();
+    public ResponseEntity<SuccessResponse<List<AdminUserResponse>>> getAllUsers() {
+        List<AdminUserResponse> response = adminFacadeService.getAllUsers();
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
