@@ -1,0 +1,14 @@
+src/main/java/com/example/pitchboxd/global/security/SecurityConfig.java
+  h_09d9451df330ee 77-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "9d42c76ebbe2128fc2bfa7946c2c38a1895d7309",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
