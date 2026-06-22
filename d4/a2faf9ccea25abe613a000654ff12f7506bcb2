@@ -1,0 +1,14 @@
+src/main/resources/application-local.yaml
+  h_09d9451df330ee 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "d4a2faf9ccea25abe613a000654ff12f7506bcb2",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
