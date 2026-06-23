@@ -174,6 +174,25 @@ class MatchDetailControllerTest {
     }
 
     @Test
+    void 비로그인_유저가_경기_상세_결과와_통계_데이터를_조회한다() {
+        // when - 결과 데이터 조회
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/result", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+
+        // when - 통계 데이터 조회
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/matches/{matchId}/detail/stats", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
     void 경기_상세_핫한_리뷰_데이터를_조회한다() {
         // given
         User author = userRepository.save(new User("작성자", "author@test.com", "pass"));

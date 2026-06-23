@@ -181,4 +181,20 @@ class TeamControllerTest {
                 }
         );
     }
+
+    @Test
+    void 로그인_없이_모든_팀을_조회한다() {
+        // given
+        String teamNameSeoul = "FC서울";
+        teamRepository.save(new Team(teamNameSeoul, "asdfdd"));
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/teams")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+    }
 }
+

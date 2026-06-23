@@ -138,6 +138,33 @@ class HomeControllerTest {
         assertThat(response.responses().get(0).matchResponse().reviewEndTime()).isEqualTo(now.minusHours(4).plusDays(2));
         assertThat(response.responses().get(1).matchResponse().reviewEndTime()).isEqualTo(now.minusHours(3).plusDays(2));
     }
+
+    @Test
+    void 로그인_없이_홈_화면_데이터를_조회한다() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        clockHolder.setTime(now);
+
+        Team homeTeam = teamRepository.save(new Team("홈팀1", "naver1"));
+        Team awayTeam = teamRepository.save(new Team("원정팀1", "naver2"));
+
+        Match recentMatch = new Match(1L, "2", homeTeam.getId(), awayTeam.getId(), now.minusHours(5),
+                MatchStatus.FINISHED, "상암", "match");
+        recentMatch.finish(now.minusHours(3));
+        recentMatch.decideMatchResult(new MatchResult(2, 1, List.of(), List.of()));
+        Match savedMatch = matchRepository.save(recentMatch);
+        matchStatisticsRepository.save(new MatchStatistics(savedMatch.getId()));
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .queryParam("state", "REVIEWABLE")
+                .when()
+                .get("/api/v1/home")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+    }
 }
+
 
 
