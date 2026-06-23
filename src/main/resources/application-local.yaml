@@ -68,3 +68,6 @@ app:
   policy:
     match-review-limit: 90d
     player_review-limit: 90d
+
+server:
+  forward-headers-strategy: framework
