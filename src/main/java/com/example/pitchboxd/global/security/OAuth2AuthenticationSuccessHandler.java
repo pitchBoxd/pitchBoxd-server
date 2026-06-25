@@ -84,6 +84,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge, boolean secure) {
         return ResponseCookie.from("refreshToken", token)
+                .domain("pitchboxd.site")
                 .httpOnly(true)
                 .secure(secure)
                 .path("/")
@@ -94,6 +95,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private ResponseCookie createAccessTokenCookie(String token, long maxAge, boolean secure) {
         return ResponseCookie.from("accessToken", token)
+                .domain("pitchboxd.site")
                 .path("/")
                 .maxAge(maxAge)
                 .httpOnly(false)

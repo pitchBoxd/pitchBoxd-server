@@ -103,6 +103,7 @@ public class AuthController {
 
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
         return ResponseCookie.from("refreshToken", token)
+                .domain("pitchboxd.site")
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
