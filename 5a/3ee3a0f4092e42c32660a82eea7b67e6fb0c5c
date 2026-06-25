@@ -1,0 +1,14 @@
+src/main/java/com/example/pitchboxd/global/security/OAuth2AuthenticationSuccessHandler.java
+  h_09d9451df330ee 107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "5a3ee3a0f4092e42c32660a82eea7b67e6fb0c5c",
+  "prompts": {},
+  "humans": {
+    "h_09d9451df330ee": {
+      "author": "yush <yush2202@gmail.com>"
+    }
+  }
+}
