@@ -175,7 +175,7 @@ class AdminControllerTest {
         // when & then
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .cookie("access_token", adminToken)
+                .cookie("accessToken", adminToken)
                 .when()
                 .get("/api/v1/admin/users")
                 .then().log().all()

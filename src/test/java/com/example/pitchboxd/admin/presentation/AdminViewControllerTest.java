@@ -80,7 +80,7 @@ class AdminViewControllerTest {
     @Test
     void 어드민_쿠키가_있으면_어드민_대시보드_HTML을_조회한다() throws Exception {
         mockMvc.perform(get("/admin")
-                        .cookie(new Cookie("access_token", adminToken)))
+                        .cookie(new Cookie("accessToken", adminToken)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/dashboard"));
     }
@@ -88,7 +88,7 @@ class AdminViewControllerTest {
     @Test
     void 일반_사용자_쿠키로_접근_시_인가_에러가_발생한다() throws Exception {
         mockMvc.perform(get("/admin")
-                        .cookie(new Cookie("access_token", userToken)))
+                        .cookie(new Cookie("accessToken", userToken)))
                 .andExpect(status().isForbidden());
     }
 
@@ -101,7 +101,7 @@ class AdminViewControllerTest {
     @Test
     void 대시보드_HTML에_주요_UI_요소들이_포함되어_있다() throws Exception {
         mockMvc.perform(get("/admin")
-                        .cookie(new Cookie("access_token", adminToken)))
+                        .cookie(new Cookie("accessToken", adminToken)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"dashboard-tab\"")))
                 .andExpect(content().string(containsString("id=\"sync-tab\"")))
@@ -119,7 +119,7 @@ class AdminViewControllerTest {
         // when & then
         mockMvc.perform(get("/admin")
                         .param("seasonId", season.getId().toString())
-                        .cookie(new Cookie("access_token", adminToken)))
+                        .cookie(new Cookie("accessToken", adminToken)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/dashboard"))
                 .andExpect(model().attribute("selectedSeasonId", season.getId()))
@@ -139,7 +139,7 @@ class AdminViewControllerTest {
         
         // when & then
         mockMvc.perform(get("/admin")
-                        .cookie(new Cookie("access_token", adminToken)))
+                        .cookie(new Cookie("accessToken", adminToken)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/dashboard"))
                 .andExpect(model().attribute("selectedSeasonId", season2.getId()))
@@ -158,7 +158,7 @@ class AdminViewControllerTest {
         // when & then
         mockMvc.perform(get("/admin")
                         .param("seasonId", season.getId().toString())
-                        .cookie(new Cookie("access_token", adminToken)))
+                        .cookie(new Cookie("accessToken", adminToken)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/dashboard"))
                 .andExpect(content().string(containsString("id=\"matches-tab\"")))
