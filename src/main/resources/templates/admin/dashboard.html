@@ -343,6 +343,8 @@
             <li class="menu-item" onclick="switchTab('sync-tab', this)">🔄 Database Sync</li>
             <li class="menu-item" onclick="switchTab('users-tab', this)">👥 User Management</li>
             <li class="menu-item" onclick="switchTab('matches-tab', this)">⚽ Match Management</li>
+            <li class="menu-item" onclick="switchTab('players-tab', this)">🏃 Player Management</li>
+            <li class="menu-item" onclick="switchTab('match-details-tab', this)">📝 Match Details</li>
         </ul>
     </aside>
 
@@ -564,14 +566,18 @@
                                     <span th:if="${match.status.name() == 'CANCELED'}" class="badge badge-canceled">취소됨</span>
                                 </td>
                                 <td th:text="${match.naverId}">naverId</td>
-                                <td>
+                                <td style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
                                     <button th:if="${match.status.name() != 'FINISHED'}" 
                                             class="btn btn-sm btn-danger" 
                                             th:data-naver-id="${match.naverId}"
                                             onclick="finishMatch(this.getAttribute('data-naver-id'))">
                                         종료
                                     </button>
-                                    <span th:if="${match.status.name() == 'FINISHED'}" style="color: var(--text-muted); font-size: 0.9rem;">-</span>
+                                    <button class="btn btn-sm btn-primary"
+                                            th:data-match-id="${match.id}"
+                                            onclick="loadMatchDetailsForEdit(this.getAttribute('data-match-id'))">
+                                        상세
+                                    </button>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(matches)}">
@@ -580,6 +586,192 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Players View -->
+        <div id="players-tab" class="tab-panel">
+            <div class="grid-2">
+                <!-- Players List -->
+                <div class="card">
+                    <h3 class="card-title">🏃 K리그 선수 목록</h3>
+                    <div class="form-group" style="max-width: 100%; margin-bottom: 1.5rem;">
+                        <label for="player-search">선수명 또는 팀명 검색</label>
+                        <input type="text" id="player-search" class="form-control" placeholder="검색어를 입력하세요..." onkeyup="filterPlayers()">
+                    </div>
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>이름</th>
+                                    <th>소속 팀</th>
+                                    <th>네이버 ID</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="players-table-body">
+                                <tr th:each="player : ${players}">
+                                    <td th:text="${player.id}">1</td>
+                                    <td th:text="${player.name}" style="font-weight: 600;">이름</td>
+                                    <td th:text="${player.teamName}">팀명</td>
+                                    <td th:text="${player.naverId}">naverId</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary"
+                                                th:data-id="${player.id}"
+                                                th:data-name="${player.name}"
+                                                th:data-team-id="${player.teamId}"
+                                                th:data-naver-id="${player.naverId}"
+                                                onclick="editPlayer(this.getAttribute('data-id'), this.getAttribute('data-name'), this.getAttribute('data-team-id'), this.getAttribute('data-naver-id'))">
+                                            수정
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(players)}">
+                                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">조회된 선수가 없습니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Edit Player Form -->
+                <div class="card">
+                    <h3 class="card-title">👤 선수 정보 수정</h3>
+                    <form id="form-edit-player" onsubmit="submitEditPlayer(event, this)">
+                        <div class="form-group">
+                            <label>선수 고유 ID (playerId)</label>
+                            <input type="number" id="edit-player-id" class="form-control" readonly placeholder="선수 목록에서 '수정'을 눌러주세요.">
+                        </div>
+                        <div class="form-group">
+                            <label>이름 (name)</label>
+                            <input type="text" id="edit-player-name" class="form-control" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>소속 팀</label>
+                            <select id="edit-player-team" class="form-control" name="teamId" required>
+                                <option value="">팀 선택</option>
+                                <option th:each="team : ${teams}"
+                                        th:value="${team.id}"
+                                        th:text="${team.name}">울산</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>네이버 ID (naverId)</label>
+                            <input type="text" id="edit-player-naver-id" class="form-control" name="naverId" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">수정사항 저장</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Match Details View -->
+        <div id="match-details-tab" class="tab-panel">
+            <div class="card">
+                <h3 class="card-title">📝 경기 디테일 관리 및 득점 정보</h3>
+                <form id="form-edit-match-detail" onsubmit="submitEditMatchDetail(event, this)">
+                    <div class="grid-2">
+                        <div>
+                            <div class="form-group">
+                                <label>경기 고유 ID (matchId)</label>
+                                <input type="number" id="detail-match-id" class="form-control" readonly placeholder="경기 목록에서 '상세'를 눌러주세요.">
+                            </div>
+                            <div class="form-group">
+                                <label>라운드 (round)</label>
+                                <input type="text" id="detail-match-round" class="form-control" name="round" required>
+                            </div>
+                            <div class="form-group">
+                                <label>홈 팀</label>
+                                <select id="detail-match-home-team" class="form-control" name="homeTeamId" required>
+                                    <option th:each="team : ${teams}"
+                                            th:value="${team.id}"
+                                            th:text="${team.name}">홈팀</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>어웨이 팀</label>
+                                <select id="detail-match-away-team" class="form-control" name="awayTeamId" required>
+                                    <option th:each="team : ${teams}"
+                                            th:value="${team.id}"
+                                            th:text="${team.name}">어웨이팀</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>경기 장소 (location)</label>
+                                <input type="text" id="detail-match-location" class="form-control" name="location" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="form-group">
+                                <label>시작 시간 (startTime)</label>
+                                <input type="datetime-local" id="detail-match-start-time" class="form-control" name="startTime" required>
+                            </div>
+                            <div class="form-group">
+                                <label>종료 시간 (finishedAt)</label>
+                                <input type="datetime-local" id="detail-match-finished-at" class="form-control" name="finishedAt">
+                            </div>
+                            <div class="form-group">
+                                <label>상태 (status)</label>
+                                <select id="detail-match-status" class="form-control" name="status" required>
+                                    <option value="SCHEDULED">SCHEDULED (대기 중)</option>
+                                    <option value="PLAYING">PLAYING (진행 중)</option>
+                                    <option value="FINISHED">FINISHED (종료됨)</option>
+                                    <option value="CANCELED">CANCELED (취소됨)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>네이버 경기 ID (naverId)</label>
+                                <input type="text" id="detail-match-naver-id" class="form-control" name="naverId" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scores & Scorers (Visible when status is FINISHED) -->
+                    <div id="scorers-section" class="card" style="background-color: rgba(14, 17, 24, 0.4); margin-top: 1.5rem; border-color: rgba(0, 240, 255, 0.1);">
+                        <h4 class="card-title" style="font-size: 1.1rem; color: var(--secondary);">⚽ 스코어 및 득점자 설정</h4>
+                        
+                        <div class="grid-2" style="margin-bottom: 1.5rem;">
+                            <div class="form-group">
+                                <label>홈 팀 스코어 (homeScore)</label>
+                                <input type="number" id="detail-home-score" class="form-control" name="homeScore" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>어웨이 팀 스코어 (awayScore)</label>
+                                <input type="number" id="detail-away-score" class="form-control" name="awayScore" value="0">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <!-- Home Scorers -->
+                            <div>
+                                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-main); display:flex; justify-content:space-between; align-items:center;">
+                                    🏠 홈 팀 득점자 명단
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="addScorerRow('home')">+ 추가</button>
+                                </h5>
+                                <div id="home-scorers-container" style="display:flex; flex-direction:column; gap:0.5rem;">
+                                    <!-- Dynamic Rows -->
+                                </div>
+                            </div>
+
+                            <!-- Away Scorers -->
+                            <div>
+                                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-main); display:flex; justify-content:space-between; align-items:center;">
+                                    ✈️ 어웨이 팀 득점자 명단
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="addScorerRow('away')">+ 추가</button>
+                                </h5>
+                                <div id="away-scorers-container" style="display:flex; flex-direction:column; gap:0.5rem;">
+                                    <!-- Dynamic Rows -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">경기 상세 정보 저장</button>
+                    </div>
+                </form>
             </div>
         </div>
     </main>
@@ -598,6 +790,8 @@
             if (tabId === 'sync-tab') title = "Database Sync Tasks";
             if (tabId === 'users-tab') title = "User Management";
             if (tabId === 'matches-tab') title = "Match Management";
+            if (tabId === 'players-tab') title = "Player Management";
+            if (tabId === 'match-details-tab') title = "Match Detail Management";
             document.getElementById('page-title').innerText = title;
         }
 
@@ -618,6 +812,16 @@
                 const syncMenuItem = document.querySelector('[onclick*="sync-tab"]');
                 if (syncMenuItem) {
                     switchTab('sync-tab', syncMenuItem);
+                }
+            } else if (tab === 'players') {
+                const playersMenuItem = document.querySelector('[onclick*="players-tab"]');
+                if (playersMenuItem) {
+                    switchTab('players-tab', playersMenuItem);
+                }
+            } else if (tab === 'match-details') {
+                const matchDetailsMenuItem = document.querySelector('[onclick*="match-details-tab"]');
+                if (matchDetailsMenuItem) {
+                    switchTab('match-details-tab', matchDetailsMenuItem);
                 }
             }
         };
@@ -713,6 +917,196 @@
                     form.reset();
                 } else {
                     showToast('업데이트에 실패했습니다.', true);
+                }
+            })
+            .catch(() => showToast('서버와의 통신이 원활하지 않습니다.', true));
+        }
+
+        // --- Player Management Logic ---
+        function filterPlayers() {
+            const query = document.getElementById('player-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#players-table-body tr');
+            rows.forEach(row => {
+                if (row.cells.length >= 3) {
+                    const name = row.cells[1].innerText.toLowerCase();
+                    const team = row.cells[2].innerText.toLowerCase();
+                    if (name.includes(query) || team.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        function editPlayer(id, name, teamId, naverId) {
+            document.getElementById('edit-player-id').value = id;
+            document.getElementById('edit-player-name').value = name;
+            document.getElementById('edit-player-team').value = teamId;
+            document.getElementById('edit-player-naver-id').value = naverId;
+        }
+
+        function submitEditPlayer(event, form) {
+            event.preventDefault();
+            const id = document.getElementById('edit-player-id').value;
+            if (!id) {
+                showToast('수정할 선수를 선택해 주세요.', true);
+                return;
+            }
+            const data = {
+                teamId: Number(document.getElementById('edit-player-team').value),
+                name: document.getElementById('edit-player-name').value,
+                naverId: document.getElementById('edit-player-naver-id').value
+            };
+            
+            fetch('/api/v1/admin/players/' + id, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                if (res.ok) {
+                    showToast('선수 정보가 성공적으로 수정되었습니다.');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('선수 정보 수정에 실패했습니다.', true);
+                }
+            })
+            .catch(() => showToast('서버와의 통신이 원활하지 않습니다.', true));
+        }
+
+        // --- Match Details & Goal Scorers Logic ---
+        function addScorerRow(team, playerName = '', minute = '', addedTime = '', ownGoal = false) {
+            const container = document.getElementById(team + '-scorers-container');
+            const rowId = 'scorer-row-' + team + '-' + Date.now() + '-' + Math.floor(Math.random()*1000);
+            
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.style.display = 'flex';
+            div.style.gap = '0.5rem';
+            div.style.alignItems = 'center';
+            div.className = 'scorer-row-item';
+            
+            div.innerHTML = `
+                <input type="text" class="form-control scorer-name" placeholder="선수명" value="${playerName}" required style="flex:2;">
+                <input type="number" class="form-control scorer-minute" placeholder="시간" value="${minute}" required style="flex:1;">
+                <input type="number" class="form-control scorer-added-time" placeholder="추가시간" value="${addedTime}" style="flex:1;">
+                <label style="display:flex; align-items:center; gap:0.25rem; font-size:0.8rem; user-select:none; white-space:nowrap;">
+                    <input type="checkbox" class="scorer-own-goal" ${ownGoal ? 'checked' : ''}> 자책골
+                </label>
+                <button type="button" class="btn btn-sm btn-danger" onclick="document.getElementById('${rowId}').remove()" style="padding:0.4rem 0.6rem;">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function loadMatchDetailsForEdit(matchId) {
+            fetch('/api/v1/admin/matches/' + matchId)
+            .then(res => res.json())
+            .then(result => {
+                if (result.status === 'OK' || result.data) {
+                    const match = result.data;
+                    document.getElementById('detail-match-id').value = match.id;
+                    document.getElementById('detail-match-round').value = match.round;
+                    document.getElementById('detail-match-home-team').value = match.homeTeamId;
+                    document.getElementById('detail-match-away-team').value = match.awayTeamId;
+                    document.getElementById('detail-match-location').value = match.location;
+                    document.getElementById('detail-match-status').value = match.status;
+                    document.getElementById('detail-match-naver-id').value = match.naverId;
+                    
+                    // Datetime formatting
+                    if (match.startTime) {
+                        document.getElementById('detail-match-start-time').value = match.startTime.substring(0, 16);
+                    } else {
+                        document.getElementById('detail-match-start-time').value = '';
+                    }
+                    if (match.finishedAt) {
+                        document.getElementById('detail-match-finished-at').value = match.finishedAt.substring(0, 16);
+                    } else {
+                        document.getElementById('detail-match-finished-at').value = '';
+                    }
+                    
+                    // Scores
+                    document.getElementById('detail-home-score').value = match.homeScore !== null ? match.homeScore : 0;
+                    document.getElementById('detail-away-score').value = match.awayScore !== null ? match.awayScore : 0;
+                    
+                    // Scorers
+                    document.getElementById('home-scorers-container').innerHTML = '';
+                    document.getElementById('away-scorers-container').innerHTML = '';
+                    
+                    if (match.homeScorers) {
+                        match.homeScorers.forEach(s => addScorerRow('home', s.playerName, s.minute, s.addedTime || '', s.ownGoal));
+                    }
+                    if (match.awayScorers) {
+                        match.awayScorers.forEach(s => addScorerRow('away', s.playerName, s.minute, s.addedTime || '', s.ownGoal));
+                    }
+                    
+                    // Switch tab
+                    const menuItems = document.querySelectorAll('.menu-item');
+                    const matchDetailsMenuItem = Array.from(menuItems).find(i => i.innerText.includes('Match Details'));
+                    if (matchDetailsMenuItem) {
+                        switchTab('match-details-tab', matchDetailsMenuItem);
+                    }
+                } else {
+                    showToast('경기 정보를 가져오는 데 실패했습니다.', true);
+                }
+            })
+            .catch(() => showToast('서버에서 정보를 조회하는 중 오류가 발생했습니다.', true));
+        }
+
+        function submitEditMatchDetail(event, form) {
+            event.preventDefault();
+            const id = document.getElementById('detail-match-id').value;
+            if (!id) {
+                showToast('상세 수정할 경기를 먼저 선택해 주세요.', true);
+                return;
+            }
+            
+            // Build scorers list
+            const getScorers = (team) => {
+                const list = [];
+                const rows = document.querySelectorAll(`#${team}-scorers-container .scorer-row-item`);
+                rows.forEach(row => {
+                    const playerName = row.querySelector('.scorer-name').value;
+                    const minute = Number(row.querySelector('.scorer-minute').value);
+                    const addedTimeVal = row.querySelector('.scorer-added-time').value;
+                    const addedTime = addedTimeVal !== '' ? Number(addedTimeVal) : null;
+                    const ownGoal = row.querySelector('.scorer-own-goal').checked;
+                    list.push({ playerName, minute, addedTime, ownGoal });
+                });
+                return list;
+            };
+            
+            const homeScorers = getScorers('home');
+            const awayScorers = getScorers('away');
+            
+            const data = {
+                round: document.getElementById('detail-match-round').value,
+                homeTeamId: Number(document.getElementById('detail-match-home-team').value),
+                awayTeamId: Number(document.getElementById('detail-match-away-team').value),
+                startTime: document.getElementById('detail-match-start-time').value,
+                finishedAt: document.getElementById('detail-match-finished-at').value || null,
+                status: document.getElementById('detail-match-status').value,
+                location: document.getElementById('detail-match-location').value,
+                naverId: document.getElementById('detail-match-naver-id').value,
+                matchResult: {
+                    homeScore: Number(document.getElementById('detail-home-score').value),
+                    awayScore: Number(document.getElementById('detail-away-score').value),
+                    homeScorers: homeScorers,
+                    awayScorers: awayScorers
+                }
+            };
+            
+            fetch('/api/v1/admin/matches/' + id, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                if (res.ok) {
+                    showToast('경기 상세 정보가 저장되었습니다.');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('경기 정보 저장에 실패했습니다.', true);
                 }
             })
             .catch(() => showToast('서버와의 통신이 원활하지 않습니다.', true));

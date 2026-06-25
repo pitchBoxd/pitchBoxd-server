@@ -4,6 +4,7 @@ import com.example.pitchboxd.admin.dto.request.CreateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.CreatePlayerRequest;
 import com.example.pitchboxd.admin.dto.request.UpdateMatchRequest;
 import com.example.pitchboxd.admin.dto.request.UpdatePlayerRequest;
+import com.example.pitchboxd.admin.dto.response.AdminMatchResponse;
 import com.example.pitchboxd.admin.dto.response.AdminUserResponse;
 import com.example.pitchboxd.admin.service.facade.AdminFacadeService;
 import com.example.pitchboxd.global.dto.response.SuccessResponse;
@@ -103,6 +104,15 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<SuccessResponse<List<AdminUserResponse>>> getAllUsers() {
         List<AdminUserResponse> response = adminFacadeService.getAllUsers();
+        HttpStatus status = HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(SuccessResponse.of(status, response));
+    }
+
+    @Operation(summary = "경기 단건 조회", description = "특정 경기 정보를 조회합니다.")
+    @GetMapping("/matches/{matchId}")
+    public ResponseEntity<SuccessResponse<AdminMatchResponse>> getMatch(@PathVariable Long matchId) {
+        AdminMatchResponse response = adminFacadeService.getMatch(matchId);
         HttpStatus status = HttpStatus.OK;
 
         return ResponseEntity.status(status).body(SuccessResponse.of(status, response));

@@ -30,6 +30,10 @@ public class PlayerService {
         return playerRepository.findNaverIdsByNaverIdIn(playerNaverId);
     }
 
+    public List<Player> findAll() {
+        return playerRepository.findAll();
+    }
+
     public void saveAll(List<Player> players) {
         playerRepository.saveAll(players);
     }

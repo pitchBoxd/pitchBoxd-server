@@ -182,4 +182,34 @@ class AdminControllerTest {
                 .statusCode(HttpStatus.OK.value())
                 .body("data", org.hamcrest.Matchers.hasSize(2));
     }
+
+    @Test
+    void 경기_단건을_조회한다() {
+        // given
+        Team homeTeam = teamRepository.save(new Team("홈팀", "1"));
+        Team awayTeam = teamRepository.save(new Team("어웨이팀", "2"));
+        Match match = matchRepository.save(new Match(
+                1L,
+                "3R",
+                homeTeam.getId(),
+                awayTeam.getId(),
+                LocalDateTime.now(),
+                MatchStatus.FINISHED,
+                "STADIUM",
+                "matchNaverId"
+        ));
+
+        // when & then
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/api/v1/admin/matches/{matchId}", match.getId())
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.id", org.hamcrest.Matchers.equalTo(match.getId().intValue()))
+                .body("data.naverId", org.hamcrest.Matchers.equalTo("matchNaverId"))
+                .body("data.homeTeamName", org.hamcrest.Matchers.equalTo("홈팀"))
+                .body("data.awayTeamName", org.hamcrest.Matchers.equalTo("어웨이팀"));
+    }
 }

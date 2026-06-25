@@ -1,10 +1,13 @@
 package com.example.pitchboxd.admin.presentation;
 
 import com.example.pitchboxd.admin.dto.response.AdminMatchResponse;
+import com.example.pitchboxd.admin.dto.response.AdminPlayerResponse;
 import com.example.pitchboxd.admin.dto.response.AdminUserResponse;
 import com.example.pitchboxd.admin.service.facade.AdminFacadeService;
 import com.example.pitchboxd.season.domain.Season;
 import com.example.pitchboxd.season.service.SeasonQueryService;
+import com.example.pitchboxd.team.domain.Team;
+import com.example.pitchboxd.team.service.TeamQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +23,7 @@ public class AdminViewController {
 
     private final AdminFacadeService adminFacadeService;
     private final SeasonQueryService seasonQueryService;
+    private final TeamQueryService teamQueryService;
 
     @GetMapping
     public String dashboard(
@@ -43,6 +47,12 @@ public class AdminViewController {
             matches = adminFacadeService.getMatchesBySeason(selectedSeasonId);
         }
         model.addAttribute("matches", matches);
+
+        List<AdminPlayerResponse> players = adminFacadeService.getAllPlayers();
+        model.addAttribute("players", players);
+
+        List<Team> teams = teamQueryService.findAllTeam();
+        model.addAttribute("teams", teams);
 
         return "admin/dashboard";
     }
