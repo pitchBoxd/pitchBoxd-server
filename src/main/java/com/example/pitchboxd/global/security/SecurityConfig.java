@@ -116,7 +116,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         if (Arrays.asList(env.getActiveProfiles()).contains("local")) {
-            configuration.setAllowedOrigins(List.of("https://front-dev.pitchboxd.site", "http://localhost:3000"));
+            configuration.setAllowedOrigins(List.of("https://dev-front.pitchboxd.site", "http://localhost:3000"));
         }
 
         if (Arrays.asList(env.getActiveProfiles()).contains("prod")) {
