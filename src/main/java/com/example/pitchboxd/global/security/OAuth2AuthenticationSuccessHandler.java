@@ -104,6 +104,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private ResponseCookie createSignupTokenCookie(String token, long maxAge, boolean secure) {
         return ResponseCookie.from("signupToken", token)
+                .domain("pitchboxd.site")
                 .path("/")
                 .maxAge(maxAge)
                 .httpOnly(false)
